@@ -20,3 +20,8 @@
 - A split line stores percent as integer basis points and fixed allocations as Long minor units. Percent totals above 100% are rejected; fixed lines are paid in order and clamped at the available income.
 - M2 split income is an EGP/same-currency first implementation: the Entry screen offers only destination accounts whose default currency matches the income account. Cross-currency income allocation remains deferred until a per-line booking-rate UX is specified.
 - The M2 onboarding lock step is intentionally a placeholder. Biometric/device-credential setup belongs to the later security milestone.
+- Budget alerts are persisted by budget ID, Cairo period start, and threshold so 80% and 100% fire at most once per period. A budget’s current scope IDs are comma-delimited UUIDs.
+- Planned-payment Snooze schedules a one-hour one-time WorkManager reminder. Mark paid currently records the occurrence as paid; posting the matching ledger transaction is still being completed with debt repayment support.
+- Backup `.mzbak` version 2 retains support for reading the earlier version-1 header, records its PBKDF2 iteration count, and uses a verified Room `VACUUM INTO` snapshot. Attachment bytes are not yet bundled because receipt URI ownership/copying has not been implemented.
+- Restore closes Room, verifies the checksum, preserves the old database beside the replacement, swaps the verified snapshot, then restarts the app process. It does not yet have an instrumentation round-trip test over every table.
+- Stats Balance currently charts recorded base-currency movement; historical opening-balance and FX snapshots, net-worth assets, and the complete golden 50k benchmark remain to be completed.
