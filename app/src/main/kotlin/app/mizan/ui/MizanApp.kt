@@ -281,6 +281,8 @@ private fun recordsScreen(
     modifier: Modifier,
 ) {
     var search by remember { mutableStateOf("") }
+    var recentlyDeleted by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     val query = remember(search) { RecordQuery(search = search.takeIf { it.isNotBlank() }) }
     val records =
         remember(query) {
@@ -288,6 +290,20 @@ private fun recordsScreen(
         }.collectAsLazyPagingItems()
     LazyColumn(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item { OutlinedTextField(search, { search = it }, label = { Text("Search note or payee") }, modifier = Modifier.fillMaxWidth()) }
+        if (recentlyDeleted != null) {
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Record moved to Trash")
+                    TextButton(onClick = {
+                        val id = recentlyDeleted ?: return@TextButton
+                        scope.launch {
+                            repository.restoreRecord(id)
+                            recentlyDeleted = null
+                        }
+                    }) { Text("Undo") }
+                }
+            }
+        }
         items(records.itemCount, key = { index -> records[index]?.id ?: index }) { index ->
             records[index]?.let { row ->
                 Card(Modifier.fillMaxWidth()) {
@@ -296,6 +312,12 @@ private fun recordsScreen(
                         Text(row.categoryName ?: row.kind, style = MaterialTheme.typography.titleMedium)
                         Text("${row.accountName} · ${row.currency}")
                         amountText(row.amountMinor, row.currency)
+                        TextButton(onClick = {
+                            scope.launch {
+                                repository.deleteRecord(row.id)
+                                recentlyDeleted = row.id
+                            }
+                        }) { Text("Delete") }
                     }
                 }
             }
