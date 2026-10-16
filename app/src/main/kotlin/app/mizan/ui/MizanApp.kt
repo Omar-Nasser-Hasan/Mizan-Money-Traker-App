@@ -182,6 +182,10 @@ fun mizanApp(repository: MizanRepository) {
                     exportScreen(repository, modifier)
                 }
 
+                "about" -> {
+                    aboutScreen(modifier)
+                }
+
                 "dev" -> {
                     devScreen(repository, modifier)
                 }
@@ -578,6 +582,7 @@ private fun settingsScreen(
             "backup" to "Backup and restore",
             "export" to "Export records (CSV)",
             "battery-guide" to "HyperOS battery and Autostart guide",
+            "about" to "About, privacy, and rate attribution",
         ).forEach { (route, label) ->
             item { Button(onClick = { onOpen(route) }, modifier = Modifier.fillMaxWidth()) { Text(label) } }
         }
