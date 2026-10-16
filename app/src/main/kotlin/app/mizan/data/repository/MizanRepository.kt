@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.paging.PagingSource
 import app.mizan.data.db.AccountBucketEntity
+import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.BudgetEntity
@@ -35,6 +36,7 @@ import app.mizan.data.db.SplitLineEntity
 import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
+import app.mizan.data.backup.BackupArchive
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -63,6 +65,7 @@ class MizanRepository
     @Inject
     constructor(
         private val currencies: CurrencyDao,
+        private val database: AppDatabase,
         private val fxRates: FxRateDao,
         private val accounts: AccountDao,
         private val reference: ReferenceDataDao,
@@ -96,6 +99,8 @@ class MizanRepository
         fun observePlannedPayments() = planning.observePlanned()
 
         suspend fun activePlannedPayments() = planning.activePlanned()
+
+        suspend fun createBackup(passphrase: CharArray) = BackupArchive(context, database).create(passphrase)
 
         suspend fun markPlannedOccurrence(
             plannedId: String,
