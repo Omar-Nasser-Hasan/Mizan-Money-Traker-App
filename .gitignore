@@ -13,6 +13,7 @@ secrets.properties
 # Build and IDE outputs
 .gradle/
 .kotlin/
+gradle/gradle-daemon-jvm.properties
 build/
 **/build/
 *.apk

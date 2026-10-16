@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Pinned Android Gradle Plugin 9.3.0 so the project syncs with the Android Studio installation that supports AGP through 9.3.0.
 - Restricted `docs/SPEC.md` to product sections 1–13 and removed the source copy that also contained agent instructions and milestone prompts.
 - Added repository ignore rules, build/install/Dev-menu instructions, gold-feed terms and outage handling, and M0 layout/deferred-work notes.
 - Moved the Room database into the section 3.1 `data/db` package and enabled release resource shrinking.
