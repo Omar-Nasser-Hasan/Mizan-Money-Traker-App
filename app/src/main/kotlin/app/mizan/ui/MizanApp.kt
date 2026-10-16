@@ -320,6 +320,7 @@ private fun entryScreen(
     var selectedCategory by remember(categories) { mutableStateOf(categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID) }
     var message by remember { mutableStateOf("") }
     val account = accounts.firstOrNull { it.id == selectedAccount }
+    val entryDecimals = currencyDecimals(account?.defaultCurrency ?: "EGP")
     LazyColumn(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -339,7 +340,13 @@ private fun entryScreen(
                 FilterChip(
                     selected = false,
                     onClick = {
-                        preset.amountMinor?.let { amount = BigDecimal.valueOf(it).movePointLeft(2).toPlainString() }
+                        preset.amountMinor?.let {
+                            amount =
+                                BigDecimal
+                                    .valueOf(it)
+                                    .movePointLeft(currencyDecimals(preset.currency ?: account?.defaultCurrency ?: "EGP"))
+                                    .toPlainString()
+                        }
                         preset.accountId?.let { selectedAccount = it }
                         preset.categoryId?.let { selectedCategory = it }
                         selectedSplitTemplate = preset.splitTemplateId
@@ -348,7 +355,7 @@ private fun entryScreen(
                 )
             }
         }
-        item { amountText(amountToMinor(amount, 2), account?.defaultCurrency ?: "EGP", big = true) }
+        item { amountText(amountToMinor(amount, entryDecimals), account?.defaultCurrency ?: "EGP", big = true) }
         item { calculatorKeypad(amount, { amount = it }) }
         item { Text("Account") }
         items(accounts, key = { it.id }) { candidate ->
@@ -380,7 +387,7 @@ private fun entryScreen(
             }
             item {
                 incomeSplitSheet(
-                    amountMinor = amountToMinor(amount, 2),
+                    amountMinor = amountToMinor(amount, entryDecimals),
                     accounts = accounts.filter { it.defaultCurrency == account?.defaultCurrency },
                     templates = splitTemplates,
                     selectedTemplateId = selectedSplitTemplate,
@@ -403,7 +410,7 @@ private fun entryScreen(
                                     kind = kind,
                                     accountId = current.id,
                                     currency = current.defaultCurrency,
-                                    amountMinor = amountToMinor(amount, 2).takeIf { it > 0 },
+                                    amountMinor = amountToMinor(amount, entryDecimals).takeIf { it > 0 },
                                     categoryId = selectedCategory,
                                     splitTemplateId = selectedSplitTemplate,
                                 ),
@@ -421,7 +428,7 @@ private fun entryScreen(
                     message = "Create an account first."
                 } else {
                     scope.launch {
-                        val minor = amountToMinor(amount, 2)
+                        val minor = amountToMinor(amount, entryDecimals)
                         val now = Instant.now()
                         val date = LocalDate.now(cairo)
                         val service = LedgerService()
@@ -433,7 +440,7 @@ private fun entryScreen(
                                             SplitIncomeRequest(
                                                 splitAllocations,
                                                 current.defaultCurrency,
-                                                2,
+                                                entryDecimals,
                                                 BigDecimal.ONE,
                                                 now,
                                                 date,
@@ -446,7 +453,7 @@ private fun entryScreen(
                                                 current.id,
                                                 current.defaultCurrency,
                                                 minor,
-                                                2,
+                                                entryDecimals,
                                                 BigDecimal.ONE,
                                                 now,
                                                 date,
@@ -468,12 +475,12 @@ private fun entryScreen(
                                                 current.id,
                                                 current.defaultCurrency,
                                                 minor,
-                                                2,
+                                                entryDecimals,
                                                 BigDecimal.ONE,
                                                 target.id,
                                                 target.defaultCurrency,
                                                 minor,
-                                                2,
+                                                currencyDecimals(target.defaultCurrency),
                                                 BigDecimal.ONE,
                                                 now,
                                                 date,
@@ -488,7 +495,7 @@ private fun entryScreen(
                                             current.id,
                                             current.defaultCurrency,
                                             minor,
-                                            2,
+                                            entryDecimals,
                                             BigDecimal.ONE,
                                             selectedCategory,
                                             now,
@@ -505,7 +512,7 @@ private fun entryScreen(
                         }
                     }
                 }
-            }, enabled = amountToMinor(amount, 2) > 0 && account != null, modifier = Modifier.fillMaxWidth()) { Text("Save") }
+            }, enabled = amountToMinor(amount, entryDecimals) > 0 && account != null, modifier = Modifier.fillMaxWidth()) { Text("Save") }
         }
         if (message.isNotBlank()) item { Text(message) }
     }
@@ -847,14 +854,7 @@ fun amountText(
         Text("••••", style = if (big) MaterialTheme.typography.displaySmall else MaterialTheme.typography.titleMedium)
         return
     }
-    val scale =
-        if (currency == "JPY") {
-            0
-        } else if (currency == "KWD") {
-            3
-        } else {
-            2
-        }
+    val scale = currencyDecimals(currency)
     val value =
         BigDecimal
             .valueOf(minor)
@@ -878,6 +878,13 @@ fun amountToMinor(
         )
     }.getOrNull()?.movePointRight(decimals)?.setScale(0, RoundingMode.HALF_UP)?.longValueExact()
         ?: 0L
+
+private fun currencyDecimals(currency: String): Int =
+    when (currency) {
+        "JPY" -> 0
+        "KWD" -> 3
+        else -> 2
+    }
 
 private fun tabSymbol(tab: String): String =
     when (tab) {
