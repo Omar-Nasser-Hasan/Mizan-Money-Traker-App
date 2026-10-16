@@ -21,7 +21,10 @@ class BackupArchive(
         snapshot.delete()
         val hash = sha256(databaseBytes)
         val manifest = "{\"schemaVersion\":${database.openHelper.writableDatabase.version},\"createdAt\":\"${Instant.now()}\",\"databaseSha256\":\"$hash\",\"databaseBytes\":${databaseBytes.size}}"
-        return File(directory, "mizan-${System.currentTimeMillis()}.mzbak").also { it.writeBytes(BackupCrypto.encrypt(BackupPayload(databaseBytes, manifest), passphrase)) }
+        return File(directory, "mizan-${System.currentTimeMillis()}.mzbak").also {
+            it.writeBytes(BackupCrypto.encrypt(BackupPayload(databaseBytes, manifest), passphrase))
+            rotate(directory)
+        }
     }
 
     fun preview(file: File, passphrase: CharArray): BackupPreview {
@@ -45,4 +48,11 @@ class BackupArchive(
     }
 
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
+    private fun rotate(directory: File) {
+        directory.listFiles { file -> file.extension == "mzbak" }
+            ?.sortedByDescending { it.lastModified() }
+            ?.drop(11)
+            ?.forEach(File::delete)
+    }
 }
