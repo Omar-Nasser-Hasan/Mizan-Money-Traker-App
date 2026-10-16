@@ -161,7 +161,7 @@ private fun LazyListScope.cashFlowTab(
                     when {
                         absoluteChange -> "vs previous period: absolute change"
                         percentBasisPoints == null -> "vs previous period: —"
-                        else -> "vs previous period: ${percentBasisPoints / 100.0}%"
+                        else -> "vs previous period: ${formatPercent(percentBasisPoints)}%"
                     },
                 )
             }
@@ -237,4 +237,10 @@ private enum class StatsRange(
             DAYS_30 -> Period(today.minusDays(29), today)
             YEAR -> Period(today.withDayOfYear(1), today)
         }
+}
+
+private fun formatPercent(basisPoints: Long): String {
+    val sign = if (basisPoints < 0) "-" else ""
+    val absolute = kotlin.math.abs(basisPoints)
+    return "$sign${absolute / 100}.${(absolute % 100).toString().padStart(2, '0')}"
 }
