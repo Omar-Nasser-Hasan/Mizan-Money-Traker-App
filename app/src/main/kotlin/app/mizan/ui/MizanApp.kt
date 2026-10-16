@@ -144,6 +144,8 @@ fun mizanApp(repository: MizanRepository) {
                 referenceScreen(repository, "payees", modifier)
             }
 
+            "battery-guide" -> hyperOsGuide(modifier)
+
             "dev" -> {
                 devScreen(repository, modifier)
             }
@@ -497,6 +499,7 @@ private fun settingsScreen(
             "categories" to "Categories",
             "labels" to "Labels",
             "payees" to "Payees",
+            "battery-guide" to "HyperOS battery and Autostart guide",
         ).forEach { (route, label) ->
             item { Button(onClick = { onOpen(route) }, modifier = Modifier.fillMaxWidth()) { Text(label) } }
         }

@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import app.mizan.data.repository.MizanRepository
+import app.mizan.notify.NotificationChannels
 import app.mizan.worker.FxRefreshWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,7 @@ class MizanApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        NotificationChannels.create(this)
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             repository.seedReferenceData()
             repository.refreshFxIfMissingOrStale()
