@@ -198,9 +198,28 @@ class MizanRepository
             currency: String,
             openingMinor: Long,
             includeInTotals: Boolean = true,
+            creditLimitMinor: Long? = null,
+            statementDay: Int? = null,
+            dueDay: Int? = null,
         ): String {
             val today = LocalDate.now(clock.withZone(cairo)).toString()
-            accounts.upsert(AccountEntity(id, name, type, color, icon, currency, today, includeInTotals, false, 0))
+            accounts.upsert(
+                AccountEntity(
+                    id,
+                    name,
+                    type,
+                    color,
+                    icon,
+                    currency,
+                    today,
+                    includeInTotals,
+                    false,
+                    0,
+                    creditLimitMinor,
+                    statementDay,
+                    dueDay,
+                ),
+            )
             accounts.upsertBuckets(listOf(AccountBucketEntity(id, currency, openingMinor)))
             return id
         }

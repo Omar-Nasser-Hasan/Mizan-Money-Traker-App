@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -83,100 +84,112 @@ fun mizanApp(repository: MizanRepository) {
         if (initialAccounts.isNotEmpty()) firstRunChecked = true
     }
     val scope = rememberCoroutineScope()
-    CompositionLocalProvider(LocalHideAmounts provides hideAmounts) { Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        route?.replaceFirstChar { it.uppercase() } ?: tab,
-                        modifier = Modifier.combinedClickable(onClick = {}, onLongClick = { if (tab == "Wealth") route = "dev" }),
-                    )
-                },
-                navigationIcon = { if (route != null) TextButton(onClick = { route = null }) { Text("Back") } },
-                actions = { if (route == null) TextButton(onClick = { route = "settings" }) { Text("Settings") } },
-            )
-        },
-        bottomBar = {
-            if (route == null) {
-                NavigationBar {
-                    tabs.forEach { item ->
-                        NavigationBarItem(
-                            selected = tab == item,
-                            onClick = { tab = item },
-                            icon = { Text(tabSymbol(item)) },
-                            label = { Text(item) },
+    CompositionLocalProvider(LocalHideAmounts provides hideAmounts) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            route?.replaceFirstChar { it.uppercase() } ?: tab,
+                            modifier = Modifier.combinedClickable(onClick = {}, onLongClick = { if (tab == "Wealth") route = "dev" }),
                         )
+                    },
+                    navigationIcon = { if (route != null) TextButton(onClick = { route = null }) { Text("Back") } },
+                    actions = { if (route == null) TextButton(onClick = { route = "settings" }) { Text("Settings") } },
+                )
+            },
+            bottomBar = {
+                if (route == null) {
+                    NavigationBar {
+                        tabs.forEach { item ->
+                            NavigationBarItem(
+                                selected = tab == item,
+                                onClick = { tab = item },
+                                icon = { Text(tabSymbol(item)) },
+                                label = { Text(item) },
+                            )
+                        }
+                    }
+                }
+            },
+            floatingActionButton = {
+                if (route == null &&
+                    tab in setOf("Home", "Records", "Plan")
+                ) {
+                    FloatingActionButton(onClick = { route = "entry" }) { Text("+") }
+                }
+            },
+        ) { padding ->
+            val modifier = Modifier.fillMaxSize().padding(padding)
+            when (route) {
+                "entry" -> {
+                    entryScreen(repository, modifier, onDone = { route = null })
+                }
+
+                "onboarding" -> {
+                    onboardingScreen(repository, modifier, onDone = { route = null })
+                }
+
+                "settings" -> {
+                    settingsScreen(repository, modifier, onOpen = { route = it })
+                }
+
+                "accounts" -> {
+                    accountsScreen(repository, modifier, onDetail = { route = "account:$it" })
+                }
+
+                "currencies" -> {
+                    currenciesScreen(repository, modifier)
+                }
+
+                "categories" -> {
+                    referenceScreen(repository, "categories", modifier)
+                }
+
+                "labels" -> {
+                    referenceScreen(repository, "labels", modifier)
+                }
+
+                "payees" -> {
+                    referenceScreen(repository, "payees", modifier)
+                }
+
+                "battery-guide" -> {
+                    hyperOsGuide(modifier)
+                }
+
+                "security" -> {
+                    securityScreen(repository, modifier)
+                }
+
+                "trash" -> {
+                    trashScreen(repository, modifier)
+                }
+
+                "backup" -> {
+                    backupScreen(repository, modifier)
+                }
+
+                "dev" -> {
+                    devScreen(repository, modifier)
+                }
+
+                else -> {
+                    val currentRoute = route
+                    if (currentRoute?.startsWith("account:") ==
+                        true
+                    ) {
+                        accountDetail(repository, currentRoute.removePrefix("account:"), modifier)
+                    } else {
+                        tabScreen(repository, tab, modifier, onAccount = {
+                            route =
+                                "account:$it"
+                        }, onEntry = { route = "entry" })
                     }
                 }
             }
-        },
-        floatingActionButton = {
-            if (route == null && tab in setOf("Home", "Records", "Plan")) FloatingActionButton(onClick = { route = "entry" }) { Text("+") }
-        },
-    ) { padding ->
-        val modifier = Modifier.fillMaxSize().padding(padding)
-        when (route) {
-            "entry" -> {
-                entryScreen(repository, modifier, onDone = { route = null })
-            }
-
-            "onboarding" -> {
-                onboardingScreen(repository, modifier, onDone = { route = null })
-            }
-
-            "settings" -> {
-                settingsScreen(repository, modifier, onOpen = { route = it })
-            }
-
-            "accounts" -> {
-                accountsScreen(repository, modifier, onDetail = { route = "account:$it" })
-            }
-
-            "currencies" -> {
-                currenciesScreen(repository, modifier)
-            }
-
-            "categories" -> {
-                referenceScreen(repository, "categories", modifier)
-            }
-
-            "labels" -> {
-                referenceScreen(repository, "labels", modifier)
-            }
-
-            "payees" -> {
-                referenceScreen(repository, "payees", modifier)
-            }
-
-            "battery-guide" -> {
-                hyperOsGuide(modifier)
-            }
-
-            "security" -> securityScreen(repository, modifier)
-
-            "trash" -> trashScreen(repository, modifier)
-
-            "backup" -> backupScreen(repository, modifier)
-
-            "dev" -> {
-                devScreen(repository, modifier)
-            }
-
-            else -> {
-                val currentRoute = route
-                if (currentRoute?.startsWith("account:") ==
-                    true
-                ) {
-                    accountDetail(repository, currentRoute.removePrefix("account:"), modifier)
-                } else {
-                    tabScreen(repository, tab, modifier, onAccount = {
-                        route =
-                            "account:$it"
-                    }, onEntry = { route = "entry" })
-                }
-            }
         }
-    } }
+    }
 }
 
 @Composable
@@ -532,29 +545,83 @@ private fun accountsScreen(
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf("CASH") }
+    var currency by remember { mutableStateOf("EGP") }
+    var opening by remember { mutableStateOf("0") }
+    var creditLimit by remember { mutableStateOf("") }
+    var statementDay by remember { mutableStateOf("1") }
+    var dueDay by remember { mutableStateOf("1") }
     LazyColumn(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item { OutlinedTextField(name, { name = it }, label = { Text("New account name") }, modifier = Modifier.fillMaxWidth()) }
+        item {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(listOf("CASH", "BANK", "EWALLET", "SAVINGS", "CREDIT_CARD", "INVESTMENT", "OTHER")) { option ->
+                    FilterChip(type == option, { type = option }, label = { Text(option.replace('_', ' ')) })
+                }
+            }
+        }
+        item {
+            OutlinedTextField(currency, {
+                currency = it.uppercase().take(3)
+            }, label = { Text("Default currency") }, modifier = Modifier.fillMaxWidth())
+        }
+        item { OutlinedTextField(opening, { opening = it }, label = { Text("Opening balance") }, modifier = Modifier.fillMaxWidth()) }
+        if (type == "CREDIT_CARD") {
+            item {
+                OutlinedTextField(
+                    creditLimit,
+                    { creditLimit = it },
+                    label = { Text("Credit limit") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item {
+                OutlinedTextField(statementDay, {
+                    statementDay = it.filter(Char::isDigit).take(2)
+                }, label = { Text("Statement day (1–31)") }, modifier = Modifier.fillMaxWidth())
+            }
+            item {
+                OutlinedTextField(dueDay, {
+                    dueDay = it.filter(Char::isDigit).take(2)
+                }, label = { Text("Due day (1–31)") }, modifier = Modifier.fillMaxWidth())
+            }
+        }
         item {
             Button(onClick = {
                 scope.launch {
                     if (name.isNotBlank()) {
                         repository.saveAccount(
                             name = name,
-                            type = "CASH",
+                            type = type,
                             color = "#F2B84B",
                             icon = "wallet",
-                            currency = "EGP",
-                            openingMinor = 0,
+                            currency = currency.ifBlank { "EGP" },
+                            openingMinor =
+                                amountToMinor(
+                                    opening,
+                                    if (currency == "KWD") {
+                                        3
+                                    } else if (currency == "JPY") {
+                                        0
+                                    } else {
+                                        2
+                                    },
+                                ),
+                            creditLimitMinor = creditLimit.takeIf { type == "CREDIT_CARD" }?.let { amountToMinor(it, 2) },
+                            statementDay = statementDay.toIntOrNull()?.takeIf { it in 1..31 },
+                            dueDay = dueDay.toIntOrNull()?.takeIf { it in 1..31 },
                         )
                         name =
                             ""
                     }
                 }
-            }) { Text("Add EGP cash account") }
+            }) { Text("Add account") }
         }
-        items(accounts, key = {
-            it.id
-        }) { account -> Button(onClick = { onDetail(account.id) }, modifier = Modifier.fillMaxWidth()) { Text(account.name) } }
+        items(accounts, key = { it.id }) { account ->
+            Button(onClick = { onDetail(account.id) }, modifier = Modifier.fillMaxWidth()) {
+                Text("${account.name} · ${account.type.replace('_', ' ')}")
+            }
+        }
     }
 }
 
