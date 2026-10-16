@@ -152,9 +152,21 @@ class MizanRepository
 
         fun observeSecureScreens(): Flow<Boolean> = context.dataStore.data.map { it[SECURE_SCREENS] ?: false }
 
+        fun observePlannedRemindersEnabled(): Flow<Boolean> = context.dataStore.data.map { it[PLANNED_REMINDERS_ENABLED] ?: true }
+
+        fun observeBudgetAlertsEnabled(): Flow<Boolean> = context.dataStore.data.map { it[BUDGET_ALERTS_ENABLED] ?: true }
+
         suspend fun setHideAmounts(enabled: Boolean) = context.dataStore.edit { it[HIDE_AMOUNTS] = enabled }
 
         suspend fun setSecureScreens(enabled: Boolean) = context.dataStore.edit { it[SECURE_SCREENS] = enabled }
+
+        suspend fun setPlannedRemindersEnabled(enabled: Boolean) = context.dataStore.edit { it[PLANNED_REMINDERS_ENABLED] = enabled }
+
+        suspend fun setBudgetAlertsEnabled(enabled: Boolean) = context.dataStore.edit { it[BUDGET_ALERTS_ENABLED] = enabled }
+
+        suspend fun plannedRemindersEnabled(): Boolean = context.dataStore.data.first()[PLANNED_REMINDERS_ENABLED] ?: true
+
+        suspend fun budgetAlertsEnabled(): Boolean = context.dataStore.data.first()[BUDGET_ALERTS_ENABLED] ?: true
 
         fun observeBuckets(accountId: String) = accounts.observeBuckets(accountId)
 
@@ -452,6 +464,8 @@ class MizanRepository
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
             private val SECURE_SCREENS = booleanPreferencesKey("secure_screens")
+            private val PLANNED_REMINDERS_ENABLED = booleanPreferencesKey("planned_reminders_enabled")
+            private val BUDGET_ALERTS_ENABLED = booleanPreferencesKey("budget_alerts_enabled")
 
             private fun pinKey(code: String): Preferences.Key<String> = stringPreferencesKey("fx_pin_$code")
 

@@ -33,51 +33,56 @@ class ReminderWorker(
         if (!canNotify()) return Result.success()
         val snoozedId = inputData.getString(KEY_PLANNED_ID)
         if (snoozedId != null) {
+            if (!repository().plannedRemindersEnabled()) return Result.success()
             val payment = repository().activePlannedPayment(snoozedId) ?: return Result.success()
             val dueDate = inputData.getString(KEY_DUE_DATE) ?: return Result.success()
             notifyPlanned(payment.id, payment.name, dueDate)
             return Result.success()
         }
-        repository().activePlannedPayments().forEach { payment ->
-            val dueDates =
-                RecurrenceEngine.occurrences(
-                    Recurrence(
-                        Frequency.valueOf(payment.frequency),
-                        payment.interval,
-                        LocalDate.parse(payment.startDate),
-                        payment.endDate?.let(LocalDate::parse),
-                    ),
-                    today,
-                    today.plusDays(payment.remindDaysBefore.toLong()),
-                )
-            if (dueDates.isEmpty()) return@forEach
-            val dueDate = dueDates.first().toString()
-            if (repository().plannedOccurrence(payment.id, dueDate) != null) return@forEach
-            notifyPlanned(payment.id, payment.name, dueDate)
+        if (repository().plannedRemindersEnabled()) {
+            repository().activePlannedPayments().forEach { payment ->
+                val dueDates =
+                    RecurrenceEngine.occurrences(
+                        Recurrence(
+                            Frequency.valueOf(payment.frequency),
+                            payment.interval,
+                            LocalDate.parse(payment.startDate),
+                            payment.endDate?.let(LocalDate::parse),
+                        ),
+                        today,
+                        today.plusDays(payment.remindDaysBefore.toLong()),
+                    )
+                if (dueDates.isEmpty()) return@forEach
+                val dueDate = dueDates.first().toString()
+                if (repository().plannedOccurrence(payment.id, dueDate) != null) return@forEach
+                notifyPlanned(payment.id, payment.name, dueDate)
+            }
         }
-        repository().activeBudgets().forEach { budget ->
-            val period =
-                budgetWindow(
-                    BudgetPeriod.valueOf(budget.period),
-                    today,
-                    budget.startDate?.let(LocalDate::parse),
-                    budget.endDate?.let(LocalDate::parse),
-                )
-            if (today !in period.start..period.end) return@forEach
-            val spent = repository().budgetSpent(period.start.toString(), today.toString(), budget.scope, budget.scopeIds)
-            listOf(80, 100).forEach { threshold ->
-                if (spent * 100L < budget.limitMinor * threshold) return@forEach
-                if (!repository().recordBudgetAlert(budget.id, period.start.toString(), threshold)) return@forEach
-                NotificationManagerCompat.from(applicationContext).notify(
-                    (budget.id + period.start + threshold).hashCode(),
-                    NotificationCompat
-                        .Builder(applicationContext, NotificationChannels.BUDGETS)
-                        .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                        .setContentTitle("${budget.name} is at $threshold%")
-                        .setContentText("Spent $spent EGP minor of ${budget.limitMinor} EGP minor")
-                        .setAutoCancel(true)
-                        .build(),
-                )
+        if (repository().budgetAlertsEnabled()) {
+            repository().activeBudgets().forEach { budget ->
+                val period =
+                    budgetWindow(
+                        BudgetPeriod.valueOf(budget.period),
+                        today,
+                        budget.startDate?.let(LocalDate::parse),
+                        budget.endDate?.let(LocalDate::parse),
+                    )
+                if (today !in period.start..period.end) return@forEach
+                val spent = repository().budgetSpent(period.start.toString(), today.toString(), budget.scope, budget.scopeIds)
+                listOf(80, 100).forEach { threshold ->
+                    if (spent * 100L < budget.limitMinor * threshold) return@forEach
+                    if (!repository().recordBudgetAlert(budget.id, period.start.toString(), threshold)) return@forEach
+                    NotificationManagerCompat.from(applicationContext).notify(
+                        (budget.id + period.start + threshold).hashCode(),
+                        NotificationCompat
+                            .Builder(applicationContext, NotificationChannels.BUDGETS)
+                            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+                            .setContentTitle("${budget.name} is at $threshold%")
+                            .setContentText("Spent $spent EGP minor of ${budget.limitMinor} EGP minor")
+                            .setAutoCancel(true)
+                            .build(),
+                    )
+                }
             }
         }
         return Result.success()

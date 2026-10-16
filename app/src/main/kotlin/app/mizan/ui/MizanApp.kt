@@ -162,6 +162,10 @@ fun mizanApp(repository: MizanRepository) {
                     securityScreen(repository, modifier)
                 }
 
+                "notifications" -> {
+                    notificationSettingsScreen(repository, modifier)
+                }
+
                 "trash" -> {
                     trashScreen(repository, modifier)
                 }
@@ -526,6 +530,7 @@ private fun settingsScreen(
             "labels" to "Labels",
             "payees" to "Payees",
             "security" to "Security",
+            "notifications" to "Notifications",
             "trash" to "Trash",
             "backup" to "Backup and restore",
             "battery-guide" to "HyperOS battery and Autostart guide",
