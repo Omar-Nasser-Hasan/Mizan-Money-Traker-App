@@ -59,6 +59,10 @@ import app.mizan.domain.ledger.SplitIncomeRequest
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.ports.RecordQuery
+import app.mizan.domain.stats.Period
+import app.mizan.domain.stats.StatKind
+import app.mizan.domain.stats.StatRecord
+import app.mizan.domain.stats.StatsEngine
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -221,7 +225,35 @@ private fun homeScreen(
     onEntry: () -> Unit,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
+    val statsRows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
+    val today = LocalDate.now(cairo)
+    val summary =
+        StatsEngine.cashFlow(
+            statsRows.map {
+                StatRecord(
+                    it.id,
+                    LocalDate.parse(it.bookedDate),
+                    runCatching { StatKind.valueOf(it.kind) }.getOrDefault(StatKind.OTHER),
+                    it.baseMinor,
+                    it.accountId,
+                )
+            },
+            Period(today.withDayOfMonth(1), today),
+        )
     LazyColumn(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item { Text("This month", style = MaterialTheme.typography.headlineMedium) }
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Income")
+                    amountText(summary.incomeMinor, "EGP")
+                    Text("Expenses")
+                    amountText(summary.expenseMinor, "EGP")
+                    Text("Cash flow")
+                    amountText(summary.netMinor, "EGP")
+                }
+            }
+        }
         item { Text("Accounts", style = MaterialTheme.typography.headlineMedium) }
         if (accounts.isEmpty()) item { emptyState("Create your first account to start recording.", "Create account", onEntry) }
         items(accounts, key = { it.id }) { account ->
