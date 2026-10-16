@@ -39,6 +39,7 @@ import app.mizan.ui.charts.lineAreaChart
 import app.mizan.ui.charts.spendingDonut
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Composable
 fun statsScreen(
@@ -47,8 +48,9 @@ fun statsScreen(
 ) {
     var tab by remember { mutableStateOf(StatsTab.BALANCE) }
     var range by remember { mutableStateOf(StatsRange.MONTH) }
+    var comparison by remember { mutableStateOf(Comparison.PREVIOUS) }
     val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
-    val today = LocalDate.now()
+    val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val period = range.period(today)
     val records =
         rows.map {
@@ -67,7 +69,8 @@ fun statsScreen(
             )
         }
     val current = StatsEngine.cashFlow(records, period)
-    val previous = StatsEngine.cashFlow(records, StatPeriods.previous(period))
+    val comparisonPeriod = if (comparison == Comparison.PREVIOUS) StatPeriods.previous(period) else StatPeriods.lastYear(period)
+    val previous = StatsEngine.cashFlow(records, comparisonPeriod)
     val netChange = compare(current.netMinor, previous.netMinor, cashFlow = true)
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -84,6 +87,13 @@ fun statsScreen(
             }
         }
         item { Text("${period.start} to ${period.end}", style = MaterialTheme.typography.labelLarge) }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Comparison.entries.forEach { option ->
+                    FilterChip(comparison == option, { comparison = option }, label = { Text(option.label) })
+                }
+            }
+        }
         item {
             Button(
                 onClick = {
@@ -130,6 +140,7 @@ fun statsScreen(
                     current.netMinor,
                     netChange.percentBasisPoints,
                     netChange.absoluteChange,
+                    comparison.label,
                 )
             }
 
@@ -184,6 +195,7 @@ private fun LazyListScope.cashFlowTab(
     net: Long,
     percentBasisPoints: Long?,
     absoluteChange: Boolean,
+    comparisonLabel: String,
 ) {
     item {
         Card(Modifier.fillMaxWidth()) {
@@ -196,9 +208,9 @@ private fun LazyListScope.cashFlowTab(
                 amountText(net, "EGP")
                 Text(
                     when {
-                        absoluteChange -> "vs previous period: absolute change"
-                        percentBasisPoints == null -> "vs previous period: —"
-                        else -> "vs previous period: ${formatPercent(percentBasisPoints)}%"
+                        absoluteChange -> "vs $comparisonLabel: absolute change"
+                        percentBasisPoints == null -> "vs $comparisonLabel: —"
+                        else -> "vs $comparisonLabel: ${formatPercent(percentBasisPoints)}%"
                     },
                 )
             }
@@ -278,6 +290,13 @@ private enum class StatsRange(
             DAYS_30 -> Period(today.minusDays(29), today)
             YEAR -> Period(today.withDayOfYear(1), today)
         }
+}
+
+private enum class Comparison(
+    val label: String,
+) {
+    PREVIOUS("Previous period"),
+    LAST_YEAR("Last year"),
 }
 
 private fun formatPercent(basisPoints: Long): String {
