@@ -44,12 +44,15 @@ import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.PayeeEntity
+import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ledger.EntryCalculator
 import app.mizan.domain.ledger.ExpenseRequest
+import app.mizan.domain.ledger.IncomeAllocation
 import app.mizan.domain.ledger.IncomeRequest
 import app.mizan.domain.ledger.LedgerService
 import app.mizan.domain.ledger.PaymentType
+import app.mizan.domain.ledger.SplitIncomeRequest
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.ports.RecordQuery
@@ -59,6 +62,7 @@ import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 
 private val cairo = ZoneId.of("Africa/Cairo")
 private val tabs = listOf("Home", "Records", "Stats", "Plan", "Wealth")
@@ -68,6 +72,12 @@ private val tabs = listOf("Home", "Records", "Stats", "Plan", "Wealth")
 fun mizanApp(repository: MizanRepository) {
     var tab by remember { mutableStateOf("Home") }
     var route by remember { mutableStateOf<String?>(null) }
+    val initialAccounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
+    var firstRunChecked by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(initialAccounts) {
+        if (!firstRunChecked && initialAccounts.isEmpty()) route = "onboarding"
+        if (initialAccounts.isNotEmpty()) firstRunChecked = true
+    }
     val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
@@ -104,6 +114,10 @@ fun mizanApp(repository: MizanRepository) {
         when (route) {
             "entry" -> {
                 entryScreen(repository, modifier, onDone = { route = null })
+            }
+
+            "onboarding" -> {
+                onboardingScreen(repository, modifier, onDone = { route = null })
             }
 
             "settings" -> {
@@ -226,6 +240,12 @@ private fun entryScreen(
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     var kind by remember { mutableStateOf("EXPENSE") }
     val categories by repository.observeCategories(if (kind == "INCOME") "INCOME" else "EXPENSE").collectAsStateWithLifecycle(emptyList())
+    val incomeSources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
+    val splitTemplates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
+    var selectedSplitTemplate by remember { mutableStateOf<String?>(null) }
+    val splitLines by repository.observeSplitLines(selectedSplitTemplate ?: "").collectAsStateWithLifecycle(emptyList())
+    val recordTemplates by repository.observeRecordTemplates(kind).collectAsStateWithLifecycle(emptyList())
+    var splitAllocations by remember { mutableStateOf<List<IncomeAllocation>>(emptyList()) }
     var amount by remember { mutableStateOf("") }
     var selectedAccount by remember(accounts) { mutableStateOf(accounts.firstOrNull()?.id.orEmpty()) }
     var selectedCategory by remember(categories) { mutableStateOf(categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID) }
@@ -242,6 +262,21 @@ private fun entryScreen(
                         label = { Text(option.lowercase().replaceFirstChar { it.uppercase() }) },
                     )
                 }
+            }
+        }
+        if (recordTemplates.isNotEmpty()) {
+            item { Text("One-tap presets") }
+            items(recordTemplates, key = { it.id }) { preset ->
+                FilterChip(
+                    selected = false,
+                    onClick = {
+                        preset.amountMinor?.let { amount = BigDecimal.valueOf(it).movePointLeft(2).toPlainString() }
+                        preset.accountId?.let { selectedAccount = it }
+                        preset.categoryId?.let { selectedCategory = it }
+                        selectedSplitTemplate = preset.splitTemplateId
+                    },
+                    label = { Text(preset.name) },
+                )
             }
         }
         item { amountText(amountToMinor(amount, 2), account?.defaultCurrency ?: "EGP", big = true) }
@@ -262,6 +297,54 @@ private fun entryScreen(
                 }, label = { Text(category.name) })
             }
         }
+        if (kind == "INCOME") {
+            item { Text("Income source") }
+            items(incomeSources, key = { it.id }) { source ->
+                FilterChip(
+                    selected = source.defaultTemplateId == selectedSplitTemplate,
+                    onClick = {
+                        selectedSplitTemplate = source.defaultTemplateId
+                        source.defaultCategoryId?.let { selectedCategory = it }
+                    },
+                    label = { Text(source.name) },
+                )
+            }
+            item {
+                incomeSplitSheet(
+                    amountMinor = amountToMinor(amount, 2),
+                    accounts = accounts.filter { it.defaultCurrency == account?.defaultCurrency },
+                    templates = splitTemplates,
+                    selectedTemplateId = selectedSplitTemplate,
+                    templateLines = splitLines,
+                    onTemplateSelected = { selectedSplitTemplate = it },
+                    onAllocationsChanged = { splitAllocations = it },
+                )
+            }
+        }
+        if (kind != "TRANSFER") {
+            item {
+                TextButton(
+                    onClick = {
+                        val current = account ?: return@TextButton
+                        scope.launch {
+                            repository.saveRecordTemplate(
+                                RecordTemplateEntity(
+                                    id = UUID.randomUUID().toString(),
+                                    name = "${kind.lowercase().replaceFirstChar { it.uppercase() }} preset",
+                                    kind = kind,
+                                    accountId = current.id,
+                                    currency = current.defaultCurrency,
+                                    amountMinor = amountToMinor(amount, 2).takeIf { it > 0 },
+                                    categoryId = selectedCategory,
+                                    splitTemplateId = selectedSplitTemplate,
+                                ),
+                            )
+                            message = "Preset saved"
+                        }
+                    },
+                ) { Text("Save as preset") }
+            }
+        }
         item {
             Button(onClick = {
                 val current = account
@@ -276,18 +359,32 @@ private fun entryScreen(
                         val posting =
                             when (kind) {
                                 "INCOME" -> {
-                                    service.postIncome(
-                                        IncomeRequest(
-                                            current.id,
-                                            current.defaultCurrency,
-                                            minor,
-                                            2,
-                                            BigDecimal.ONE,
-                                            now,
-                                            date,
-                                            selectedCategory,
-                                        ),
-                                    )
+                                    if (splitAllocations.isNotEmpty()) {
+                                        service.postSplitIncome(
+                                            SplitIncomeRequest(
+                                                splitAllocations,
+                                                current.defaultCurrency,
+                                                2,
+                                                BigDecimal.ONE,
+                                                now,
+                                                date,
+                                                selectedCategory,
+                                            ),
+                                        )
+                                    } else {
+                                        service.postIncome(
+                                            IncomeRequest(
+                                                current.id,
+                                                current.defaultCurrency,
+                                                minor,
+                                                2,
+                                                BigDecimal.ONE,
+                                                now,
+                                                date,
+                                                selectedCategory,
+                                            ),
+                                        )
+                                    }
                                 }
 
                                 "TRANSFER" -> {
@@ -638,7 +735,7 @@ private fun amountText(
     )
 }
 
-private fun amountToMinor(
+fun amountToMinor(
     value: String,
     decimals: Int,
 ): Long =
