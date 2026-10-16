@@ -32,5 +32,17 @@ class BackupArchive(
         return BackupPreview(created, expected, payload.database.size)
     }
 
+    /** Caller must close Room before this swap, then recreate the process/database. */
+    fun restore(file: File, passphrase: CharArray) {
+        val payload = BackupCrypto.decrypt(file.readBytes(), passphrase)
+        preview(file, passphrase)
+        val destination = context.getDatabasePath("mizan.db")
+        val replacement = File(destination.parentFile, "mizan-restored.db")
+        replacement.writeBytes(payload.database)
+        require(replacement.length() == payload.database.size.toLong()) { "Restored database is incomplete" }
+        destination.renameTo(File(destination.parentFile, "mizan-before-restore.db"))
+        require(replacement.renameTo(destination)) { "Could not activate restored database" }
+    }
+
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 }
