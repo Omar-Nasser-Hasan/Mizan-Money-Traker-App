@@ -39,6 +39,7 @@ import app.mizan.data.db.SplitLineEntity
 import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
+import app.mizan.data.io.CsvExport
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
 import app.mizan.domain.ledger.IncomeRequest
@@ -148,6 +149,15 @@ class MizanRepository
         ) = withContext(Dispatchers.IO) { BackupArchive(context, database).restore(file, passphrase) }
 
         suspend fun localBackups() = withContext(Dispatchers.IO) { BackupArchive(context, database).localBackups() }
+
+        /** Writes an Excel-friendly UTF-8 CSV without ever loading Room on the main thread. */
+        suspend fun exportCsv(): java.io.File =
+            withContext(Dispatchers.IO) {
+                val destination = java.io.File(context.filesDir, "exports").also { it.mkdirs() }
+                java.io.File(destination, "mizan-records-${clock.millis()}.csv").also { file ->
+                    file.writeBytes(CsvExport.records(ledger.exportRows()))
+                }
+            }
 
         suspend fun markPlannedOccurrence(
             plannedId: String,

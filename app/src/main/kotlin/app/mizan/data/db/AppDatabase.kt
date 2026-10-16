@@ -613,6 +613,18 @@ interface LedgerDao {
     ): PagingSource<Int, RecordRow>
 
     @Query(
+        """
+        SELECT t.id, t.kind, t.bookedAt, t.bookedDate, t.categoryId, c.name AS categoryName, t.payeeId,
+               p.name AS payeeName, t.note, t.status, e.accountId, a.name AS accountName, e.currency,
+               e.amountMinor, e.baseMinor FROM transactions t JOIN entries e ON e.txnId = t.id
+        JOIN accounts a ON a.id = e.accountId LEFT JOIN categories c ON c.id = t.categoryId
+        LEFT JOIN payees p ON p.id = t.payeeId WHERE t.deletedAt IS NULL
+        ORDER BY t.bookedDate DESC, t.bookedAt DESC
+        """,
+    )
+    suspend fun exportRows(): List<RecordRow>
+
+    @Query(
         "SELECT e.currency AS currency, SUM(e.amountMinor) AS amountMinor FROM entries e JOIN transactions t ON t.id = e.txnId WHERE e.accountId = :accountId AND t.deletedAt IS NULL GROUP BY e.currency",
     )
     fun observeBucketDeltas(accountId: String): Flow<List<BucketDelta>>
