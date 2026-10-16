@@ -91,6 +91,8 @@ class MizanRepository
 
         fun observePlannedPayments() = planning.observePlanned()
 
+        suspend fun activePlannedPayments() = planning.activePlanned()
+
         fun observeDebts() = planning.observeDebts()
 
         fun observeBuckets(accountId: String) = accounts.observeBuckets(accountId)

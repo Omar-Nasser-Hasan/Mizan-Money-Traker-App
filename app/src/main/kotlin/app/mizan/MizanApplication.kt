@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import app.mizan.data.repository.MizanRepository
 import app.mizan.notify.NotificationChannels
 import app.mizan.worker.FxRefreshWorker
+import app.mizan.worker.ReminderWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,11 @@ class MizanApplication : Application() {
             "daily-fx-refresh",
             ExistingPeriodicWorkPolicy.KEEP,
             request,
+        )
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "daily-reminders",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<ReminderWorker>(24, TimeUnit.HOURS).build(),
         )
     }
 }
