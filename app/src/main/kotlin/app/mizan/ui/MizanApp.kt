@@ -154,6 +154,8 @@ fun mizanApp(repository: MizanRepository) {
 
             "security" -> securityScreen(repository, modifier)
 
+            "trash" -> trashScreen(repository, modifier)
+
             "dev" -> {
                 devScreen(repository, modifier)
             }
@@ -509,6 +511,7 @@ private fun settingsScreen(
             "labels" to "Labels",
             "payees" to "Payees",
             "security" to "Security",
+            "trash" to "Trash",
             "battery-guide" to "HyperOS battery and Autostart guide",
         ).forEach { (route, label) ->
             item { Button(onClick = { onOpen(route) }, modifier = Modifier.fillMaxWidth()) { Text(label) } }

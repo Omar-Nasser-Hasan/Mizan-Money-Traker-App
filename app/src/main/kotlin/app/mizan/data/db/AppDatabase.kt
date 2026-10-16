@@ -305,6 +305,14 @@ data class StatsRecordRow(
     val payeeId: String?,
 )
 
+data class TrashRow(
+    val id: String,
+    val kind: String,
+    val bookedDate: String,
+    val note: String,
+    val deletedAt: Long,
+)
+
 @Dao
 interface CurrencyDao {
     @Query("SELECT * FROM currencies ORDER BY code")
@@ -509,6 +517,9 @@ interface LedgerDao {
 
     @Query("DELETE FROM transactions WHERE deletedAt IS NOT NULL AND deletedAt < :before")
     suspend fun purgeDeleted(before: Long)
+
+    @Query("SELECT id, kind, bookedDate, note, deletedAt FROM transactions WHERE deletedAt IS NOT NULL ORDER BY deletedAt DESC")
+    fun observeTrash(): Flow<List<TrashRow>>
 
     @Query("SELECT COUNT(*) FROM transactions WHERE deletedAt IS NULL")
     suspend fun countActive(): Int

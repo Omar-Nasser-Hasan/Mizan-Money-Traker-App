@@ -215,6 +215,8 @@ class MizanRepository
 
         suspend fun restoreRecord(id: String) = ledger.restore(id, clock.millis())
 
+        fun observeTrash() = ledger.observeTrash()
+
         suspend fun purgeTrash() = ledger.purgeDeleted(clock.millis() - THIRTY_DAYS_MILLIS)
 
         suspend fun clearDevSeed(): Int = ledger.clearDevSeed()
