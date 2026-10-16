@@ -76,11 +76,14 @@ class BackupArchive(
         database.close()
         File("${destination.path}-wal").delete()
         File("${destination.path}-shm").delete()
+        val previous = File(destination.parentFile, "mizan-before-restore-${System.currentTimeMillis()}.db")
         if (destination.exists()) {
-            val previous = File(destination.parentFile, "mizan-before-restore-${System.currentTimeMillis()}.db")
             require(destination.renameTo(previous)) { "Could not preserve the current database" }
         }
-        require(replacement.renameTo(destination)) { "Could not activate restored database" }
+        if (!replacement.renameTo(destination)) {
+            if (previous.exists()) previous.renameTo(destination)
+            error("Could not activate restored database")
+        }
     }
 
     fun localBackups(): List<File> =
