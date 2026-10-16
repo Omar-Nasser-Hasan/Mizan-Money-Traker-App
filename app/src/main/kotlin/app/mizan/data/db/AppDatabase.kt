@@ -155,6 +155,63 @@ data class RecordTemplateEntity(
     val archived: Boolean = false,
 )
 
+@Entity(tableName = "budgets", indices = [Index("archived")])
+data class BudgetEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val scope: String,
+    val scopeIds: String,
+    val period: String,
+    val startDate: String? = null,
+    val endDate: String? = null,
+    val limitMinor: Long,
+    val rollover: String,
+    val alertPcts: String = "80,100",
+    val archived: Boolean = false,
+)
+
+@Entity(tableName = "planned_payments", indices = [Index("active"), Index("startDate")])
+data class PlannedPaymentEntity(
+    @PrimaryKey val id: String,
+    val kind: String,
+    val name: String,
+    val categoryId: String? = null,
+    val accountId: String,
+    val toAccountId: String? = null,
+    val currency: String,
+    val amountMinor: Long,
+    val payeeId: String? = null,
+    val paymentType: String,
+    val frequency: String,
+    val interval: Int,
+    val startDate: String,
+    val endDate: String? = null,
+    val remindDaysBefore: Int,
+    val autoPost: Boolean = false,
+    val active: Boolean = true,
+)
+
+@Entity(tableName = "planned_occurrences", primaryKeys = ["plannedId", "dueDate"])
+data class PlannedOccurrenceEntity(
+    val plannedId: String,
+    val dueDate: String,
+    val status: String,
+    val txnId: String? = null,
+)
+
+@Entity(tableName = "debts", indices = [Index("status"), Index("dueDate")])
+data class DebtEntity(
+    @PrimaryKey val id: String,
+    val person: String,
+    val direction: String,
+    val currency: String,
+    val principalMinor: Long,
+    val openedAt: String,
+    val dueDate: String? = null,
+    val note: String = "",
+    val status: String = "ACTIVE",
+)
+
 @Entity(
     tableName = "transactions",
     indices = [Index("bookedDate"), Index(value = ["kind", "bookedDate"]), Index(value = ["categoryId", "bookedDate"]), Index("deletedAt")],
@@ -384,6 +441,33 @@ interface IncomeSetupDao {
 }
 
 @Dao
+interface PlanningDao {
+    @Query("SELECT * FROM budgets WHERE archived = 0 ORDER BY name")
+    fun observeBudgets(): Flow<List<BudgetEntity>>
+
+    @Query("SELECT * FROM planned_payments WHERE active = 1 ORDER BY startDate")
+    fun observePlanned(): Flow<List<PlannedPaymentEntity>>
+
+    @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
+    fun observeDebts(): Flow<List<DebtEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertBudget(value: BudgetEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPlanned(value: PlannedPaymentEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertOccurrence(value: PlannedOccurrenceEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertDebt(value: DebtEntity)
+
+    @Query("UPDATE budgets SET archived = 1 WHERE id = :id")
+    suspend fun archiveBudget(id: String)
+}
+
+@Dao
 interface LedgerDao {
     @Insert suspend fun insertTransaction(value: TxnEntity)
 
@@ -474,8 +558,8 @@ interface LedgerDao {
 }
 
 @Database(
-    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
-    version = 3,
+    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -488,6 +572,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun referenceDataDao(): ReferenceDataDao
 
     abstract fun incomeSetupDao(): IncomeSetupDao
+
+    abstract fun planningDao(): PlanningDao
 
     abstract fun ledgerDao(): LedgerDao
 
@@ -561,6 +647,29 @@ abstract class AppDatabase : RoomDatabase() {
                         "CREATE TABLE IF NOT EXISTS record_templates (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL, accountId TEXT, currency TEXT, amountMinor INTEGER, categoryId TEXT, payeeId TEXT, note TEXT NOT NULL, incomeSourceId TEXT, splitTemplateId TEXT, archived INTEGER NOT NULL)",
                     )
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_record_templates_kind ON record_templates(kind)")
+                }
+            }
+
+        val MIGRATION_3_4 =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS budgets (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, scope TEXT NOT NULL, scopeIds TEXT NOT NULL, period TEXT NOT NULL, startDate TEXT, endDate TEXT, limitMinor INTEGER NOT NULL, rollover TEXT NOT NULL, alertPcts TEXT NOT NULL, archived INTEGER NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_budgets_archived ON budgets(archived)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS planned_payments (id TEXT NOT NULL PRIMARY KEY, kind TEXT NOT NULL, name TEXT NOT NULL, categoryId TEXT, accountId TEXT NOT NULL, toAccountId TEXT, currency TEXT NOT NULL, amountMinor INTEGER NOT NULL, payeeId TEXT, paymentType TEXT NOT NULL, frequency TEXT NOT NULL, interval INTEGER NOT NULL, startDate TEXT NOT NULL, endDate TEXT, remindDaysBefore INTEGER NOT NULL, autoPost INTEGER NOT NULL, active INTEGER NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_planned_payments_active ON planned_payments(active)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_planned_payments_startDate ON planned_payments(startDate)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS planned_occurrences (plannedId TEXT NOT NULL, dueDate TEXT NOT NULL, status TEXT NOT NULL, txnId TEXT, PRIMARY KEY(plannedId, dueDate))",
+                    )
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS debts (id TEXT NOT NULL PRIMARY KEY, person TEXT NOT NULL, direction TEXT NOT NULL, currency TEXT NOT NULL, principalMinor INTEGER NOT NULL, openedAt TEXT NOT NULL, dueDate TEXT, note TEXT NOT NULL, status TEXT NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_debts_status ON debts(status)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_debts_dueDate ON debts(dueDate)")
                 }
             }
     }

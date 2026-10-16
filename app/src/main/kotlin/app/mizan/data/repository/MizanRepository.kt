@@ -12,9 +12,11 @@ import androidx.paging.PagingSource
 import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AccountEntity
+import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.CurrencyEntity
+import app.mizan.data.db.DebtEntity
 import app.mizan.data.db.EntryEntity
 import app.mizan.data.db.FxRateDao
 import app.mizan.data.db.FxRateEntity
@@ -22,6 +24,8 @@ import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PayeeEntity
+import app.mizan.data.db.PlannedPaymentEntity
+import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.RecordRow
 import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.db.ReferenceDataDao
@@ -59,6 +63,7 @@ class MizanRepository
         private val accounts: AccountDao,
         private val reference: ReferenceDataDao,
         private val incomeSetup: IncomeSetupDao,
+        private val planning: PlanningDao,
         private val ledger: LedgerDao,
         @ApplicationContext private val context: Context,
         private val client: OkHttpClient,
@@ -81,6 +86,12 @@ class MizanRepository
         fun observeSplitLines(templateId: String) = incomeSetup.observeLines(templateId)
 
         fun observeRecordTemplates(kind: String) = incomeSetup.observeRecordTemplates(kind)
+
+        fun observeBudgets() = planning.observeBudgets()
+
+        fun observePlannedPayments() = planning.observePlanned()
+
+        fun observeDebts() = planning.observeDebts()
 
         fun observeBuckets(accountId: String) = accounts.observeBuckets(accountId)
 
@@ -154,6 +165,12 @@ class MizanRepository
         ) = incomeSetup.replaceTemplate(template, lines)
 
         suspend fun saveRecordTemplate(value: RecordTemplateEntity) = incomeSetup.upsertRecordTemplate(value)
+
+        suspend fun saveBudget(value: BudgetEntity) = planning.upsertBudget(value)
+
+        suspend fun savePlannedPayment(value: PlannedPaymentEntity) = planning.upsertPlanned(value)
+
+        suspend fun saveDebt(value: DebtEntity) = planning.upsertDebt(value)
 
         suspend fun archiveCategory(
             id: String,

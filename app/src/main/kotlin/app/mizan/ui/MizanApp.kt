@@ -176,6 +176,7 @@ private fun tabScreen(
     when (tab) {
         "Home" -> homeScreen(repository, modifier, onAccount, onEntry)
         "Records" -> recordsScreen(repository, modifier)
+        "Plan" -> planScreen(repository, modifier)
         else -> emptyScreen(tab, modifier)
     }
 }

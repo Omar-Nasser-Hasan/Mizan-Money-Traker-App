@@ -9,6 +9,7 @@ import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.FxRateDao
 import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.LedgerDao
+import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.ReferenceDataDao
 import dagger.Module
 import dagger.Provides
@@ -30,6 +31,7 @@ object AppModule {
         Room
             .databaseBuilder(context, AppDatabase::class.java, "mizan.db")
             .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(AppDatabase.MIGRATION_3_4)
             .build()
 
     @Provides
@@ -54,6 +56,9 @@ object AppModule {
 
     @Provides
     fun provideIncomeSetupDao(database: AppDatabase): IncomeSetupDao = database.incomeSetupDao()
+
+    @Provides
+    fun providePlanningDao(database: AppDatabase): PlanningDao = database.planningDao()
 
     @Provides
     fun provideLedgerDao(database: AppDatabase): LedgerDao = database.ledgerDao()

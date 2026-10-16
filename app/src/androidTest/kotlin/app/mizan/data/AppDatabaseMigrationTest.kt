@@ -43,4 +43,11 @@ class AppDatabaseMigrationTest {
         }
         helper.runMigrationsAndValidate(databaseName, 3, true, AppDatabase.MIGRATION_2_3).close()
     }
+
+    @Test
+    fun migratesIncomeSetupSchemaToPlanningSchema() {
+        val databaseName = "migration-v3-test"
+        helper.createDatabase(databaseName, 3).close()
+        helper.runMigrationsAndValidate(databaseName, 4, true, AppDatabase.MIGRATION_3_4).close()
+    }
 }
