@@ -52,6 +52,24 @@ object BudgetMath {
     }
 }
 
+data class BudgetWindow(
+    val start: LocalDate,
+    val end: LocalDate,
+)
+
+fun budgetWindow(
+    period: BudgetPeriod,
+    today: LocalDate,
+    oneTimeStart: LocalDate? = null,
+    oneTimeEnd: LocalDate? = null,
+): BudgetWindow =
+    when (period) {
+        BudgetPeriod.WEEKLY -> BudgetWindow(today.startOfBudgetWeek(), today.startOfBudgetWeek().plusDays(6))
+        BudgetPeriod.MONTHLY -> BudgetWindow(today.withDayOfMonth(1), YearMonth.from(today).atEndOfMonth())
+        BudgetPeriod.YEARLY -> BudgetWindow(today.withDayOfYear(1), today.withMonth(12).withDayOfMonth(31))
+        BudgetPeriod.ONE_TIME -> BudgetWindow(requireNotNull(oneTimeStart), requireNotNull(oneTimeEnd))
+    }
+
 data class Recurrence(
     val frequency: Frequency,
     val interval: Int = 1,

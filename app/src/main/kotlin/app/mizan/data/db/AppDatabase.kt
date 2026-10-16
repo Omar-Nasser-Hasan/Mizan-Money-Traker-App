@@ -212,6 +212,14 @@ data class DebtEntity(
     val status: String = "ACTIVE",
 )
 
+@Entity(tableName = "budget_alerts", primaryKeys = ["budgetId", "periodStart", "thresholdPct"])
+data class BudgetAlertEntity(
+    val budgetId: String,
+    val periodStart: String,
+    val thresholdPct: Int,
+    val sentAt: Long,
+)
+
 @Entity(
     tableName = "transactions",
     indices = [Index("bookedDate"), Index(value = ["kind", "bookedDate"]), Index(value = ["categoryId", "bookedDate"]), Index("deletedAt")],
@@ -463,6 +471,9 @@ interface PlanningDao {
     @Query("SELECT * FROM budgets WHERE archived = 0 ORDER BY name")
     fun observeBudgets(): Flow<List<BudgetEntity>>
 
+    @Query("SELECT * FROM budgets WHERE archived = 0")
+    suspend fun activeBudgets(): List<BudgetEntity>
+
     @Query("SELECT * FROM planned_payments WHERE active = 1 ORDER BY startDate")
     fun observePlanned(): Flow<List<PlannedPaymentEntity>>
 
@@ -482,7 +493,29 @@ interface PlanningDao {
     suspend fun upsertOccurrence(value: PlannedOccurrenceEntity)
 
     @Query("SELECT * FROM planned_occurrences WHERE plannedId = :plannedId AND dueDate = :dueDate")
-    suspend fun occurrence(plannedId: String, dueDate: String): PlannedOccurrenceEntity?
+    suspend fun occurrence(
+        plannedId: String,
+        dueDate: String,
+    ): PlannedOccurrenceEntity?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertBudgetAlert(value: BudgetAlertEntity): Long
+
+    @Query(
+        """
+        SELECT COALESCE(SUM(ABS(e.baseMinor)), 0) FROM transactions t
+        JOIN entries e ON e.txnId = t.id
+        WHERE t.deletedAt IS NULL AND t.kind = 'EXPENSE' AND t.bookedDate BETWEEN :start AND :end
+          AND (:scope = 'ALL' OR (:scope = 'ACCOUNT' AND instr(',' || :scopeIds || ',', ',' || e.accountId || ',') > 0)
+               OR (:scope = 'CATEGORY' AND instr(',' || :scopeIds || ',', ',' || t.categoryId || ',') > 0))
+        """,
+    )
+    suspend fun spentForBudget(
+        start: String,
+        end: String,
+        scope: String,
+        scopeIds: String,
+    ): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertDebt(value: DebtEntity)
@@ -571,7 +604,9 @@ interface LedgerDao {
         start: String,
     ): Flow<List<DailyBaseDelta>>
 
-    @Query("SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id")
+    @Query(
+        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
+    )
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
 
     @Query("DELETE FROM transactions WHERE note LIKE '[DEV-SEED]%'")
@@ -588,8 +623,8 @@ interface LedgerDao {
 }
 
 @Database(
-    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
-    version = 4,
+    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -700,6 +735,15 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_debts_status ON debts(status)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_debts_dueDate ON debts(dueDate)")
+                }
+            }
+
+        val MIGRATION_4_5 =
+            object : Migration(4, 5) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS budget_alerts (budgetId TEXT NOT NULL, periodStart TEXT NOT NULL, thresholdPct INTEGER NOT NULL, sentAt INTEGER NOT NULL, PRIMARY KEY(budgetId, periodStart, thresholdPct))",
+                    )
                 }
             }
     }

@@ -10,10 +10,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.paging.PagingSource
+import app.mizan.data.backup.BackupArchive
 import app.mizan.data.db.AccountBucketEntity
-import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AccountEntity
+import app.mizan.data.db.AppDatabase
+import app.mizan.data.db.BudgetAlertEntity
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyDao
@@ -26,8 +28,8 @@ import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PayeeEntity
-import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.PlannedOccurrenceEntity
+import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.RecordRow
 import app.mizan.data.db.RecordTemplateEntity
@@ -36,7 +38,6 @@ import app.mizan.data.db.SplitLineEntity
 import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
-import app.mizan.data.backup.BackupArchive
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -99,6 +100,26 @@ class MizanRepository
         fun observePlannedPayments() = planning.observePlanned()
 
         suspend fun activePlannedPayments() = planning.activePlanned()
+
+        suspend fun activeBudgets() = planning.activeBudgets()
+
+        suspend fun plannedOccurrence(
+            plannedId: String,
+            dueDate: String,
+        ) = planning.occurrence(plannedId, dueDate)
+
+        suspend fun recordBudgetAlert(
+            budgetId: String,
+            periodStart: String,
+            thresholdPct: Int,
+        ): Boolean = planning.insertBudgetAlert(BudgetAlertEntity(budgetId, periodStart, thresholdPct, clock.millis())) != -1L
+
+        suspend fun budgetSpent(
+            start: String,
+            end: String,
+            scope: String,
+            scopeIds: String,
+        ): Long = planning.spentForBudget(start, end, scope, scopeIds)
 
         suspend fun createBackup(passphrase: CharArray) = BackupArchive(context, database).create(passphrase)
 

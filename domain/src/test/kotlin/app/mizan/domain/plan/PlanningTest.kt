@@ -39,4 +39,15 @@ class PlanningTest {
         assertFalse(DebtBalance(1_000, 400).isClosed)
         assertTrue(DebtBalance(1_000, 1_500).isClosed)
     }
+
+    @Test fun budget_windows_follow_cairo_calendar_boundaries() {
+        assertEquals(
+            BudgetWindow(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 9)),
+            budgetWindow(BudgetPeriod.WEEKLY, LocalDate.of(2026, 10, 7)),
+        )
+        assertEquals(
+            BudgetWindow(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)),
+            budgetWindow(BudgetPeriod.MONTHLY, LocalDate.of(2026, 2, 7)),
+        )
+    }
 }
