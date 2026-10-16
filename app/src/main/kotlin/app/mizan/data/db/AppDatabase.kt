@@ -363,6 +363,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts WHERE archived = 0 ORDER BY sortOrder, name")
     fun observeActive(): Flow<List<AccountEntity>>
 
+    @Query("SELECT * FROM accounts WHERE archived = 0 ORDER BY sortOrder, name")
+    suspend fun active(): List<AccountEntity>
+
     @Query("SELECT * FROM accounts WHERE id = :id")
     fun observe(id: String): Flow<AccountEntity?>
 
@@ -490,6 +493,9 @@ interface PlanningDao {
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     fun observeDebts(): Flow<List<DebtEntity>>
 
+    @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
+    suspend fun activeDebts(): List<DebtEntity>
+
     @Query("SELECT * FROM debts WHERE id = :id")
     suspend fun debt(id: String): DebtEntity?
 
@@ -577,6 +583,9 @@ interface LedgerDao {
 
     @Query("SELECT COUNT(*) FROM transactions WHERE deletedAt IS NULL")
     suspend fun countActive(): Int
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE deletedAt IS NULL AND bookedDate = :date")
+    suspend fun countActiveOn(date: String): Int
 
     @Query("SELECT COUNT(*) FROM entries WHERE currency = :currency")
     suspend fun entryCount(currency: String): Int

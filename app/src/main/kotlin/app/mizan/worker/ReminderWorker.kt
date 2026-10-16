@@ -23,14 +23,17 @@ import app.mizan.notify.NotificationChannels
 import app.mizan.notify.ReminderActionReceiver
 import dagger.hilt.android.EntryPointAccessors
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 class ReminderWorker(
     context: Context,
     parameters: WorkerParameters,
 ) : CoroutineWorker(context, parameters) {
     override suspend fun doWork(): Result {
-        val today = LocalDate.now()
-        if (!canNotify()) return Result.success()
+        val cairo = ZoneId.of("Africa/Cairo")
+        val today = LocalDate.now(cairo)
+        if (!canNotify() || repository().notificationsMutedNow(LocalTime.now(cairo))) return Result.success()
         val snoozedId = inputData.getString(KEY_PLANNED_ID)
         if (snoozedId != null) {
             if (!repository().plannedRemindersEnabled()) return Result.success()
@@ -85,6 +88,45 @@ class ReminderWorker(
                 }
             }
         }
+        if (
+            repository().dailyExpenseReminderEnabled() &&
+            LocalTime.now(cairo) >= repository().dailyExpenseReminderTime() &&
+            repository().activeTransactionCount(today) == 0 &&
+            repository().claimNotification("daily-log-$today")
+        ) {
+            notifySimple(NotificationChannels.DAILY_LOG, "Log today's expenses", "No records have been added today.", "daily-log-$today")
+        }
+        if (repository().debtRemindersEnabled()) {
+            repository().activeDebts().forEach { debt ->
+                val due = debt.dueDate?.let(LocalDate::parse) ?: return@forEach
+                if (today >= due && repository().claimNotification("debt-${debt.id}-$today")) {
+                    val overdue = if (today > due) "Overdue since $due" else "Due today"
+                    notifySimple(NotificationChannels.DEBTS, "Debt: ${debt.person}", overdue, "debt-${debt.id}-$today")
+                }
+            }
+        }
+        if (repository().creditCardRemindersEnabled()) {
+            repository().activeAccounts().filter { it.type == "CREDIT_CARD" }.forEach { card ->
+                val dueDay = card.dueDay?.coerceAtMost(today.lengthOfMonth())
+                val statementDay = card.statementDay?.coerceAtMost(today.lengthOfMonth())
+                if (dueDay == today.dayOfMonth && repository().claimNotification("card-due-${card.id}-$today")) {
+                    notifySimple(
+                        NotificationChannels.CREDIT_CARDS,
+                        "${card.name} payment due",
+                        "Credit-card payment is due today.",
+                        "card-due-${card.id}-$today",
+                    )
+                }
+                if (statementDay == today.dayOfMonth && repository().claimNotification("card-statement-${card.id}-$today")) {
+                    notifySimple(
+                        NotificationChannels.CREDIT_CARDS,
+                        "${card.name} statement day",
+                        "Review this month's statement.",
+                        "card-statement-${card.id}-$today",
+                    )
+                }
+            }
+        }
         return Result.success()
     }
 
@@ -117,6 +159,24 @@ class ReminderWorker(
                 .addAction(0, "Mark paid", paid)
                 .addAction(0, "Skip", skip)
                 .addAction(0, "Snooze 1 hour", snooze)
+                .setAutoCancel(true)
+                .build(),
+        )
+    }
+
+    private fun notifySimple(
+        channel: String,
+        title: String,
+        text: String,
+        identity: String,
+    ) {
+        NotificationManagerCompat.from(applicationContext).notify(
+            identity.hashCode(),
+            NotificationCompat
+                .Builder(applicationContext, channel)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle(title)
+                .setContentText(text)
                 .setAutoCancel(true)
                 .build(),
         )

@@ -65,6 +65,7 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
@@ -134,6 +135,12 @@ class MizanRepository
             scope: String,
             scopeIds: String,
         ): Long = planning.spentForBudget(start, end, scope, scopeIds)
+
+        suspend fun activeAccounts() = accounts.active()
+
+        suspend fun activeDebts() = planning.activeDebts()
+
+        suspend fun activeTransactionCount(date: LocalDate): Int = ledger.countActiveOn(date.toString())
 
         suspend fun createBackup(passphrase: CharArray) =
             withContext(Dispatchers.IO) { BackupArchive(context, database).create(passphrase) }
@@ -285,6 +292,18 @@ class MizanRepository
 
         fun observeBudgetAlertsEnabled(): Flow<Boolean> = context.dataStore.data.map { it[BUDGET_ALERTS_ENABLED] ?: true }
 
+        fun observeDailyExpenseReminderEnabled(): Flow<Boolean> = context.dataStore.data.map { it[DAILY_EXPENSE_REMINDER_ENABLED] ?: false }
+
+        fun observeDebtRemindersEnabled(): Flow<Boolean> = context.dataStore.data.map { it[DEBT_REMINDERS_ENABLED] ?: true }
+
+        fun observeCreditCardRemindersEnabled(): Flow<Boolean> = context.dataStore.data.map { it[CREDIT_CARD_REMINDERS_ENABLED] ?: true }
+
+        fun observeDailyExpenseReminderTime(): Flow<String> = context.dataStore.data.map { it[DAILY_EXPENSE_REMINDER_TIME] ?: "20:00" }
+
+        fun observeQuietHoursStart(): Flow<String> = context.dataStore.data.map { it[QUIET_HOURS_START] ?: "22:00" }
+
+        fun observeQuietHoursEnd(): Flow<String> = context.dataStore.data.map { it[QUIET_HOURS_END] ?: "07:00" }
+
         suspend fun setHideAmounts(enabled: Boolean) = context.dataStore.edit { it[HIDE_AMOUNTS] = enabled }
 
         suspend fun setSecureScreens(enabled: Boolean) = context.dataStore.edit { it[SECURE_SCREENS] = enabled }
@@ -293,9 +312,63 @@ class MizanRepository
 
         suspend fun setBudgetAlertsEnabled(enabled: Boolean) = context.dataStore.edit { it[BUDGET_ALERTS_ENABLED] = enabled }
 
+        suspend fun setDailyExpenseReminderEnabled(enabled: Boolean) =
+            context.dataStore.edit { it[DAILY_EXPENSE_REMINDER_ENABLED] = enabled }
+
+        suspend fun setDebtRemindersEnabled(enabled: Boolean) = context.dataStore.edit { it[DEBT_REMINDERS_ENABLED] = enabled }
+
+        suspend fun setCreditCardRemindersEnabled(enabled: Boolean) = context.dataStore.edit { it[CREDIT_CARD_REMINDERS_ENABLED] = enabled }
+
+        suspend fun setDailyExpenseReminderTime(value: String) = context.dataStore.edit { it[DAILY_EXPENSE_REMINDER_TIME] = value }
+
+        suspend fun setQuietHours(
+            start: String,
+            end: String,
+        ) = context.dataStore.edit {
+            it[QUIET_HOURS_START] = start
+            it[QUIET_HOURS_END] = end
+        }
+
         suspend fun plannedRemindersEnabled(): Boolean = context.dataStore.data.first()[PLANNED_REMINDERS_ENABLED] ?: true
 
         suspend fun budgetAlertsEnabled(): Boolean = context.dataStore.data.first()[BUDGET_ALERTS_ENABLED] ?: true
+
+        suspend fun dailyExpenseReminderEnabled(): Boolean = context.dataStore.data.first()[DAILY_EXPENSE_REMINDER_ENABLED] ?: false
+
+        suspend fun debtRemindersEnabled(): Boolean = context.dataStore.data.first()[DEBT_REMINDERS_ENABLED] ?: true
+
+        suspend fun creditCardRemindersEnabled(): Boolean = context.dataStore.data.first()[CREDIT_CARD_REMINDERS_ENABLED] ?: true
+
+        suspend fun dailyExpenseReminderTime(): LocalTime =
+            context.dataStore.data
+                .first()[DAILY_EXPENSE_REMINDER_TIME]
+                .toLocalTimeOrDefault(LocalTime.of(20, 0))
+
+        suspend fun notificationsMutedNow(now: LocalTime = LocalTime.now(cairo)): Boolean {
+            val preferences = context.dataStore.data.first()
+            val start = preferences[QUIET_HOURS_START].toLocalTimeOrDefault(LocalTime.of(22, 0))
+            val end = preferences[QUIET_HOURS_END].toLocalTimeOrDefault(LocalTime.of(7, 0))
+            return if (start == end) {
+                false
+            } else if (start < end) {
+                now >= start && now < end
+            } else {
+                now >= start || now < end
+            }
+        }
+
+        /** Claims an alert identity atomically so notification retries cannot duplicate it. */
+        suspend fun claimNotification(identity: String): Boolean {
+            var claimed = false
+            context.dataStore.edit { preferences ->
+                val key = stringPreferencesKey("notification_sent_$identity")
+                if (preferences[key] == null) {
+                    preferences[key] = "1"
+                    claimed = true
+                }
+            }
+            return claimed
+        }
 
         fun observeBuckets(accountId: String) = accounts.observeBuckets(accountId)
 
@@ -689,6 +762,15 @@ class MizanRepository
             private val SECURE_SCREENS = booleanPreferencesKey("secure_screens")
             private val PLANNED_REMINDERS_ENABLED = booleanPreferencesKey("planned_reminders_enabled")
             private val BUDGET_ALERTS_ENABLED = booleanPreferencesKey("budget_alerts_enabled")
+            private val DAILY_EXPENSE_REMINDER_ENABLED = booleanPreferencesKey("daily_expense_reminder_enabled")
+            private val DEBT_REMINDERS_ENABLED = booleanPreferencesKey("debt_reminders_enabled")
+            private val CREDIT_CARD_REMINDERS_ENABLED = booleanPreferencesKey("credit_card_reminders_enabled")
+            private val DAILY_EXPENSE_REMINDER_TIME = stringPreferencesKey("daily_expense_reminder_time")
+            private val QUIET_HOURS_START = stringPreferencesKey("quiet_hours_start")
+            private val QUIET_HOURS_END = stringPreferencesKey("quiet_hours_end")
+
+            private fun String?.toLocalTimeOrDefault(default: LocalTime): LocalTime =
+                this?.let { runCatching { LocalTime.parse(it) }.getOrNull() } ?: default
 
             private fun pinKey(code: String): Preferences.Key<String> = stringPreferencesKey("fx_pin_$code")
 
