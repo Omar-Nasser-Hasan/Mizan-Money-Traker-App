@@ -16,3 +16,7 @@
 - The implied transfer rate is destination major units per source major unit. It is derived from the two immutable transfer amounts rather than duplicated as a third persisted value.
 - The three-tap expense claim counts amount entry, category selection, and Save as workflow steps; individual calculator digits are not separate steps.
 - The debug 5,000-record scroll check is provisional on the Android Studio emulator. A physical-device `gfxinfo` run remains required before declaring a production 60 FPS result.
+- M2 preserves the IDs of the twelve temporary M1 categories; clean installs receive the full Section 13 tree. Existing temporary categories are left untouched rather than overwriting a user's edits.
+- A split line stores percent as integer basis points and fixed allocations as Long minor units. Percent totals above 100% are rejected; fixed lines are paid in order and clamped at the available income.
+- M2 split income is an EGP/same-currency first implementation: the Entry screen offers only destination accounts whose default currency matches the income account. Cross-currency income allocation remains deferred until a per-line booking-rate UX is specified.
+- The M2 onboarding lock step is intentionally a placeholder. Biometric/device-credential setup belongs to the later security milestone.
