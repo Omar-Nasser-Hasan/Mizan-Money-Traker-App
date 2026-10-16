@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.paging.PagingSource
+import androidx.room.withTransaction
 import app.mizan.data.backup.BackupArchive
 import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountDao
@@ -38,7 +39,13 @@ import app.mizan.data.db.SplitLineEntity
 import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
+import app.mizan.domain.ledger.ExpenseRequest
+import app.mizan.domain.ledger.IncomeRequest
 import app.mizan.domain.ledger.LedgerPosting
+import app.mizan.domain.ledger.LedgerService
+import app.mizan.domain.ledger.PaymentType
+import app.mizan.domain.ledger.TransferRequest
+import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -145,6 +152,116 @@ class MizanRepository
             dueDate: String,
             status: String,
         ) = planning.upsertOccurrence(PlannedOccurrenceEntity(plannedId, dueDate, status))
+
+        /** Posts the actual ledger transaction before marking a planned occurrence paid. */
+        suspend fun markPlannedPaid(
+            plannedId: String,
+            dueDate: String,
+        ) {
+            val payment = requireNotNull(planning.activePlanned(plannedId)) { "Planned payment is unavailable" }
+            if (planning.occurrence(plannedId, dueDate)?.status == "PAID") return
+            val date = LocalDate.parse(dueDate)
+            val sourceDecimals = requireNotNull(currencies.find(payment.currency)) { "Unknown currency" }.decimals
+            val sourceRate = requireNotNull(effectiveRate(payment.currency, date)) { "No booking rate for ${payment.currency}" }
+            val bookedAt = Instant.ofEpochMilli(clock.millis())
+            val kind = payment.kind
+            val posting =
+                when (kind) {
+                    "EXPENSE" -> {
+                        LedgerService().postExpense(
+                            ExpenseRequest(
+                                payment.accountId,
+                                payment.currency,
+                                payment.amountMinor,
+                                sourceDecimals,
+                                sourceRate,
+                                payment.categoryId ?: UNCATEGORIZED_ID,
+                                bookedAt,
+                                date,
+                                payment.payeeId,
+                                "Planned: ${payment.name}",
+                                TxnStatus.CLEARED,
+                                paymentType(payment.paymentType),
+                            ),
+                        )
+                    }
+
+                    "INCOME" -> {
+                        LedgerService().postIncome(
+                            IncomeRequest(
+                                payment.accountId,
+                                payment.currency,
+                                payment.amountMinor,
+                                sourceDecimals,
+                                sourceRate,
+                                bookedAt,
+                                date,
+                                payment.categoryId,
+                                payment.payeeId,
+                                "Planned: ${payment.name}",
+                                TxnStatus.CLEARED,
+                                paymentType(payment.paymentType),
+                            ),
+                        )
+                    }
+
+                    "TRANSFER" -> {
+                        val target = requireNotNull(payment.toAccountId) { "Planned transfer needs a destination account" }
+                        val targetAccount = requireNotNull(accounts.find(target)) { "Transfer account is unavailable" }
+                        val targetCurrency = targetAccount.defaultCurrency
+                        val targetDecimals = requireNotNull(currencies.find(targetCurrency)) { "Unknown destination currency" }.decimals
+                        val targetRate = requireNotNull(effectiveRate(targetCurrency, date)) { "No booking rate for $targetCurrency" }
+                        LedgerService().postTransfer(
+                            TransferRequest(
+                                payment.accountId,
+                                payment.currency,
+                                payment.amountMinor,
+                                sourceDecimals,
+                                sourceRate,
+                                target,
+                                targetCurrency,
+                                payment.amountMinor,
+                                targetDecimals,
+                                targetRate,
+                                bookedAt,
+                                date,
+                                "Planned: ${payment.name}",
+                                TxnStatus.CLEARED,
+                                paymentType(payment.paymentType),
+                            ),
+                        )
+                    }
+
+                    else -> {
+                        error("Unsupported planned payment kind")
+                    }
+                }
+            val now = clock.millis()
+            database.withTransaction {
+                ledger.persistBatch(
+                    listOf(
+                        TxnEntity(
+                            posting.transaction.id,
+                            posting.transaction.kind.name,
+                            posting.transaction.bookedAt.toEpochMilli(),
+                            posting.transaction.bookedDate.toString(),
+                            posting.transaction.categoryId,
+                            posting.transaction.payeeId,
+                            posting.transaction.note,
+                            posting.transaction.status.name,
+                            posting.transaction.paymentType.name,
+                            plannedId = plannedId,
+                            createdAt = now,
+                            updatedAt = now,
+                        ),
+                    ),
+                    posting.entries.map {
+                        EntryEntity(it.id, it.txnId, it.accountId, it.currency, it.amountMinor, it.rateToBase.toPlainString(), it.baseMinor)
+                    },
+                )
+                planning.upsertOccurrence(PlannedOccurrenceEntity(plannedId, dueDate, "PAID", posting.transaction.id))
+            }
+        }
 
         fun observeDebts() = planning.observeDebts()
 
@@ -457,6 +574,8 @@ class MizanRepository
             val latest = fxRates.observeLatestFetch().first()
             if (latest == null || clock.millis() - latest > 24L * 60 * 60 * 1000) refreshFx()
         }
+
+        private fun paymentType(value: String): PaymentType = runCatching { PaymentType.valueOf(value) }.getOrDefault(PaymentType.CASH)
 
         companion object {
             const val UNCATEGORIZED_ID = "system-uncategorized"

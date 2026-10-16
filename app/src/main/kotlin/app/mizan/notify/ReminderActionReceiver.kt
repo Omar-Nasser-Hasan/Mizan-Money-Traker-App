@@ -31,10 +31,15 @@ class ReminderActionReceiver : BroadcastReceiver() {
                     ACTION_SNOOZE -> "SNOOZED"
                     else -> "PAID"
                 }
-            EntryPointAccessors
-                .fromApplication(context.applicationContext, WorkerEntryPoint::class.java)
-                .repository()
-                .markPlannedOccurrence(plannedId, dueDate, status)
+            val repository =
+                EntryPointAccessors
+                    .fromApplication(context.applicationContext, WorkerEntryPoint::class.java)
+                    .repository()
+            if (intent.action == ACTION_PAID) {
+                repository.markPlannedPaid(plannedId, dueDate)
+            } else {
+                repository.markPlannedOccurrence(plannedId, dueDate, status)
+            }
             if (intent.action == ACTION_SNOOZE) {
                 val request =
                     OneTimeWorkRequestBuilder<ReminderWorker>()

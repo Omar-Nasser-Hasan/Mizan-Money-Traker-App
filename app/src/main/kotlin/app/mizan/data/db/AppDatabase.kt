@@ -365,6 +365,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts WHERE id = :id")
     fun observe(id: String): Flow<AccountEntity?>
 
+    @Query("SELECT * FROM accounts WHERE id = :id")
+    suspend fun find(id: String): AccountEntity?
+
     @Query("SELECT * FROM account_buckets WHERE accountId = :accountId ORDER BY currency")
     fun observeBuckets(accountId: String): Flow<List<AccountBucketEntity>>
 
