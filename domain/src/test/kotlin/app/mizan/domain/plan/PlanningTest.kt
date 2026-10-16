@@ -50,4 +50,15 @@ class PlanningTest {
             budgetWindow(BudgetPeriod.MONTHLY, LocalDate.of(2026, 2, 7)),
         )
     }
+
+    @Test fun recurrence_is_calendar_stable_across_cairo_dst_boundary() {
+        val dates =
+            RecurrenceEngine.occurrences(
+                Recurrence(Frequency.WEEKLY, startDate = LocalDate.of(2026, 4, 17)),
+                LocalDate.of(2026, 4, 17),
+                LocalDate.of(2026, 5, 8),
+            )
+
+        assertEquals(listOf("2026-04-17", "2026-04-24", "2026-05-01", "2026-05-08"), dates.map(LocalDate::toString))
+    }
 }
