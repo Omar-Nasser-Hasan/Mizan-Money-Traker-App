@@ -7,10 +7,16 @@ import org.junit.Test
 
 class BackupCryptoTest {
     @Test fun encrypted_backup_round_trips() {
-        val input = BackupPayload("database".encodeToByteArray(), "{\"sha256\":\"abc\"}")
+        val input =
+            BackupPayload(
+                "database".encodeToByteArray(),
+                "{\"sha256\":\"abc\"}",
+                mapOf("receipt-1" to "image bytes".encodeToByteArray()),
+            )
         val restored = BackupCrypto.decrypt(BackupCrypto.encrypt(input, "correct horse".toCharArray()), "correct horse".toCharArray())
         assertArrayEquals(input.database, restored.database)
         assertEquals(input.manifest, restored.manifest)
+        assertArrayEquals(input.attachments.getValue("receipt-1"), restored.attachments.getValue("receipt-1"))
     }
 
     @Test(expected = Exception::class)

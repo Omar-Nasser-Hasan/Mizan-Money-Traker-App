@@ -16,6 +16,7 @@ import javax.crypto.spec.PBEKeySpec
 data class BackupPayload(
     val database: ByteArray,
     val manifest: String,
+    val attachments: Map<String, ByteArray> = emptyMap(),
 )
 
 /** Encrypts the complete zip payload; no account data is ever written in plaintext outside the private snapshot. */
@@ -39,6 +40,11 @@ object BackupCrypto {
                     archive.putNextEntry(ZipEntry("manifest.json"))
                     archive.write(payload.manifest.encodeToByteArray())
                     archive.closeEntry()
+                    payload.attachments.toSortedMap().forEach { (id, bytes) ->
+                        archive.putNextEntry(ZipEntry("attachments/$id"))
+                        archive.write(bytes)
+                        archive.closeEntry()
+                    }
                 }
                 output.toByteArray()
             }
@@ -79,16 +85,19 @@ object BackupCrypto {
                 }.doFinal(bytes.copyOfRange(cipherStart, bytes.size))
         var database: ByteArray? = null
         var manifest: String? = null
+        val attachments = mutableMapOf<String, ByteArray>()
         ZipInputStream(ByteArrayInputStream(plain)).use { archive ->
             generateSequence { archive.nextEntry }.forEach { entry ->
                 val value = archive.readBytes()
                 if (entry.name == "database.db") database = value
                 if (entry.name == "manifest.json") manifest = value.decodeToString()
+                if (entry.name.startsWith("attachments/")) attachments[entry.name.removePrefix("attachments/")] = value
             }
         }
         return BackupPayload(
             requireNotNull(database) { "Backup database is missing" },
             requireNotNull(manifest) { "Backup manifest is missing" },
+            attachments,
         )
     }
 
