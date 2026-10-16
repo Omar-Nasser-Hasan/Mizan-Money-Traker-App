@@ -205,6 +205,7 @@ data class DebtEntity(
     val person: String,
     val direction: String,
     val currency: String,
+    val accountId: String,
     val principalMinor: Long,
     val openedAt: String,
     val dueDate: String? = null,
@@ -489,6 +490,14 @@ interface PlanningDao {
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     fun observeDebts(): Flow<List<DebtEntity>>
 
+    @Query("SELECT * FROM debts WHERE id = :id")
+    suspend fun debt(id: String): DebtEntity?
+
+    @Query(
+        "SELECT COALESCE(SUM(ABS(e.amountMinor)), 0) FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.debtId = :debtId AND t.deletedAt IS NULL AND t.kind IN ('DEBT_REPAY_IN', 'DEBT_REPAY_OUT')",
+    )
+    suspend fun repayments(debtId: String): Long
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertBudget(value: BudgetEntity)
 
@@ -525,6 +534,12 @@ interface PlanningDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertDebt(value: DebtEntity)
+
+    @Query("UPDATE debts SET status = :status WHERE id = :id")
+    suspend fun setDebtStatus(
+        id: String,
+        status: String,
+    )
 
     @Query("UPDATE budgets SET archived = 1 WHERE id = :id")
     suspend fun archiveBudget(id: String)
@@ -630,7 +645,7 @@ interface LedgerDao {
 
 @Database(
     entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -750,6 +765,13 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL(
                         "CREATE TABLE IF NOT EXISTS budget_alerts (budgetId TEXT NOT NULL, periodStart TEXT NOT NULL, thresholdPct INTEGER NOT NULL, sentAt INTEGER NOT NULL, PRIMARY KEY(budgetId, periodStart, thresholdPct))",
                     )
+                }
+            }
+
+        val MIGRATION_5_6 =
+            object : Migration(5, 6) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE debts ADD COLUMN accountId TEXT NOT NULL DEFAULT ''")
                 }
             }
     }

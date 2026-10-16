@@ -129,6 +129,19 @@ data class TransferRequest(
     val fee: ExpenseRequest? = null,
 )
 
+data class DebtRequest(
+    val accountId: String,
+    val currency: String,
+    val amountMinor: Long,
+    val currencyDecimals: Int,
+    val rateToBase: BigDecimal,
+    val kind: TxnKind,
+    val bookedAt: Instant,
+    val bookedDate: LocalDate,
+    val note: String = "",
+    val paymentType: PaymentType = PaymentType.CASH,
+)
+
 /** Validates and constructs immutable ledger postings. Persistence is intentionally outside this service. */
 class LedgerService(
     private val id: () -> String = { UUID.randomUUID().toString() },
@@ -254,6 +267,30 @@ class LedgerService(
             request.allocations.map {
                 entry(transaction.id, it.accountId, request.currency, it.amountMinor, request.currencyDecimals, request.rateToBase)
             },
+        )
+    }
+
+    fun postDebt(request: DebtRequest): LedgerPosting {
+        require(request.amountMinor > 0) { "Debt amount must be positive" }
+        require(request.kind in setOf(TxnKind.DEBT_LEND, TxnKind.DEBT_REPAY_IN, TxnKind.DEBT_BORROW, TxnKind.DEBT_REPAY_OUT)) {
+            "Invalid debt transaction kind"
+        }
+        val transaction =
+            transaction(
+                request.kind,
+                request.bookedAt,
+                request.bookedDate,
+                null,
+                null,
+                request.note,
+                TxnStatus.CLEARED,
+                request.paymentType,
+            )
+        val signedAmount =
+            if (request.kind == TxnKind.DEBT_LEND || request.kind == TxnKind.DEBT_REPAY_OUT) -request.amountMinor else request.amountMinor
+        return LedgerPosting(
+            transaction,
+            listOf(entry(transaction.id, request.accountId, request.currency, signedAmount, request.currencyDecimals, request.rateToBase)),
         )
     }
 

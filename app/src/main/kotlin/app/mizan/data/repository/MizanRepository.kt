@@ -39,12 +39,14 @@ import app.mizan.data.db.SplitLineEntity
 import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
+import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
 import app.mizan.domain.ledger.IncomeRequest
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ledger.LedgerService
 import app.mizan.domain.ledger.PaymentType
 import app.mizan.domain.ledger.TransferRequest
+import app.mizan.domain.ledger.TxnKind
 import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -383,7 +385,99 @@ class MizanRepository
 
         suspend fun savePlannedPayment(value: PlannedPaymentEntity) = planning.upsertPlanned(value)
 
-        suspend fun saveDebt(value: DebtEntity) = planning.upsertDebt(value)
+        suspend fun saveDebt(value: DebtEntity) {
+            require(value.accountId.isNotBlank()) { "Debt account is required" }
+            val date = LocalDate.parse(value.openedAt)
+            val decimals = requireNotNull(currencies.find(value.currency)) { "Unknown currency" }.decimals
+            val rate = requireNotNull(effectiveRate(value.currency, date)) { "No booking rate for ${value.currency}" }
+            val kind = if (value.direction == "LENT") TxnKind.DEBT_LEND else TxnKind.DEBT_BORROW
+            val posting =
+                LedgerService().postDebt(
+                    DebtRequest(
+                        value.accountId,
+                        value.currency,
+                        value.principalMinor,
+                        decimals,
+                        rate,
+                        kind,
+                        Instant.ofEpochMilli(clock.millis()),
+                        date,
+                        "Debt: ${value.person}",
+                    ),
+                )
+            val now = clock.millis()
+            database.withTransaction {
+                planning.upsertDebt(value)
+                ledger.persistBatch(
+                    listOf(
+                        TxnEntity(
+                            posting.transaction.id,
+                            posting.transaction.kind.name,
+                            posting.transaction.bookedAt.toEpochMilli(),
+                            posting.transaction.bookedDate.toString(),
+                            note = posting.transaction.note,
+                            status = posting.transaction.status.name,
+                            paymentType = posting.transaction.paymentType.name,
+                            debtId = value.id,
+                            createdAt = now,
+                            updatedAt = now,
+                        ),
+                    ),
+                    posting.entries.map {
+                        EntryEntity(it.id, it.txnId, it.accountId, it.currency, it.amountMinor, it.rateToBase.toPlainString(), it.baseMinor)
+                    },
+                )
+            }
+        }
+
+        suspend fun repayDebt(
+            debtId: String,
+            amountMinor: Long,
+        ) {
+            require(amountMinor > 0) { "Repayment amount must be positive" }
+            val debt = requireNotNull(planning.debt(debtId)) { "Debt is unavailable" }
+            val date = LocalDate.now(clock.withZone(cairo))
+            val decimals = requireNotNull(currencies.find(debt.currency)) { "Unknown currency" }.decimals
+            val rate = requireNotNull(effectiveRate(debt.currency, date)) { "No booking rate for ${debt.currency}" }
+            val kind = if (debt.direction == "LENT") TxnKind.DEBT_REPAY_IN else TxnKind.DEBT_REPAY_OUT
+            val posting =
+                LedgerService().postDebt(
+                    DebtRequest(
+                        debt.accountId,
+                        debt.currency,
+                        amountMinor,
+                        decimals,
+                        rate,
+                        kind,
+                        Instant.ofEpochMilli(clock.millis()),
+                        date,
+                        "Debt repayment: ${debt.person}",
+                    ),
+                )
+            val now = clock.millis()
+            database.withTransaction {
+                ledger.persistBatch(
+                    listOf(
+                        TxnEntity(
+                            posting.transaction.id,
+                            posting.transaction.kind.name,
+                            posting.transaction.bookedAt.toEpochMilli(),
+                            posting.transaction.bookedDate.toString(),
+                            note = posting.transaction.note,
+                            status = posting.transaction.status.name,
+                            paymentType = posting.transaction.paymentType.name,
+                            debtId = debt.id,
+                            createdAt = now,
+                            updatedAt = now,
+                        ),
+                    ),
+                    posting.entries.map {
+                        EntryEntity(it.id, it.txnId, it.accountId, it.currency, it.amountMinor, it.rateToBase.toPlainString(), it.baseMinor)
+                    },
+                )
+                if (planning.repayments(debt.id) >= debt.principalMinor) planning.setDebtStatus(debt.id, "CLOSED")
+            }
+        }
 
         suspend fun archiveCategory(
             id: String,

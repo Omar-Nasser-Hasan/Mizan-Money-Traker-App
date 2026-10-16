@@ -46,6 +46,7 @@ fun planScreen(
     var frequency by remember { mutableStateOf("MONTHLY") }
     var debtDirection by remember { mutableStateOf("LENT") }
     var dueDate by remember { mutableStateOf("") }
+    var repaymentAmount by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
     val planned by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
@@ -125,6 +126,14 @@ fun planScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+                item {
+                    OutlinedTextField(
+                        repaymentAmount,
+                        { repaymentAmount = it },
+                        label = { Text("Partial repayment amount (EGP)") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
         item {
@@ -180,6 +189,7 @@ fun planScreen(
                                         name,
                                         debtDirection,
                                         "EGP",
+                                        account!!.id,
                                         minor,
                                         LocalDate.now().toString(),
                                         dueDate.takeIf { runCatching { LocalDate.parse(it) }.isSuccess },
@@ -221,6 +231,15 @@ fun planScreen(
                         Text("${debt.person} · ${debt.direction.lowercase()}")
                         Text(debt.dueDate?.let { "Due $it" } ?: "No due date")
                         amountText(debt.principalMinor, debt.currency)
+                        Button(onClick = {
+                            val minor = amountToMinor(repaymentAmount, 2)
+                            if (minor > 0) {
+                                scope.launch {
+                                    repository.repayDebt(debt.id, minor)
+                                    repaymentAmount = ""
+                                }
+                            }
+                        }) { Text("Record repayment") }
                     }
                 }
             }

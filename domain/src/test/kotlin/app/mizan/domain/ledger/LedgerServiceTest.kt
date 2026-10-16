@@ -69,6 +69,14 @@ class LedgerServiceTest {
         assertEquals(250L, balances["cash" to "USD"])
     }
 
+    @Test fun debt_postings_have_the_required_cash_direction() {
+        val lent = service.postDebt(DebtRequest("cash", "EGP", 5_000, 2, BigDecimal.ONE, TxnKind.DEBT_LEND, instant, date))
+        val repayment = service.postDebt(DebtRequest("cash", "EGP", 2_000, 2, BigDecimal.ONE, TxnKind.DEBT_REPAY_IN, instant, date))
+
+        assertEquals(-5_000L, lent.entries.single().amountMinor)
+        assertEquals(2_000L, repayment.entries.single().amountMinor)
+    }
+
     @Test fun calculator_respects_precedence_and_guards_zero_division() {
         assertEquals(BigDecimal("7"), EntryCalculator.evaluate("1+2×3"))
         try {
