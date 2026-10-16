@@ -53,21 +53,31 @@ fun lineAreaChart(
             val min = points.minOf { it.value }
             val max = points.maxOf { it.value }
             val range = (max - min).coerceAtLeast(1L)
+
             fun x(index: Int): Float = if (points.size == 1) size.width / 2 else index * size.width / (points.size - 1)
+
             fun y(value: Long): Float = size.height - ((value - min).toFloat() / range) * size.height
-            val path = Path().apply {
-                moveTo(x(0), y(points[0].value))
-                points.drop(1).forEachIndexed { index, point -> lineTo(x(index + 1), y(point.value)) }
-            }
-            val area = Path().apply {
-                addPath(path)
-                lineTo(x(points.lastIndex), size.height)
-                lineTo(x(0), size.height)
-                close()
-            }
+            val path =
+                Path().apply {
+                    moveTo(x(0), y(points[0].value))
+                    points.drop(1).forEachIndexed { index, point -> lineTo(x(index + 1), y(point.value)) }
+                }
+            val area =
+                Path().apply {
+                    addPath(path)
+                    lineTo(x(points.lastIndex), size.height)
+                    lineTo(x(0), size.height)
+                    close()
+                }
             drawPath(area, fillColor)
             drawPath(path, lineColor, style = Stroke(width = 4f))
-            drawCircle(lineColor, radius = 8f, center = androidx.compose.ui.geometry.Offset(x(selected), y(points[selected].value)))
+            drawCircle(
+                lineColor,
+                radius = 8f,
+                center =
+                    androidx.compose.ui.geometry
+                        .Offset(x(selected), y(points[selected].value)),
+            )
         }
     }
 }

@@ -5,12 +5,12 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.lifecycleScope
 import app.mizan.data.repository.MizanRepository
+import app.mizan.security.AppLock
 import app.mizan.ui.mizanApp
 import app.mizan.ui.theme.MizanTheme
-import app.mizan.security.AppLock
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +25,13 @@ class MainActivity : ComponentActivity() {
         appLock = AppLock(this, mainExecutor)
         lifecycleScope.launch {
             repository.observeSecureScreens().collectLatest { enabled ->
-                if (enabled) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE) else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                if (enabled) {
+                    window.addFlags(
+                        WindowManager.LayoutParams.FLAG_SECURE,
+                    )
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
             }
         }
         setContent {
@@ -35,7 +41,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() { super.onResume(); appLock.onResume() }
+    override fun onResume() {
+        super.onResume()
+        appLock.onResume()
+    }
 
-    override fun onStop() { appLock.onStop(); super.onStop() }
+    override fun onStop() {
+        appLock.onStop()
+        super.onStop()
+    }
 }

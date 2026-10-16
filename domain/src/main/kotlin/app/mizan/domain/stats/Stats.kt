@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.stats
 
+import java.math.BigInteger
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.math.BigInteger
 import kotlin.math.abs
 
 enum class StatKind { INCOME, ASSET_INCOME, EXPENSE, TRANSFER, OTHER }
@@ -62,7 +62,10 @@ object StatPeriods {
         val length = period.days.toLong()
         if (period.start.dayOfMonth == 1) {
             val previousMonth = period.start.minusMonths(1).withDayOfMonth(1)
-            return Period(previousMonth, minOf(previousMonth.plusDays(length - 1), previousMonth.withDayOfMonth(previousMonth.lengthOfMonth())))
+            return Period(
+                previousMonth,
+                minOf(previousMonth.plusDays(length - 1), previousMonth.withDayOfMonth(previousMonth.lengthOfMonth())),
+            )
         }
         val end = period.start.minusDays(1)
         return Period(end.minusDays(length - 1), end)

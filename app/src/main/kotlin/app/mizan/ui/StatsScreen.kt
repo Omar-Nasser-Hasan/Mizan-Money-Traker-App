@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -80,10 +80,29 @@ fun statsScreen(
             }
         }
         when (tab) {
-            StatsTab.BALANCE -> balanceTab(records, period)
-            StatsTab.CASH_FLOW -> cashFlowTab(records, period, current.incomeMinor, current.expenseMinor, current.netMinor, netChange.percentBasisPoints, netChange.absoluteChange)
-            StatsTab.SPENDING -> spendingTab(records, period)
-            StatsTab.REPORTS -> reportsTab(records, period)
+            StatsTab.BALANCE -> {
+                balanceTab(records, period)
+            }
+
+            StatsTab.CASH_FLOW -> {
+                cashFlowTab(
+                    records,
+                    period,
+                    current.incomeMinor,
+                    current.expenseMinor,
+                    current.netMinor,
+                    netChange.percentBasisPoints,
+                    netChange.absoluteChange,
+                )
+            }
+
+            StatsTab.SPENDING -> {
+                spendingTab(records, period)
+            }
+
+            StatsTab.REPORTS -> {
+                reportsTab(records, period)
+            }
         }
     }
 }
@@ -102,8 +121,21 @@ private fun LazyListScope.balanceTab(
         )
     }
     item { Text("By account", style = MaterialTheme.typography.titleLarge) }
-    items(records.filter { !it.deleted }.groupBy { it.accountId }.mapValues { (_, values) -> values.sumOf { it.baseMinor } }.toList(), key = { it.first }) { (account, amount) ->
-        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) { Text(account); amountText(amount, "EGP") } }
+    items(
+        records
+            .filter { !it.deleted }
+            .groupBy { it.accountId }
+            .mapValues { (_, values) ->
+                values.sumOf { it.baseMinor }
+            }.toList(),
+        key = { it.first },
+    ) { (account, amount) ->
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp)) {
+                Text(account)
+                amountText(amount, "EGP")
+            }
+        }
     }
 }
 
@@ -119,9 +151,12 @@ private fun LazyListScope.cashFlowTab(
     item {
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Income"); amountText(income, "EGP")
-                Text("Expenses"); amountText(expenses, "EGP")
-                Text("Cash flow"); amountText(net, "EGP")
+                Text("Income")
+                amountText(income, "EGP")
+                Text("Expenses")
+                amountText(expenses, "EGP")
+                Text("Cash flow")
+                amountText(net, "EGP")
                 Text(
                     when {
                         absoluteChange -> "vs previous period: absolute change"
@@ -150,7 +185,9 @@ private fun LazyListScope.spendingTab(
     item { Text("Top payees", style = MaterialTheme.typography.titleLarge) }
     items(StatsEngine.topPayees(records, period), key = { it.first }) { (payee, amount) -> Text("$payee · $amount EGP minor") }
     item { Text("Largest expenses", style = MaterialTheme.typography.titleLarge) }
-    items(StatsEngine.largestExpenses(records, period), key = { it.id }) { record -> Text("${record.date} · ${record.categoryId ?: "Uncategorized"} · ${-record.baseMinor} EGP minor") }
+    items(StatsEngine.largestExpenses(records, period), key = {
+        it.id
+    }) { record -> Text("${record.date} · ${record.categoryId ?: "Uncategorized"} · ${-record.baseMinor} EGP minor") }
 }
 
 private fun LazyListScope.reportsTab(
@@ -169,20 +206,30 @@ private fun LazyListScope.reportsTab(
         }
     }
     item { Text("Expense book", style = MaterialTheme.typography.titleLarge) }
-    items(StatsEngine.byCategory(records, period).toList().sortedByDescending { it.second }, key = { it.first }) { (category, amount) -> Text("$category · $amount EGP minor") }
+    items(
+        StatsEngine.byCategory(records, period).toList().sortedByDescending {
+            it.second
+        },
+        key = { it.first },
+    ) { (category, amount) -> Text("$category · $amount EGP minor") }
 }
 
-private enum class StatsTab(val label: String) {
+private enum class StatsTab(
+    val label: String,
+) {
     BALANCE("Balance"),
     CASH_FLOW("Cash-flow"),
     SPENDING("Spending"),
     REPORTS("Reports"),
 }
 
-private enum class StatsRange(val label: String) {
+private enum class StatsRange(
+    val label: String,
+) {
     MONTH("This month"),
     DAYS_30("30 days"),
-    YEAR("This year");
+    YEAR("This year"),
+    ;
 
     fun period(today: LocalDate): Period =
         when (this) {

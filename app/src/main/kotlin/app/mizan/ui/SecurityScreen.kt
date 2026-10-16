@@ -17,7 +17,10 @@ import app.mizan.data.repository.MizanRepository
 import kotlinx.coroutines.launch
 
 @Composable
-fun securityScreen(repository: MizanRepository, modifier: Modifier) {
+fun securityScreen(
+    repository: MizanRepository,
+    modifier: Modifier,
+) {
     val hideAmounts by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
     val secureScreens by repository.observeSecureScreens().collectAsStateWithLifecycle(false)
     val scope = rememberCoroutineScope()

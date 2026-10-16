@@ -20,7 +20,10 @@ import app.mizan.data.repository.MizanRepository
 import kotlinx.coroutines.launch
 
 @Composable
-fun trashScreen(repository: MizanRepository, modifier: Modifier) {
+fun trashScreen(
+    repository: MizanRepository,
+    modifier: Modifier,
+) {
     val records by repository.observeTrash().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     LazyColumn(modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

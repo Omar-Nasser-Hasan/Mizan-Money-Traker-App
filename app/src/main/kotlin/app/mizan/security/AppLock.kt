@@ -7,11 +7,16 @@ import android.hardware.biometrics.BiometricPrompt
 import android.os.CancellationSignal
 import java.util.concurrent.Executor
 
-class AppLock(private val activity: Activity, private val executor: Executor) {
+class AppLock(
+    private val activity: Activity,
+    private val executor: Executor,
+) {
     private var backgroundedAt = 0L
     private var prompting = false
 
-    fun onStop() { backgroundedAt = System.currentTimeMillis() }
+    fun onStop() {
+        backgroundedAt = System.currentTimeMillis()
+    }
 
     fun onResume() {
         if (backgroundedAt == 0L || System.currentTimeMillis() - backgroundedAt < TIMEOUT_MILLIS || prompting) return
@@ -21,7 +26,8 @@ class AppLock(private val activity: Activity, private val executor: Executor) {
             return
         }
         prompting = true
-        BiometricPrompt.Builder(activity)
+        BiometricPrompt
+            .Builder(activity)
             .setTitle("Unlock Mizan")
             .setDescription("Use your device fingerprint, face, or screen lock")
             .setAllowedAuthenticators(authenticators)
@@ -35,7 +41,10 @@ class AppLock(private val activity: Activity, private val executor: Executor) {
                         backgroundedAt = 0L
                     }
 
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
+                    override fun onAuthenticationError(
+                        errorCode: Int,
+                        errString: CharSequence?,
+                    ) {
                         prompting = false
                         activity.moveTaskToBack(true)
                     }
@@ -43,5 +52,7 @@ class AppLock(private val activity: Activity, private val executor: Executor) {
             )
     }
 
-    private companion object { const val TIMEOUT_MILLIS = 30_000L }
+    private companion object {
+        const val TIMEOUT_MILLIS = 30_000L
+    }
 }
