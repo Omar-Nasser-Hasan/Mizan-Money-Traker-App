@@ -322,6 +322,7 @@ data class StatsRecordRow(
     val accountId: String,
     val categoryId: String?,
     val payeeId: String?,
+    val labels: String,
 )
 
 data class TrashRow(
@@ -661,7 +662,7 @@ interface LedgerDao {
     ): Flow<List<DailyBaseDelta>>
 
     @Query(
-        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
+        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
     )
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
 

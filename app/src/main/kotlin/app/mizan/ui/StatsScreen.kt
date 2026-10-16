@@ -60,6 +60,10 @@ fun statsScreen(
                 it.accountId,
                 it.categoryId,
                 it.payeeId,
+                it.labels
+                    .split('|')
+                    .filter(String::isNotBlank)
+                    .toSet(),
             )
         }
     val current = StatsEngine.cashFlow(records, period)
@@ -215,6 +219,10 @@ private fun LazyListScope.spendingTab(
     val categories = StatsEngine.byCategory(records, period).toList().sortedByDescending { it.second }
     item { Text("Spending by category", style = MaterialTheme.typography.titleLarge) }
     item { spendingDonut(categories) }
+    val labels = StatsEngine.byLabel(records, period).toList().sortedByDescending { it.second }
+    item { Text("Spending by label", style = MaterialTheme.typography.titleLarge) }
+    item { spendingDonut(labels) }
+    item { Text("Labels overlap: a record with several labels counts fully in each label.") }
     item { Text("Top payees", style = MaterialTheme.typography.titleLarge) }
     items(StatsEngine.topPayees(records, period), key = { it.first }) { (payee, amount) -> Text("$payee · $amount EGP minor") }
     item { Text("Largest expenses", style = MaterialTheme.typography.titleLarge) }
