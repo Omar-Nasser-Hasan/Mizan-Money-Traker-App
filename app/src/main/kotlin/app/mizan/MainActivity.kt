@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import app.mizan.data.repository.MizanRepository
 import app.mizan.ui.mizanApp
 import app.mizan.ui.theme.MizanTheme
+import app.mizan.security.AppLock
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collectLatest
@@ -17,9 +18,11 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject lateinit var repository: MizanRepository
+    private lateinit var appLock: AppLock
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appLock = AppLock(this, mainExecutor)
         lifecycleScope.launch {
             repository.observeSecureScreens().collectLatest { enabled ->
                 if (enabled) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE) else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -31,4 +34,8 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() { super.onResume(); appLock.onResume() }
+
+    override fun onStop() { appLock.onStop(); super.onStop() }
 }
