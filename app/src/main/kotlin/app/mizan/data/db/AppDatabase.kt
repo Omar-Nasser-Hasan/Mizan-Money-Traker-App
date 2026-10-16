@@ -480,6 +480,9 @@ interface PlanningDao {
     @Query("SELECT * FROM planned_payments WHERE active = 1")
     suspend fun activePlanned(): List<PlannedPaymentEntity>
 
+    @Query("SELECT * FROM planned_payments WHERE id = :id AND active = 1")
+    suspend fun activePlanned(id: String): PlannedPaymentEntity?
+
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     fun observeDebts(): Flow<List<DebtEntity>>
 

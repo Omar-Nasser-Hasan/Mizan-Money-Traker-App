@@ -12,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.plan.BudgetPeriod
 import app.mizan.domain.plan.Frequency
@@ -30,6 +31,13 @@ class ReminderWorker(
     override suspend fun doWork(): Result {
         val today = LocalDate.now()
         if (!canNotify()) return Result.success()
+        val snoozedId = inputData.getString(KEY_PLANNED_ID)
+        if (snoozedId != null) {
+            val payment = repository().activePlannedPayment(snoozedId) ?: return Result.success()
+            val dueDate = inputData.getString(KEY_DUE_DATE) ?: return Result.success()
+            notifyPlanned(payment.id, payment.name, dueDate)
+            return Result.success()
+        }
         repository().activePlannedPayments().forEach { payment ->
             val dueDates =
                 RecurrenceEngine.occurrences(
@@ -45,20 +53,7 @@ class ReminderWorker(
             if (dueDates.isEmpty()) return@forEach
             val dueDate = dueDates.first().toString()
             if (repository().plannedOccurrence(payment.id, dueDate) != null) return@forEach
-            val paid = action(payment.id, dueDate, ReminderActionReceiver.ACTION_PAID)
-            val skip = action(payment.id, dueDate, ReminderActionReceiver.ACTION_SKIP)
-            NotificationManagerCompat.from(applicationContext).notify(
-                payment.id.hashCode(),
-                NotificationCompat
-                    .Builder(applicationContext, NotificationChannels.REMINDERS)
-                    .setSmallIcon(android.R.drawable.ic_popup_reminder)
-                    .setContentTitle(payment.name)
-                    .setContentText("Due $dueDate")
-                    .addAction(0, "Mark paid", paid)
-                    .addAction(0, "Skip", skip)
-                    .setAutoCancel(true)
-                    .build(),
-            )
+            notifyPlanned(payment.id, payment.name, dueDate)
         }
         repository().activeBudgets().forEach { budget ->
             val period =
@@ -99,6 +94,29 @@ class ReminderWorker(
     private fun repository(): MizanRepository =
         EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java).repository()
 
+    private fun notifyPlanned(
+        plannedId: String,
+        name: String,
+        dueDate: String,
+    ) {
+        val paid = action(plannedId, dueDate, ReminderActionReceiver.ACTION_PAID)
+        val skip = action(plannedId, dueDate, ReminderActionReceiver.ACTION_SKIP)
+        val snooze = action(plannedId, dueDate, ReminderActionReceiver.ACTION_SNOOZE)
+        NotificationManagerCompat.from(applicationContext).notify(
+            plannedId.hashCode(),
+            NotificationCompat
+                .Builder(applicationContext, NotificationChannels.REMINDERS)
+                .setSmallIcon(android.R.drawable.ic_popup_reminder)
+                .setContentTitle(name)
+                .setContentText("Due $dueDate")
+                .addAction(0, "Mark paid", paid)
+                .addAction(0, "Skip", skip)
+                .addAction(0, "Snooze 1 hour", snooze)
+                .setAutoCancel(true)
+                .build(),
+        )
+    }
+
     private fun action(
         plannedId: String,
         dueDate: String,
@@ -113,4 +131,14 @@ class ReminderWorker(
                 .putExtra(ReminderActionReceiver.EXTRA_DUE_DATE, dueDate),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+
+    companion object {
+        const val KEY_PLANNED_ID = "planned_id"
+        const val KEY_DUE_DATE = "due_date"
+
+        fun input(
+            plannedId: String,
+            dueDate: String,
+        ) = workDataOf(KEY_PLANNED_ID to plannedId, KEY_DUE_DATE to dueDate)
+    }
 }
