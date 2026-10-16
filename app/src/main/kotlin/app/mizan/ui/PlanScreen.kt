@@ -3,6 +3,7 @@ package app.mizan.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,102 +36,224 @@ fun planScreen(
     repository: MizanRepository,
     modifier: Modifier,
 ) {
-    var section by remember { mutableStateOf("Budgets") }
+    var section by remember { mutableStateOf(PlanSection.BUDGETS) }
+    var name by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    var budgetScope by remember { mutableStateOf("ALL") }
+    var budgetPeriod by remember { mutableStateOf("MONTHLY") }
+    var rollover by remember { mutableStateOf("NONE") }
+    var plannedKind by remember { mutableStateOf("EXPENSE") }
+    var frequency by remember { mutableStateOf("MONTHLY") }
+    var debtDirection by remember { mutableStateOf("LENT") }
+    var dueDate by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
     val planned by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
     val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
-    var name by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    Column(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Plan", style = MaterialTheme.typography.headlineMedium)
-        listOf("Budgets", "Planned", "Debts").forEach { option ->
-            FilterChip(selected = section == option, onClick = { section = option }, label = { Text(option) })
-        }
-        OutlinedTextField(name, { name = it }, label = {
-            Text(
-                if (section ==
-                    "Debts"
-                ) {
-                    "Person"
-                } else {
-                    "Name"
-                },
-            )
-        }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(amount, { amount = it }, label = { Text("Amount (EGP)") }, modifier = Modifier.fillMaxWidth())
-        Button(onClick = {
-            val minor = amountToMinor(amount, 2)
-            val account = accounts.firstOrNull() ?: return@Button
-            if (name.isBlank() || minor <= 0) return@Button
-            scope.launch {
-                when (section) {
-                    "Budgets" -> {
-                        repository.saveBudget(
-                            BudgetEntity(UUID.randomUUID().toString(), name, "ALL", "", "MONTHLY", limitMinor = minor, rollover = "NONE"),
-                        )
-                    }
-
-                    "Planned" -> {
-                        repository.savePlannedPayment(
-                            PlannedPaymentEntity(
-                                UUID.randomUUID().toString(),
-                                "EXPENSE",
-                                name,
-                                accountId = account.id,
-                                currency = "EGP",
-                                amountMinor = minor,
-                                paymentType = "CASH",
-                                frequency = "MONTHLY",
-                                interval = 1,
-                                startDate = LocalDate.now().toString(),
-                                remindDaysBefore = 1,
-                            ),
-                        )
-                    }
-
-                    else -> {
-                        repository.saveDebt(
-                            DebtEntity(UUID.randomUUID().toString(), name, "LENT", "EGP", minor, LocalDate.now().toString()),
-                        )
-                    }
+    val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
+    val selectedScopeId = if (budgetScope == "ACCOUNT") accounts.firstOrNull()?.id.orEmpty() else categories.firstOrNull()?.id.orEmpty()
+    LazyColumn(
+        modifier = modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        item { Text("Plan", style = MaterialTheme.typography.headlineMedium) }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PlanSection.entries.forEach { option ->
+                    FilterChip(section == option, { section = option }, label = { Text(option.label) })
                 }
-                name = ""
-                amount = ""
             }
-        }, modifier = Modifier.fillMaxWidth()) { Text("Add") }
-        LazyColumn(Modifier.fillMaxSize()) {
-            when (section) {
-                "Budgets" -> {
-                    items(budgets) { budget ->
-                        Column(Modifier.padding(8.dp)) {
-                            Text("${budget.name} · ${budget.period}")
-                            amountText(budget.limitMinor, "EGP")
-                        }
+        }
+        item {
+            OutlinedTextField(
+                name,
+                { name = it },
+                label = { Text(if (section == PlanSection.DEBTS) "Person" else "Name") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        item {
+            OutlinedTextField(
+                amount,
+                { amount = it },
+                label = { Text("Amount (EGP)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        when (section) {
+            PlanSection.BUDGETS -> {
+                item { optionChips("Scope", listOf("ALL", "ACCOUNT", "CATEGORY"), budgetScope) { budgetScope = it } }
+                item { optionChips("Period", listOf("WEEKLY", "MONTHLY", "YEARLY", "ONE_TIME"), budgetPeriod) { budgetPeriod = it } }
+                item { optionChips("Rollover", listOf("NONE", "UNDER", "BOTH"), rollover) { rollover = it } }
+                if (budgetScope !=
+                    "ALL"
+                ) {
+                    item {
+                        Text(
+                            "Scope target: ${if (budgetScope == "ACCOUNT") accounts.firstOrNull()?.name ?: "Create an account" else categories.firstOrNull()?.name ?: "Uncategorized"}",
+                        )
                     }
                 }
-
-                "Planned" -> {
-                    items(
-                        planned,
-                    ) { payment ->
-                        Column(Modifier.padding(8.dp)) {
-                            Text("${payment.name} · ${payment.frequency}")
-                            amountText(payment.amountMinor, payment.currency)
-                        }
+                if (budgetPeriod ==
+                    "ONE_TIME"
+                ) {
+                    item {
+                        OutlinedTextField(
+                            dueDate,
+                            { dueDate = it },
+                            label = { Text("End date (YYYY-MM-DD)") },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
+            }
 
-                else -> {
-                    items(debts) { debt ->
-                        Column(Modifier.padding(8.dp)) {
-                            Text("${debt.person} · ${debt.direction}")
-                            amountText(debt.principalMinor, debt.currency)
+            PlanSection.PLANNED -> {
+                item { optionChips("Kind", listOf("EXPENSE", "INCOME", "TRANSFER"), plannedKind) { plannedKind = it } }
+                item { optionChips("Repeats", listOf("ONCE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"), frequency) { frequency = it } }
+                item { Text("The first account is used. Edit account details or add more accounts from Settings.") }
+            }
+
+            PlanSection.DEBTS -> {
+                item { optionChips("Direction", listOf("LENT", "BORROWED"), debtDirection) { debtDirection = it } }
+                item {
+                    OutlinedTextField(
+                        dueDate,
+                        { dueDate = it },
+                        label = { Text("Due date (optional, YYYY-MM-DD)") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+        item {
+            Button(
+                onClick = {
+                    val minor = amountToMinor(amount, 2)
+                    val account = accounts.firstOrNull()
+                    if (name.isBlank() || minor <= 0 || (section != PlanSection.BUDGETS && account == null)) return@Button
+                    scope.launch {
+                        when (section) {
+                            PlanSection.BUDGETS -> {
+                                val oneTimeEnd =
+                                    dueDate.takeIf {
+                                        budgetPeriod == "ONE_TIME" && runCatching { LocalDate.parse(it) }.isSuccess
+                                    }
+                                repository.saveBudget(
+                                    BudgetEntity(
+                                        UUID.randomUUID().toString(),
+                                        name,
+                                        budgetScope,
+                                        selectedScopeId,
+                                        budgetPeriod,
+                                        LocalDate.now().toString(),
+                                        oneTimeEnd,
+                                        minor,
+                                        rollover,
+                                    ),
+                                )
+                            }
+
+                            PlanSection.PLANNED -> {
+                                repository.savePlannedPayment(
+                                    PlannedPaymentEntity(
+                                        UUID.randomUUID().toString(),
+                                        plannedKind,
+                                        name,
+                                        accountId = account!!.id,
+                                        currency = account.defaultCurrency,
+                                        amountMinor = minor,
+                                        paymentType = "CASH",
+                                        frequency = frequency,
+                                        interval = 1,
+                                        startDate = LocalDate.now().toString(),
+                                        remindDaysBefore = 1,
+                                    ),
+                                )
+                            }
+
+                            PlanSection.DEBTS -> {
+                                repository.saveDebt(
+                                    DebtEntity(
+                                        UUID.randomUUID().toString(),
+                                        name,
+                                        debtDirection,
+                                        "EGP",
+                                        minor,
+                                        LocalDate.now().toString(),
+                                        dueDate.takeIf { runCatching { LocalDate.parse(it) }.isSuccess },
+                                    ),
+                                )
+                            }
                         }
+                        name = ""
+                        amount = ""
+                        dueDate = ""
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Add ${section.singularLabel}") }
+        }
+        when (section) {
+            PlanSection.BUDGETS -> {
+                items(budgets, key = { it.id }) { budget ->
+                    Column(Modifier.padding(8.dp)) {
+                        Text("${budget.name} · ${budget.scope.lowercase()} · ${budget.period.lowercase()}")
+                        Text("Rollover: ${budget.rollover.lowercase()}")
+                        amountText(budget.limitMinor, "EGP")
+                    }
+                }
+            }
+
+            PlanSection.PLANNED -> {
+                items(planned, key = { it.id }) { payment ->
+                    Column(Modifier.padding(8.dp)) {
+                        Text("${payment.name} · ${payment.kind.lowercase()} · ${payment.frequency.lowercase()}")
+                        amountText(payment.amountMinor, payment.currency)
+                    }
+                }
+            }
+
+            PlanSection.DEBTS -> {
+                items(debts, key = { it.id }) { debt ->
+                    Column(Modifier.padding(8.dp)) {
+                        Text("${debt.person} · ${debt.direction.lowercase()}")
+                        Text(debt.dueDate?.let { "Due $it" } ?: "No due date")
+                        amountText(debt.principalMinor, debt.currency)
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun optionChips(
+    title: String,
+    options: List<String>,
+    selected: String,
+    onSelected: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            options.forEach { option ->
+                FilterChip(
+                    option == selected,
+                    { onSelected(option) },
+                    label = { Text(option.lowercase().replaceFirstChar(Char::uppercase)) },
+                )
+            }
+        }
+    }
+}
+
+private enum class PlanSection(
+    val label: String,
+    val singularLabel: String,
+) {
+    BUDGETS("Budgets", "budget"),
+    PLANNED("Planned", "planned payment"),
+    DEBTS("Debts", "debt"),
 }
