@@ -66,7 +66,8 @@ fun backupScreen(
                 }.onSuccess { (file, checked) ->
                     importedBackup = file
                     preview = checked
-                    status = "Backup verified. It has ${checked.rowCounts["transactions"] ?: 0} records from ${checked.createdAt}."
+                    status =
+                        "Backup verified. It has ${checked.rowCounts["transactions"] ?: 0} records and ${checked.attachmentCount} receipt files from ${checked.createdAt}."
                 }.onFailure { status = "Backup was not opened: ${it.message}" }
             }
         }
