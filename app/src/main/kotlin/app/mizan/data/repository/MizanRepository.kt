@@ -41,9 +41,11 @@ import app.mizan.data.db.TxnEntity
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -123,7 +125,20 @@ class MizanRepository
             scopeIds: String,
         ): Long = planning.spentForBudget(start, end, scope, scopeIds)
 
-        suspend fun createBackup(passphrase: CharArray) = BackupArchive(context, database).create(passphrase)
+        suspend fun createBackup(passphrase: CharArray) =
+            withContext(Dispatchers.IO) { BackupArchive(context, database).create(passphrase) }
+
+        suspend fun previewBackup(
+            file: java.io.File,
+            passphrase: CharArray,
+        ) = withContext(Dispatchers.IO) { BackupArchive(context, database).preview(file, passphrase) }
+
+        suspend fun restoreBackup(
+            file: java.io.File,
+            passphrase: CharArray,
+        ) = withContext(Dispatchers.IO) { BackupArchive(context, database).restore(file, passphrase) }
+
+        suspend fun localBackups() = withContext(Dispatchers.IO) { BackupArchive(context, database).localBackups() }
 
         suspend fun markPlannedOccurrence(
             plannedId: String,

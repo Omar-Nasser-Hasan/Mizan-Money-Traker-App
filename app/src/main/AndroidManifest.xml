@@ -7,6 +7,15 @@
         android:allowBackup="false"
         android:label="@string/app_name"
         android:theme="@style/Theme.Mizan">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.backup"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/backup_paths" />
+        </provider>
         <receiver android:name=".notify.ReminderActionReceiver" android:exported="false" />
         <activity
             android:name=".MainActivity"
