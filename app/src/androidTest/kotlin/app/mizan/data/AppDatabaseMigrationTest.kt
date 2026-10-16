@@ -10,7 +10,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Harness retained from M0: future schema versions must add their migration to this test. */
+/** Every production schema upgrade must be executed against its previous exported schema. */
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
     @get:Rule
@@ -23,8 +23,12 @@ class AppDatabaseMigrationTest {
         )
 
     @Test
-    fun migrationContractIsDeclared() {
-        assert(AppDatabase.MIGRATION_1_2.startVersion == 1)
-        assert(AppDatabase.MIGRATION_1_2.endVersion == 2)
+    fun migratesMarkerDatabaseToLedgerSchema() {
+        val databaseName = "migration-test"
+        helper.createDatabase(databaseName, 1).apply {
+            execSQL("INSERT INTO schema_marker (id) VALUES (1)")
+            close()
+        }
+        helper.runMigrationsAndValidate(databaseName, 2, true, AppDatabase.MIGRATION_1_2).close()
     }
 }

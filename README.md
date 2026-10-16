@@ -2,7 +2,7 @@
 
 Private, offline-first personal-finance Android app for Egypt.
 
-This repository currently contains M0: the Android scaffold, visual system, database harness, and isolated data/voice/AI diagnostic spikes. It deliberately contains no finance product features.
+This repository contains M1: currencies and FX, accounts with currency buckets, reference data, a validated ledger, Entry, Records, and account-detail balance trends.
 
 ## Build
 
@@ -26,4 +26,4 @@ Alternatively, copy that APK to an Android 11+ phone and open it from the device
 
 ## Open the Dev menu
 
-The Dev menu exists only in a debug build. Tap **More** in the bottom navigation, then press and hold the **More** title in the top app bar. This opens the throwaway diagnostic probes; it is not part of the product navigation.
+The Dev menu exists only in a debug build. Tap **Wealth** in the bottom navigation, then press and hold the **Wealth** title in the top app bar. It contains the 5,000-record performance seed action and is not part of the product navigation.

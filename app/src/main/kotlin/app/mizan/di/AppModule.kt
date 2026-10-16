@@ -3,12 +3,19 @@ package app.mizan.di
 
 import android.content.Context
 import androidx.room.Room
+import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AppDatabase
+import app.mizan.data.db.CurrencyDao
+import app.mizan.data.db.FxRateDao
+import app.mizan.data.db.LedgerDao
+import app.mizan.data.db.ReferenceDataDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import java.time.Clock
 import javax.inject.Singleton
 
 @Module
@@ -18,5 +25,32 @@ object AppModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-    ): AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "mizan.db").build()
+    ): AppDatabase =
+        Room
+            .databaseBuilder(context, AppDatabase::class.java, "mizan.db")
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
+
+    @Provides
+    @Singleton
+    fun provideClock(): Clock = Clock.systemUTC()
+
+    @Provides
+    fun provideCurrencyDao(database: AppDatabase): CurrencyDao = database.currencyDao()
+
+    @Provides
+    fun provideFxRateDao(database: AppDatabase): FxRateDao = database.fxRateDao()
+
+    @Provides
+    fun provideAccountDao(database: AppDatabase): AccountDao = database.accountDao()
+
+    @Provides
+    fun provideReferenceDataDao(database: AppDatabase): ReferenceDataDao = database.referenceDataDao()
+
+    @Provides
+    fun provideLedgerDao(database: AppDatabase): LedgerDao = database.ledgerDao()
 }
