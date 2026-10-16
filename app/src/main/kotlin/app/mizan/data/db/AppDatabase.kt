@@ -463,6 +463,9 @@ interface PlanningDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertOccurrence(value: PlannedOccurrenceEntity)
 
+    @Query("SELECT * FROM planned_occurrences WHERE plannedId = :plannedId AND dueDate = :dueDate")
+    suspend fun occurrence(plannedId: String, dueDate: String): PlannedOccurrenceEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertDebt(value: DebtEntity)
 

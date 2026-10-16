@@ -25,6 +25,7 @@ import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.PlannedPaymentEntity
+import app.mizan.data.db.PlannedOccurrenceEntity
 import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.RecordRow
 import app.mizan.data.db.RecordTemplateEntity
@@ -92,6 +93,12 @@ class MizanRepository
         fun observePlannedPayments() = planning.observePlanned()
 
         suspend fun activePlannedPayments() = planning.activePlanned()
+
+        suspend fun markPlannedOccurrence(
+            plannedId: String,
+            dueDate: String,
+            status: String,
+        ) = planning.upsertOccurrence(PlannedOccurrenceEntity(plannedId, dueDate, status))
 
         fun observeDebts() = planning.observeDebts()
 
