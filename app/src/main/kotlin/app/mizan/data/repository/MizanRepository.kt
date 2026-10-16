@@ -18,10 +18,15 @@ import app.mizan.data.db.CurrencyEntity
 import app.mizan.data.db.EntryEntity
 import app.mizan.data.db.FxRateDao
 import app.mizan.data.db.FxRateEntity
+import app.mizan.data.db.IncomeSetupDao
+import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.RecordRow
+import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.db.ReferenceDataDao
+import app.mizan.data.db.SplitLineEntity
+import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.TxnEntity
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ports.RecordQuery
@@ -53,6 +58,7 @@ class MizanRepository
         private val fxRates: FxRateDao,
         private val accounts: AccountDao,
         private val reference: ReferenceDataDao,
+        private val incomeSetup: IncomeSetupDao,
         private val ledger: LedgerDao,
         @ApplicationContext private val context: Context,
         private val client: OkHttpClient,
@@ -67,6 +73,14 @@ class MizanRepository
         fun observeLabels() = reference.observeLabels()
 
         fun observePayees() = reference.observePayees()
+
+        fun observeIncomeSources() = incomeSetup.observeSources()
+
+        fun observeSplitTemplates() = incomeSetup.observeTemplates()
+
+        fun observeSplitLines(templateId: String) = incomeSetup.observeLines(templateId)
+
+        fun observeRecordTemplates(kind: String) = incomeSetup.observeRecordTemplates(kind)
 
         fun observeBuckets(accountId: String) = accounts.observeBuckets(accountId)
 
@@ -131,6 +145,15 @@ class MizanRepository
         suspend fun saveLabel(value: app.mizan.data.db.LabelEntity) = reference.upsertLabel(value)
 
         suspend fun savePayee(value: PayeeEntity) = reference.upsertPayee(value)
+
+        suspend fun saveIncomeSource(value: IncomeSourceEntity) = incomeSetup.upsertSource(value)
+
+        suspend fun saveSplitTemplate(
+            template: SplitTemplateEntity,
+            lines: List<SplitLineEntity>,
+        ) = incomeSetup.replaceTemplate(template, lines)
+
+        suspend fun saveRecordTemplate(value: RecordTemplateEntity) = incomeSetup.upsertRecordTemplate(value)
 
         suspend fun archiveCategory(
             id: String,

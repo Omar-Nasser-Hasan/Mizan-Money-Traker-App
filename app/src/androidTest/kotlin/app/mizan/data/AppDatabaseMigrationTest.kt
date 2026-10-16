@@ -23,12 +23,22 @@ class AppDatabaseMigrationTest {
         )
 
     @Test
-    fun migratesMarkerDatabaseToLedgerSchema() {
+    fun migratesMarkerDatabaseToCurrentSchema() {
         val databaseName = "migration-test"
         helper.createDatabase(databaseName, 1).apply {
             execSQL("INSERT INTO schema_marker (id) VALUES (1)")
             close()
         }
-        helper.runMigrationsAndValidate(databaseName, 2, true, AppDatabase.MIGRATION_1_2).close()
+        helper.runMigrationsAndValidate(databaseName, 3, true, AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3).close()
+    }
+
+    @Test
+    fun migratesLedgerSchemaToIncomeSetupSchema() {
+        val databaseName = "migration-v2-test"
+        helper.createDatabase(databaseName, 2).apply {
+            execSQL("INSERT INTO categories (id, parentId, name, icon, color, kind, isDebtService, excludeFromForecast, archived, sortOrder) VALUES ('cat', NULL, 'Category', 'tag', '#000000', 'EXPENSE', 0, 0, 0, 0)")
+            close()
+        }
+        helper.runMigrationsAndValidate(databaseName, 3, true, AppDatabase.MIGRATION_2_3).close()
     }
 }

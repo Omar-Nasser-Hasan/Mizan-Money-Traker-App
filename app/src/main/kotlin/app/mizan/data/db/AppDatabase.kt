@@ -101,6 +101,53 @@ data class PayeeEntity(
     val archived: Boolean = false,
 )
 
+@Entity(tableName = "income_sources")
+data class IncomeSourceEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val defaultTemplateId: String? = null,
+    val defaultCategoryId: String? = null,
+    val archived: Boolean = false,
+)
+
+@Entity(tableName = "split_templates")
+data class SplitTemplateEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val remainderAccountId: String? = null,
+    val archived: Boolean = false,
+)
+
+@Entity(
+    tableName = "split_lines",
+    foreignKeys = [ForeignKey(entity = SplitTemplateEntity::class, parentColumns = ["id"], childColumns = ["templateId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("templateId")],
+)
+data class SplitLineEntity(
+    @PrimaryKey val id: String,
+    val templateId: String,
+    val accountId: String,
+    val mode: String,
+    val value: Long,
+    val sortOrder: Int,
+)
+
+@Entity(tableName = "record_templates", indices = [Index("kind")])
+data class RecordTemplateEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val kind: String,
+    val accountId: String? = null,
+    val currency: String? = null,
+    val amountMinor: Long? = null,
+    val categoryId: String? = null,
+    val payeeId: String? = null,
+    val note: String = "",
+    val incomeSourceId: String? = null,
+    val splitTemplateId: String? = null,
+    val archived: Boolean = false,
+)
+
 @Entity(
     tableName = "transactions",
     indices = [Index("bookedDate"), Index(value = ["kind", "bookedDate"]), Index(value = ["categoryId", "bookedDate"]), Index("deletedAt")],
@@ -290,6 +337,43 @@ interface ReferenceDataDao {
 }
 
 @Dao
+interface IncomeSetupDao {
+    @Query("SELECT * FROM income_sources WHERE archived = 0 ORDER BY name")
+    fun observeSources(): Flow<List<IncomeSourceEntity>>
+
+    @Query("SELECT * FROM split_templates WHERE archived = 0 ORDER BY name")
+    fun observeTemplates(): Flow<List<SplitTemplateEntity>>
+
+    @Query("SELECT * FROM split_lines WHERE templateId = :templateId ORDER BY sortOrder")
+    fun observeLines(templateId: String): Flow<List<SplitLineEntity>>
+
+    @Query("SELECT * FROM record_templates WHERE archived = 0 AND kind = :kind ORDER BY name")
+    fun observeRecordTemplates(kind: String): Flow<List<RecordTemplateEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertSource(value: IncomeSourceEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertTemplate(value: SplitTemplateEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertLines(values: List<SplitLineEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertRecordTemplate(value: RecordTemplateEntity)
+
+    @Query("DELETE FROM split_lines WHERE templateId = :templateId")
+    suspend fun deleteLines(templateId: String)
+
+    @androidx.room.Transaction
+    suspend fun replaceTemplate(value: SplitTemplateEntity, lines: List<SplitLineEntity>) {
+        upsertTemplate(value)
+        deleteLines(value.id)
+        upsertLines(lines)
+    }
+}
+
+@Dao
 interface LedgerDao {
     @Insert suspend fun insertTransaction(value: TxnEntity)
 
@@ -380,8 +464,8 @@ interface LedgerDao {
 }
 
 @Database(
-    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
-    version = 2,
+    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -392,6 +476,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
 
     abstract fun referenceDataDao(): ReferenceDataDao
+
+    abstract fun incomeSetupDao(): IncomeSetupDao
 
     abstract fun ledgerDao(): LedgerDao
 
@@ -445,6 +531,26 @@ abstract class AppDatabase : RoomDatabase() {
                         "CREATE TABLE IF NOT EXISTS record_labels (txnId TEXT NOT NULL, labelId TEXT NOT NULL, PRIMARY KEY(txnId, labelId))",
                     )
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_record_labels_labelId ON record_labels(labelId)")
+                }
+            }
+
+        val MIGRATION_2_3 =
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS income_sources (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, defaultTemplateId TEXT, defaultCategoryId TEXT, archived INTEGER NOT NULL)",
+                    )
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS split_templates (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, remainderAccountId TEXT, archived INTEGER NOT NULL)",
+                    )
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS split_lines (id TEXT NOT NULL PRIMARY KEY, templateId TEXT NOT NULL, accountId TEXT NOT NULL, mode TEXT NOT NULL, value INTEGER NOT NULL, sortOrder INTEGER NOT NULL, FOREIGN KEY(templateId) REFERENCES split_templates(id) ON DELETE CASCADE)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_split_lines_templateId ON split_lines(templateId)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS record_templates (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL, accountId TEXT, currency TEXT, amountMinor INTEGER, categoryId TEXT, payeeId TEXT, note TEXT NOT NULL, incomeSourceId TEXT, splitTemplateId TEXT, archived INTEGER NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_record_templates_kind ON record_templates(kind)")
                 }
             }
     }
