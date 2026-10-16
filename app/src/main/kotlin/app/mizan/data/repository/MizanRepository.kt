@@ -13,6 +13,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.paging.PagingSource
 import androidx.room.withTransaction
 import app.mizan.data.backup.BackupArchive
+import app.mizan.data.backup.BackupPassphraseVault
 import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AccountEntity
@@ -145,6 +146,22 @@ class MizanRepository
 
         suspend fun createBackup(passphrase: CharArray) =
             withContext(Dispatchers.IO) { BackupArchive(context, database).create(passphrase) }
+
+        suspend fun setBackupPassphrase(passphrase: CharArray) =
+            withContext(Dispatchers.IO) {
+                context.dataStore.edit { it[BACKUP_PASSPHRASE] = BackupPassphraseVault.encrypt(passphrase) }
+            }
+
+        suspend fun createScheduledBackup(): java.io.File? =
+            withContext(Dispatchers.IO) {
+                val stored = context.dataStore.data.first()[BACKUP_PASSPHRASE] ?: return@withContext null
+                val passphrase = BackupPassphraseVault.decrypt(stored) ?: return@withContext null
+                try {
+                    BackupArchive(context, database).create(passphrase)
+                } finally {
+                    passphrase.fill('\u0000')
+                }
+            }
 
         suspend fun previewBackup(
             file: java.io.File,
@@ -779,6 +796,7 @@ class MizanRepository
             private val DAILY_EXPENSE_REMINDER_TIME = stringPreferencesKey("daily_expense_reminder_time")
             private val QUIET_HOURS_START = stringPreferencesKey("quiet_hours_start")
             private val QUIET_HOURS_END = stringPreferencesKey("quiet_hours_end")
+            private val BACKUP_PASSPHRASE = stringPreferencesKey("backup_passphrase_keystore_wrapped")
 
             private fun String?.toLocalTimeOrDefault(default: LocalTime): LocalTime =
                 this?.let { runCatching { LocalTime.parse(it) }.getOrNull() } ?: default

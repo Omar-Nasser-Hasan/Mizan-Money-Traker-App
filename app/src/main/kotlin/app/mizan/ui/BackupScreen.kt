@@ -88,11 +88,14 @@ fun backupScreen(
                 if (passphrase.isNotEmpty()) {
                     scope.launch {
                         status = "Creating encrypted backup…"
-                        runCatching { repository.createBackup(passphrase.toCharArray()) }
-                            .onSuccess {
-                                newestBackup = it
-                                status = "Saved ${it.name}. Seven daily and four weekly local copies are retained."
-                            }.onFailure { status = "Backup failed: ${it.message}" }
+                        runCatching {
+                            repository.setBackupPassphrase(passphrase.toCharArray())
+                            repository.createBackup(passphrase.toCharArray())
+                        }.onSuccess {
+                            newestBackup = it
+                            status =
+                                "Saved ${it.name}. Seven daily and four weekly local copies are retained; future daily copies use the device Keystore-wrapped passphrase."
+                        }.onFailure { status = "Backup failed: ${it.message}" }
                     }
                 }
             },

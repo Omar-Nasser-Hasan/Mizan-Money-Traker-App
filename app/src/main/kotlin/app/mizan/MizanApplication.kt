@@ -9,6 +9,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import app.mizan.data.repository.MizanRepository
 import app.mizan.notify.NotificationChannels
+import app.mizan.worker.BackupWorker
 import app.mizan.worker.FxRefreshWorker
 import app.mizan.worker.ReminderWorker
 import app.mizan.worker.TrashPurgeWorker
@@ -49,6 +50,11 @@ class MizanApplication : Application() {
             "trash-purge",
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<TrashPurgeWorker>(24, TimeUnit.HOURS).build(),
+        )
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "nightly-encrypted-backup",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<BackupWorker>(24, TimeUnit.HOURS).build(),
         )
     }
 }
