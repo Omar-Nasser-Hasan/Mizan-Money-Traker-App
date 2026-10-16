@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.ui
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -20,8 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mizan.data.io.StatsImageExport
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.stats.Period
 import app.mizan.domain.stats.StatKind
@@ -32,6 +37,7 @@ import app.mizan.domain.stats.compare
 import app.mizan.ui.charts.ChartPoint
 import app.mizan.ui.charts.lineAreaChart
 import app.mizan.ui.charts.spendingDonut
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @Composable
@@ -59,6 +65,8 @@ fun statsScreen(
     val current = StatsEngine.cashFlow(records, period)
     val previous = StatsEngine.cashFlow(records, StatPeriods.previous(period))
     val netChange = compare(current.netMinor, previous.netMinor, cashFlow = true)
+    val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -72,6 +80,31 @@ fun statsScreen(
             }
         }
         item { Text("${period.start} to ${period.end}", style = MaterialTheme.typography.labelLarge) }
+        item {
+            Button(
+                onClick = {
+                    scope.launch {
+                        val file =
+                            StatsImageExport.write(
+                                context,
+                                "${tab.label} · ${period.start} to ${period.end}",
+                                listOf(
+                                    "Income: ${current.incomeMinor} EGP minor",
+                                    "Expenses: ${current.expenseMinor} EGP minor",
+                                    "Cash flow: ${current.netMinor} EGP minor",
+                                ),
+                            )
+                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.backup", file)
+                        context.startActivity(
+                            Intent(Intent.ACTION_SEND)
+                                .setType("image/png")
+                                .putExtra(Intent.EXTRA_STREAM, uri)
+                                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                        )
+                    }
+                },
+            ) { Text("Share as image") }
+        }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatsTab.entries.forEach { option ->
