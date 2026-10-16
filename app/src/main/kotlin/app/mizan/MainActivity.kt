@@ -24,6 +24,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         appLock = AppLock(this, mainExecutor)
         lifecycleScope.launch {
+            repository.observeLockTimeoutSeconds().collectLatest { appLock.setTimeoutSeconds(it) }
+        }
+        lifecycleScope.launch {
             repository.observeSecureScreens().collectLatest { enabled ->
                 if (enabled) {
                     window.addFlags(

@@ -7,6 +7,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.paging.PagingSource
@@ -288,6 +289,8 @@ class MizanRepository
 
         fun observeSecureScreens(): Flow<Boolean> = context.dataStore.data.map { it[SECURE_SCREENS] ?: false }
 
+        fun observeLockTimeoutSeconds(): Flow<Int> = context.dataStore.data.map { it[LOCK_TIMEOUT_SECONDS] ?: 30 }
+
         fun observePlannedRemindersEnabled(): Flow<Boolean> = context.dataStore.data.map { it[PLANNED_REMINDERS_ENABLED] ?: true }
 
         fun observeBudgetAlertsEnabled(): Flow<Boolean> = context.dataStore.data.map { it[BUDGET_ALERTS_ENABLED] ?: true }
@@ -307,6 +310,11 @@ class MizanRepository
         suspend fun setHideAmounts(enabled: Boolean) = context.dataStore.edit { it[HIDE_AMOUNTS] = enabled }
 
         suspend fun setSecureScreens(enabled: Boolean) = context.dataStore.edit { it[SECURE_SCREENS] = enabled }
+
+        suspend fun setLockTimeoutSeconds(seconds: Int) {
+            require(seconds in setOf(0, 30, 60, 300)) { "Unsupported lock timeout" }
+            context.dataStore.edit { it[LOCK_TIMEOUT_SECONDS] = seconds }
+        }
 
         suspend fun setPlannedRemindersEnabled(enabled: Boolean) = context.dataStore.edit { it[PLANNED_REMINDERS_ENABLED] = enabled }
 
@@ -760,6 +768,7 @@ class MizanRepository
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
             private val SECURE_SCREENS = booleanPreferencesKey("secure_screens")
+            private val LOCK_TIMEOUT_SECONDS = intPreferencesKey("lock_timeout_seconds")
             private val PLANNED_REMINDERS_ENABLED = booleanPreferencesKey("planned_reminders_enabled")
             private val BUDGET_ALERTS_ENABLED = booleanPreferencesKey("budget_alerts_enabled")
             private val DAILY_EXPENSE_REMINDER_ENABLED = booleanPreferencesKey("daily_expense_reminder_enabled")

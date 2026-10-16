@@ -13,13 +13,18 @@ class AppLock(
 ) {
     private var backgroundedAt = 0L
     private var prompting = false
+    private var timeoutMillis = 30_000L
+
+    fun setTimeoutSeconds(seconds: Int) {
+        timeoutMillis = seconds.coerceAtLeast(0).toLong() * 1_000L
+    }
 
     fun onStop() {
         backgroundedAt = System.currentTimeMillis()
     }
 
     fun onResume() {
-        if (backgroundedAt == 0L || System.currentTimeMillis() - backgroundedAt < TIMEOUT_MILLIS || prompting) return
+        if (backgroundedAt == 0L || System.currentTimeMillis() - backgroundedAt < timeoutMillis || prompting) return
         val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
         if (activity.getSystemService(BiometricManager::class.java).canAuthenticate(authenticators) != BiometricManager.BIOMETRIC_SUCCESS) {
             activity.moveTaskToBack(true)
@@ -50,9 +55,5 @@ class AppLock(
                     }
                 },
             )
-    }
-
-    private companion object {
-        const val TIMEOUT_MILLIS = 30_000L
     }
 }
