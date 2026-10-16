@@ -25,7 +25,12 @@ class GoldenStatsTest {
                         values[4],
                         values[6].ifBlank { null },
                         values[7].ifBlank { null },
-                        values[8].trim().takeIf { it.isNotEmpty() }?.split(';')?.toSet().orEmpty(),
+                        values[8]
+                            .trim()
+                            .takeIf { it.isNotEmpty() }
+                            ?.split(';')
+                            ?.toSet()
+                            .orEmpty(),
                     )
                 }
         val cashFlow = StatsEngine.cashFlow(rows, march)
