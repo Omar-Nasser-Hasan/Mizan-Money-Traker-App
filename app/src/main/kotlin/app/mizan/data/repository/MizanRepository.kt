@@ -369,16 +369,118 @@ class MizanRepository
             private val defaultCategories =
                 buildList {
                     add(CategoryEntity(UNCATEGORIZED_ID, name = "Uncategorized", icon = "inbox", color = "#64748B", kind = "EXPENSE"))
-                    addExpenseBranch("food-drinks", "Food & Drinks", listOf("groceries" to "Groceries", "restaurants" to "Restaurants & fast food", "cafes" to "Cafés & drinks", "delivery" to "Delivery", "snacks" to "Snacks"))
-                    addExpenseBranch("shopping", "Shopping", listOf("clothes" to "Clothes & shoes", "electronics" to "Electronics & accessories", "pharmacy" to "Pharmacy", "beauty" to "Health & beauty", "home-garden" to "Home & garden", "gifts" to "Gifts", "jewelry" to "Jewelry & accessories", "kids" to "Kids", "pets" to "Pets", "stationery" to "Stationery & tools", "shopping-other" to "Other"))
-                    addExpenseBranch("housing", "Housing", listOf("rent" to "Rent", "utilities" to "Electricity, water & gas", "maintenance" to "Maintenance & repairs", "furniture" to "Furniture & appliances", "housing-insurance" to "Insurance", "housing-services" to "Services"))
-                    addExpenseBranch("transportation", "Transportation", listOf("taxi" to "Taxi & ride-hailing", "public-transport" to "Public transport", "long-distance" to "Long distance", "business-trips" to "Business trips"))
-                    addExpenseBranch("vehicle", "Vehicle", listOf("fuel" to "Fuel", "parking" to "Parking & tolls", "vehicle-maintenance" to "Maintenance", "vehicle-insurance" to "Insurance & licensing", "rental" to "Rental & leasing"))
-                    addExpenseBranch("life-entertainment", "Life & Entertainment", listOf("subscriptions" to "Subscriptions", "sports" to "Sports & fitness", "hobbies" to "Hobbies", "events" to "Events & culture", "trips" to "Trips & hotels", "education" to "Education & courses", "health-care" to "Health care & doctor", "charity" to "Charity & gifts", "zakat" to "Zakat & sadaqah", "life-events" to "Life events", "alcohol" to "Alcohol & tobacco"))
-                    addExpenseBranch("communication-pc", "Communication & PC", listOf("internet" to "Internet", "mobile" to "Mobile credit & packages", "software" to "Software & apps", "postal" to "Postal"))
-                    addExpenseBranch("financial-expenses", "Financial expenses", listOf("fees" to "Fees & charges", "loan-interest" to "Loan interest & installments", "taxes" to "Taxes", "fines" to "Fines", "financial-insurance" to "Insurance", "advisory" to "Advisory"))
+                    addExpenseBranch(
+                        "food-drinks",
+                        "Food & Drinks",
+                        listOf(
+                            "groceries" to "Groceries",
+                            "restaurants" to "Restaurants & fast food",
+                            "cafes" to "Cafés & drinks",
+                            "delivery" to "Delivery",
+                            "snacks" to "Snacks",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "shopping",
+                        "Shopping",
+                        listOf(
+                            "clothes" to "Clothes & shoes",
+                            "electronics" to "Electronics & accessories",
+                            "pharmacy" to "Pharmacy",
+                            "beauty" to "Health & beauty",
+                            "home-garden" to "Home & garden",
+                            "gifts" to "Gifts",
+                            "jewelry" to "Jewelry & accessories",
+                            "kids" to "Kids",
+                            "pets" to "Pets",
+                            "stationery" to "Stationery & tools",
+                            "shopping-other" to "Other",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "housing",
+                        "Housing",
+                        listOf(
+                            "rent" to "Rent",
+                            "utilities" to "Electricity, water & gas",
+                            "maintenance" to "Maintenance & repairs",
+                            "furniture" to "Furniture & appliances",
+                            "housing-insurance" to "Insurance",
+                            "housing-services" to "Services",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "transportation",
+                        "Transportation",
+                        listOf(
+                            "taxi" to "Taxi & ride-hailing",
+                            "public-transport" to "Public transport",
+                            "long-distance" to "Long distance",
+                            "business-trips" to "Business trips",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "vehicle",
+                        "Vehicle",
+                        listOf(
+                            "fuel" to "Fuel",
+                            "parking" to "Parking & tolls",
+                            "vehicle-maintenance" to "Maintenance",
+                            "vehicle-insurance" to "Insurance & licensing",
+                            "rental" to "Rental & leasing",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "life-entertainment",
+                        "Life & Entertainment",
+                        listOf(
+                            "subscriptions" to "Subscriptions",
+                            "sports" to "Sports & fitness",
+                            "hobbies" to "Hobbies",
+                            "events" to "Events & culture",
+                            "trips" to "Trips & hotels",
+                            "education" to "Education & courses",
+                            "health-care" to "Health care & doctor",
+                            "charity" to "Charity & gifts",
+                            "zakat" to "Zakat & sadaqah",
+                            "life-events" to "Life events",
+                            "alcohol" to "Alcohol & tobacco",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "communication-pc",
+                        "Communication & PC",
+                        listOf(
+                            "internet" to "Internet",
+                            "mobile" to "Mobile credit & packages",
+                            "software" to "Software & apps",
+                            "postal" to "Postal",
+                        ),
+                    )
+                    addExpenseBranch(
+                        "financial-expenses",
+                        "Financial expenses",
+                        listOf(
+                            "fees" to "Fees & charges",
+                            "loan-interest" to "Loan interest & installments",
+                            "taxes" to "Taxes",
+                            "fines" to "Fines",
+                            "financial-insurance" to "Insurance",
+                            "advisory" to "Advisory",
+                        ),
+                    )
                     add(CategoryEntity("others", name = "Others", icon = "folder", color = "#64748B", kind = "EXPENSE", sortOrder = size))
-                    listOf("salary" to "Salary & wages", "freelance" to "Freelance & side income", "business" to "Business", "income-gifts" to "Gifts received", "refunds" to "Refunds & cashback", "interest" to "Interest & dividends", "rental-income" to "Rental income", "sale" to "Sale of items", "other-income" to "Other income").forEach { (id, name) ->
+                    listOf(
+                        "salary" to "Salary & wages",
+                        "freelance" to "Freelance & side income",
+                        "business" to "Business",
+                        "income-gifts" to "Gifts received",
+                        "refunds" to "Refunds & cashback",
+                        "interest" to "Interest & dividends",
+                        "rental-income" to "Rental income",
+                        "sale" to "Sale of items",
+                        "other-income" to "Other income",
+                    ).forEach { (id, name) ->
                         add(CategoryEntity(id, name = name, icon = "payments", color = "#10B981", kind = "INCOME", sortOrder = size))
                     }
                 }

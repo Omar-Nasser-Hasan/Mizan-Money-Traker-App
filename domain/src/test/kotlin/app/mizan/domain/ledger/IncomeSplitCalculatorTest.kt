@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.ledger
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.random.Random
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
 
 class IncomeSplitCalculatorTest {
     @Test fun percent_split_posts_exact_three_leg_income() {
@@ -58,7 +58,13 @@ class IncomeSplitCalculatorTest {
         }
     }
 
-    private fun fixed(account: String, amount: Long) = SplitLine(account, "template", account, SplitMode.FIXED, amount)
+    private fun fixed(
+        account: String,
+        amount: Long,
+    ) = SplitLine(account, "template", account, SplitMode.FIXED, amount)
 
-    private fun percent(account: String, basisPoints: Long) = SplitLine(account, "template", account, SplitMode.PERCENT, basisPoints)
+    private fun percent(
+        account: String,
+        basisPoints: Long,
+    ) = SplitLine(account, "template", account, SplitMode.PERCENT, basisPoints)
 }

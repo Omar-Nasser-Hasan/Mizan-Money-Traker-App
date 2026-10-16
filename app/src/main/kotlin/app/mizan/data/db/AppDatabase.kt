@@ -120,7 +120,14 @@ data class SplitTemplateEntity(
 
 @Entity(
     tableName = "split_lines",
-    foreignKeys = [ForeignKey(entity = SplitTemplateEntity::class, parentColumns = ["id"], childColumns = ["templateId"], onDelete = ForeignKey.CASCADE)],
+    foreignKeys = [
+        ForeignKey(
+            entity = SplitTemplateEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["templateId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
     indices = [Index("templateId")],
 )
 data class SplitLineEntity(
@@ -366,7 +373,10 @@ interface IncomeSetupDao {
     suspend fun deleteLines(templateId: String)
 
     @androidx.room.Transaction
-    suspend fun replaceTemplate(value: SplitTemplateEntity, lines: List<SplitLineEntity>) {
+    suspend fun replaceTemplate(
+        value: SplitTemplateEntity,
+        lines: List<SplitLineEntity>,
+    ) {
         upsertTemplate(value)
         deleteLines(value.id)
         upsertLines(lines)
