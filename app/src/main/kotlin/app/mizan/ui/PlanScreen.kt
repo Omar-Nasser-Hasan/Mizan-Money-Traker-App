@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,8 +28,18 @@ import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.DebtEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.repository.MizanRepository
+import app.mizan.domain.plan.BudgetMath
+import app.mizan.domain.plan.BudgetMathInput
+import app.mizan.domain.plan.BudgetPeriod
+import app.mizan.domain.plan.Frequency
+import app.mizan.domain.plan.Recurrence
+import app.mizan.domain.plan.RecurrenceEngine
+import app.mizan.domain.plan.Rollover
+import app.mizan.domain.plan.budgetWindow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @Composable
@@ -208,11 +219,7 @@ fun planScreen(
         when (section) {
             PlanSection.BUDGETS -> {
                 items(budgets, key = { it.id }) { budget ->
-                    Column(Modifier.padding(8.dp)) {
-                        Text("${budget.name} · ${budget.scope.lowercase()} · ${budget.period.lowercase()}")
-                        Text("Rollover: ${budget.rollover.lowercase()}")
-                        amountText(budget.limitMinor, "EGP")
-                    }
+                    budgetSummary(repository, budget, planned)
                 }
             }
 
@@ -246,6 +253,115 @@ fun planScreen(
         }
     }
 }
+
+private data class BudgetSummary(
+    val spent: Long,
+    val effectiveLimit: Long,
+    val forecast: Long,
+)
+
+@Composable
+private fun budgetSummary(
+    repository: MizanRepository,
+    budget: BudgetEntity,
+    plans: List<PlannedPaymentEntity>,
+) {
+    var summary by remember(budget.id) { mutableStateOf<BudgetSummary?>(null) }
+    LaunchedEffect(budget, plans) {
+        val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
+        val period =
+            runCatching {
+                budgetWindow(
+                    BudgetPeriod.valueOf(budget.period),
+                    today,
+                    budget.startDate?.let(LocalDate::parse),
+                    budget.endDate?.let(LocalDate::parse),
+                )
+            }.getOrNull() ?: return@LaunchedEffect
+        val through = minOf(today, period.end)
+        val spent = repository.budgetSpent(period.start.toString(), through.toString(), budget.scope, budget.scopeIds)
+        val priorSpent =
+            if (budget.period == "ONE_TIME") {
+                0L
+            } else {
+                val prior = budgetWindow(BudgetPeriod.valueOf(budget.period), period.start.minusDays(1))
+                repository.budgetSpent(prior.start.toString(), prior.end.toString(), budget.scope, budget.scopeIds)
+            }
+        val plannedRemaining =
+            if (today >= period.end) {
+                0L
+            } else {
+                plans
+                    .asSequence()
+                    .filter { it.kind == "EXPENSE" && it.currency == "EGP" && matchesBudgetScope(it, budget) }
+                    .sumOf { payment ->
+                        RecurrenceEngine
+                            .occurrences(
+                                Recurrence(
+                                    Frequency.valueOf(payment.frequency),
+                                    payment.interval,
+                                    LocalDate.parse(payment.startDate),
+                                    payment.endDate?.let(LocalDate::parse),
+                                ),
+                                today.plusDays(1),
+                                period.end,
+                            ).size
+                            .toLong() * payment.amountMinor
+                    }
+            }
+        val elapsed =
+            ChronoUnit.DAYS
+                .between(period.start, through)
+                .toInt()
+                .coerceAtLeast(0) + 1
+        val remaining =
+            ChronoUnit.DAYS
+                .between(through, period.end)
+                .toInt()
+                .coerceAtLeast(0)
+        val calculation =
+            BudgetMath.calculate(
+                BudgetMathInput(
+                    budget.limitMinor,
+                    spent,
+                    budget.limitMinor,
+                    priorSpent,
+                    Rollover.valueOf(budget.rollover),
+                    plannedRemaining,
+                    elapsed,
+                    remaining,
+                ),
+            )
+        summary = BudgetSummary(spent, calculation.effectiveLimitMinor, calculation.forecastMinor)
+    }
+    Column(Modifier.padding(8.dp)) {
+        Text("${budget.name} · ${budget.scope.lowercase()} · ${budget.period.lowercase()}")
+        Text("Rollover: ${budget.rollover.lowercase()}")
+        amountText(budget.limitMinor, "EGP")
+        summary?.let { value ->
+            Text("Spent ${value.spent} minor · effective limit ${value.effectiveLimit} minor")
+            Text("Forecast ${value.forecast} minor · ${budgetState(value)}")
+        } ?: Text("Calculating budget…")
+    }
+}
+
+private fun matchesBudgetScope(
+    payment: PlannedPaymentEntity,
+    budget: BudgetEntity,
+): Boolean =
+    when (budget.scope) {
+        "ALL" -> true
+        "ACCOUNT" -> payment.accountId in budget.scopeIds.split(',')
+        "CATEGORY" -> payment.categoryId in budget.scopeIds.split(',')
+        else -> false
+    }
+
+private fun budgetState(summary: BudgetSummary): String =
+    when {
+        summary.spent > summary.effectiveLimit -> "Over"
+        summary.forecast > summary.effectiveLimit -> "Trending over"
+        else -> "On track"
+    }
 
 @Composable
 private fun optionChips(
