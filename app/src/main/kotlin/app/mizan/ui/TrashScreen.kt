@@ -29,6 +29,7 @@ fun trashScreen(
     LazyColumn(modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item { Text("Trash") }
         item { Text("Deleted records stay here for 30 days, then are removed automatically.") }
+        if (records.isEmpty()) item { Text("Trash is empty.") }
         items(records, key = { it.id }) { record ->
             Column(Modifier.fillMaxWidth().padding(8.dp)) {
                 Text("${record.bookedDate} · ${record.kind}")

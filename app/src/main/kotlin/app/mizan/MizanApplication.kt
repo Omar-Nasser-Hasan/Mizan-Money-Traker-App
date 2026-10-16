@@ -11,6 +11,7 @@ import app.mizan.data.repository.MizanRepository
 import app.mizan.notify.NotificationChannels
 import app.mizan.worker.FxRefreshWorker
 import app.mizan.worker.ReminderWorker
+import app.mizan.worker.TrashPurgeWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,11 @@ class MizanApplication : Application() {
             "daily-reminders",
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<ReminderWorker>(24, TimeUnit.HOURS).build(),
+        )
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "trash-purge",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<TrashPurgeWorker>(24, TimeUnit.HOURS).build(),
         )
     }
 }
