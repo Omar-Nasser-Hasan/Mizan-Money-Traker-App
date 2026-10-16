@@ -285,6 +285,8 @@ class MizanRepository
 
         fun observeDebts() = planning.observeDebts()
 
+        suspend fun debtRepayments(debtId: String): Long = planning.repayments(debtId)
+
         fun observeHideAmounts(): Flow<Boolean> = context.dataStore.data.map { it[HIDE_AMOUNTS] ?: false }
 
         fun observeSecureScreens(): Flow<Boolean> = context.dataStore.data.map { it[SECURE_SCREENS] ?: false }

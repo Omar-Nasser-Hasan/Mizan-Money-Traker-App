@@ -31,6 +31,7 @@ import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.plan.BudgetMath
 import app.mizan.domain.plan.BudgetMathInput
 import app.mizan.domain.plan.BudgetPeriod
+import app.mizan.domain.plan.DebtBalance
 import app.mizan.domain.plan.Frequency
 import app.mizan.domain.plan.Recurrence
 import app.mizan.domain.plan.RecurrenceEngine
@@ -234,20 +235,12 @@ fun planScreen(
 
             PlanSection.DEBTS -> {
                 items(debts, key = { it.id }) { debt ->
-                    Column(Modifier.padding(8.dp)) {
-                        Text("${debt.person} · ${debt.direction.lowercase()}")
-                        Text(debt.dueDate?.let { "Due $it" } ?: "No due date")
-                        amountText(debt.principalMinor, debt.currency)
-                        Button(onClick = {
-                            val minor = amountToMinor(repaymentAmount, 2)
-                            if (minor > 0) {
-                                scope.launch {
-                                    repository.repayDebt(debt.id, minor)
-                                    repaymentAmount = ""
-                                }
-                            }
-                        }) { Text("Record repayment") }
-                    }
+                    debtSummary(repository, debt, repaymentAmount, onRepay = {
+                        scope.launch {
+                            repository.repayDebt(debt.id, it)
+                            repaymentAmount = ""
+                        }
+                    })
                 }
             }
         }
@@ -362,6 +355,31 @@ private fun budgetState(summary: BudgetSummary): String =
         summary.forecast > summary.effectiveLimit -> "Trending over"
         else -> "On track"
     }
+
+@Composable
+private fun debtSummary(
+    repository: MizanRepository,
+    debt: DebtEntity,
+    repaymentText: String,
+    onRepay: (Long) -> Unit,
+) {
+    var repaid by remember(debt.id) { mutableStateOf(0L) }
+    LaunchedEffect(debt.id) { repaid = repository.debtRepayments(debt.id) }
+    val balance = DebtBalance(debt.principalMinor, repaid)
+    val due = debt.dueDate?.let(LocalDate::parse)
+    val overdue = due != null && due < LocalDate.now(ZoneId.of("Africa/Cairo")) && !balance.isClosed
+    Column(Modifier.padding(8.dp)) {
+        Text("${debt.person} · ${debt.direction.lowercase()}")
+        Text(due?.let { "Due $it" } ?: "No due date")
+        amountText(debt.principalMinor, debt.currency)
+        Text("Outstanding: ${balance.outstandingMinor} ${debt.currency} minor")
+        if (balance.isClosed) Text("Settled")
+        if (overdue) Text("Overdue")
+        Button(onClick = {
+            amountToMinor(repaymentText, currencyDecimals(debt.currency)).takeIf { it > 0 }?.let(onRepay)
+        }) { Text("Record repayment") }
+    }
+}
 
 @Composable
 private fun optionChips(

@@ -906,7 +906,7 @@ fun amountToMinor(
     }.getOrNull()?.movePointRight(decimals)?.setScale(0, RoundingMode.HALF_UP)?.longValueExact()
         ?: 0L
 
-private fun currencyDecimals(currency: String): Int =
+fun currencyDecimals(currency: String): Int =
     when (currency) {
         "JPY" -> 0
         "KWD" -> 3
