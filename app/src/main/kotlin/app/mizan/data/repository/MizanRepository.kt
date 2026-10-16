@@ -5,6 +5,7 @@ package app.mizan.data.repository
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -38,6 +39,7 @@ import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -101,6 +103,14 @@ class MizanRepository
         ) = planning.upsertOccurrence(PlannedOccurrenceEntity(plannedId, dueDate, status))
 
         fun observeDebts() = planning.observeDebts()
+
+        fun observeHideAmounts(): Flow<Boolean> = context.dataStore.data.map { it[HIDE_AMOUNTS] ?: false }
+
+        fun observeSecureScreens(): Flow<Boolean> = context.dataStore.data.map { it[SECURE_SCREENS] ?: false }
+
+        suspend fun setHideAmounts(enabled: Boolean) = context.dataStore.edit { it[HIDE_AMOUNTS] = enabled }
+
+        suspend fun setSecureScreens(enabled: Boolean) = context.dataStore.edit { it[SECURE_SCREENS] = enabled }
 
         fun observeBuckets(accountId: String) = accounts.observeBuckets(accountId)
 
@@ -373,6 +383,8 @@ class MizanRepository
             const val UNCATEGORIZED_ID = "system-uncategorized"
             const val FX_URL = "https://open.er-api.com/v6/latest/USD"
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
+            private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
+            private val SECURE_SCREENS = booleanPreferencesKey("secure_screens")
 
             private fun pinKey(code: String): Preferences.Key<String> = stringPreferencesKey("fx_pin_$code")
 

@@ -27,11 +27,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +68,7 @@ import java.util.UUID
 
 private val cairo = ZoneId.of("Africa/Cairo")
 private val tabs = listOf("Home", "Records", "Stats", "Plan", "Wealth")
+private val LocalHideAmounts = staticCompositionLocalOf { false }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,13 +76,14 @@ fun mizanApp(repository: MizanRepository) {
     var tab by remember { mutableStateOf("Home") }
     var route by remember { mutableStateOf<String?>(null) }
     val initialAccounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
+    val hideAmounts by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
     var firstRunChecked by remember { mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(initialAccounts) {
         if (!firstRunChecked && initialAccounts.isEmpty()) route = "onboarding"
         if (initialAccounts.isNotEmpty()) firstRunChecked = true
     }
     val scope = rememberCoroutineScope()
-    Scaffold(
+    CompositionLocalProvider(LocalHideAmounts provides hideAmounts) { Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -148,6 +152,8 @@ fun mizanApp(repository: MizanRepository) {
                 hyperOsGuide(modifier)
             }
 
+            "security" -> securityScreen(repository, modifier)
+
             "dev" -> {
                 devScreen(repository, modifier)
             }
@@ -166,7 +172,7 @@ fun mizanApp(repository: MizanRepository) {
                 }
             }
         }
-    }
+    } }
 }
 
 @Composable
@@ -501,6 +507,7 @@ private fun settingsScreen(
             "categories" to "Categories",
             "labels" to "Labels",
             "payees" to "Payees",
+            "security" to "Security",
             "battery-guide" to "HyperOS battery and Autostart guide",
         ).forEach { (route, label) ->
             item { Button(onClick = { onOpen(route) }, modifier = Modifier.fillMaxWidth()) { Text(label) } }
@@ -720,6 +727,10 @@ fun amountText(
     currency: String,
     big: Boolean = false,
 ) {
+    if (LocalHideAmounts.current) {
+        Text("••••", style = if (big) MaterialTheme.typography.displaySmall else MaterialTheme.typography.titleMedium)
+        return
+    }
     val scale =
         if (currency == "JPY") {
             0
