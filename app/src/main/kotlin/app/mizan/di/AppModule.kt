@@ -7,6 +7,7 @@ import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.FxRateDao
+import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.ReferenceDataDao
 import dagger.Module
@@ -50,6 +51,9 @@ object AppModule {
 
     @Provides
     fun provideReferenceDataDao(database: AppDatabase): ReferenceDataDao = database.referenceDataDao()
+
+    @Provides
+    fun provideIncomeSetupDao(database: AppDatabase): IncomeSetupDao = database.incomeSetupDao()
 
     @Provides
     fun provideLedgerDao(database: AppDatabase): LedgerDao = database.ledgerDao()
