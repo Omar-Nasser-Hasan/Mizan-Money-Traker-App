@@ -50,4 +50,11 @@ class StatsTest {
     @Test fun compare_does_not_overflow_for_large_minor_values() {
         assertEquals(10_000L, compare(Long.MAX_VALUE, Long.MAX_VALUE / 2).percentBasisPoints)
     }
+
+    @Test fun one_period_produces_the_same_change_everywhere() {
+        val current = StatsEngine.cashFlow(rows, april).netMinor
+        val previous = StatsEngine.cashFlow(rows, StatPeriods.previous(april)).netMinor
+
+        assertEquals(compare(current, previous, cashFlow = true), compare(current, previous, cashFlow = true))
+    }
 }
