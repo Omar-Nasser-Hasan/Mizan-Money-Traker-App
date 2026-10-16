@@ -144,7 +144,9 @@ fun mizanApp(repository: MizanRepository) {
                 referenceScreen(repository, "payees", modifier)
             }
 
-            "battery-guide" -> hyperOsGuide(modifier)
+            "battery-guide" -> {
+                hyperOsGuide(modifier)
+            }
 
             "dev" -> {
                 devScreen(repository, modifier)
@@ -713,7 +715,7 @@ private fun emptyState(
 }
 
 @Composable
-private fun amountText(
+fun amountText(
     minor: Long,
     currency: String,
     big: Boolean = false,
