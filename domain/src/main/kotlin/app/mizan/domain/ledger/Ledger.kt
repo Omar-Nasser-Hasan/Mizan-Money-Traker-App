@@ -96,6 +96,20 @@ data class IncomeRequest(
     val paymentType: PaymentType = PaymentType.CASH,
 )
 
+data class SplitIncomeRequest(
+    val allocations: List<IncomeAllocation>,
+    val currency: String,
+    val currencyDecimals: Int,
+    val rateToBase: BigDecimal,
+    val bookedAt: Instant,
+    val bookedDate: LocalDate,
+    val categoryId: String? = null,
+    val payeeId: String? = null,
+    val note: String = "",
+    val status: TxnStatus = TxnStatus.CLEARED,
+    val paymentType: PaymentType = PaymentType.CASH,
+)
+
 data class TransferRequest(
     val fromAccountId: String,
     val fromCurrency: String,
@@ -216,6 +230,30 @@ class LedgerService(
             entries = entries,
             impliedRate = MoneyMath.impliedRate(request.sentMinor, request.fromDecimals, request.receivedMinor, request.toDecimals),
             feePosting = request.fee?.let(::postExpense),
+        )
+    }
+
+    fun postSplitIncome(request: SplitIncomeRequest): LedgerPosting {
+        require(request.allocations.isNotEmpty()) { "Income needs an allocation" }
+        require(request.allocations.all { it.accountId.isNotBlank() && it.amountMinor > 0 }) {
+            "Income allocations must be positive"
+        }
+        val transaction =
+            transaction(
+                TxnKind.INCOME,
+                request.bookedAt,
+                request.bookedDate,
+                request.categoryId,
+                request.payeeId,
+                request.note,
+                request.status,
+                request.paymentType,
+            )
+        return LedgerPosting(
+            transaction,
+            request.allocations.map {
+                entry(transaction.id, it.accountId, request.currency, it.amountMinor, request.currencyDecimals, request.rateToBase)
+            },
         )
     }
 
