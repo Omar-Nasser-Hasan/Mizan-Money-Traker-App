@@ -18,4 +18,12 @@ class BackupCryptoTest {
         val encrypted = BackupCrypto.encrypt(BackupPayload(byteArrayOf(1), "{}"), "one".toCharArray())
         BackupCrypto.decrypt(encrypted, "two".toCharArray())
     }
+
+    @Test(expected = Exception::class)
+    fun corrupted_backup_fails_without_payload() {
+        val encrypted = BackupCrypto.encrypt(BackupPayload(byteArrayOf(1), "{}"), "one".toCharArray())
+        encrypted[encrypted.lastIndex] = (encrypted.last().toInt() xor 1).toByte()
+
+        BackupCrypto.decrypt(encrypted, "one".toCharArray())
+    }
 }
