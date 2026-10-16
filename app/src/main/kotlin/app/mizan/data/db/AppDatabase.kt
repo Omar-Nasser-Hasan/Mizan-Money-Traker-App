@@ -295,6 +295,16 @@ data class DailyBaseDelta(
     val baseMinor: Long,
 )
 
+data class StatsRecordRow(
+    val id: String,
+    val bookedDate: String,
+    val kind: String,
+    val baseMinor: Long,
+    val accountId: String,
+    val categoryId: String?,
+    val payeeId: String?,
+)
+
 @Dao
 interface CurrencyDao {
     @Query("SELECT * FROM currencies ORDER BY code")
@@ -549,6 +559,9 @@ interface LedgerDao {
         accountId: String,
         start: String,
     ): Flow<List<DailyBaseDelta>>
+
+    @Query("SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id")
+    fun observeStatsRows(): Flow<List<StatsRecordRow>>
 
     @Query("DELETE FROM transactions WHERE note LIKE '[DEV-SEED]%'")
     suspend fun clearDevSeed(): Int

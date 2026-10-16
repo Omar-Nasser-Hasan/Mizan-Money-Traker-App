@@ -33,6 +33,7 @@ import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.db.ReferenceDataDao
 import app.mizan.data.db.SplitLineEntity
 import app.mizan.data.db.SplitTemplateEntity
+import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ports.RecordQuery
@@ -122,6 +123,8 @@ class MizanRepository
         ) = ledger.observeDailyBaseDeltas(accountId, from)
 
         fun observeLatestFx(currency: String) = fxRates.observeLatest(currency)
+
+        fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
         fun records(query: RecordQuery): PagingSource<Int, RecordRow> =
             ledger.records(
