@@ -103,17 +103,32 @@ fun planScreen(
         LazyColumn(Modifier.fillMaxSize()) {
             when (section) {
                 "Budgets" -> {
-                    items(budgets) { Text("${it.name}: ${it.limitMinor} EGP minor · ${it.period}", Modifier.padding(8.dp)) }
+                    items(budgets) { budget ->
+                        Column(Modifier.padding(8.dp)) {
+                            Text("${budget.name} · ${budget.period}")
+                            amountText(budget.limitMinor, "EGP")
+                        }
+                    }
                 }
 
                 "Planned" -> {
                     items(
                         planned,
-                    ) { Text("${it.name}: ${it.amountMinor} ${it.currency} · ${it.frequency}", Modifier.padding(8.dp)) }
+                    ) { payment ->
+                        Column(Modifier.padding(8.dp)) {
+                            Text("${payment.name} · ${payment.frequency}")
+                            amountText(payment.amountMinor, payment.currency)
+                        }
+                    }
                 }
 
                 else -> {
-                    items(debts) { Text("${it.person}: ${it.principalMinor} ${it.currency} · ${it.direction}", Modifier.padding(8.dp)) }
+                    items(debts) { debt ->
+                        Column(Modifier.padding(8.dp)) {
+                            Text("${debt.person} · ${debt.direction}")
+                            amountText(debt.principalMinor, debt.currency)
+                        }
+                    }
                 }
             }
         }
