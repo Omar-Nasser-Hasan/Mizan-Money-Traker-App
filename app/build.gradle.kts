@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.glance.appwidget)
     debugImplementation(libs.okhttp.logging)
     debugImplementation(libs.compose.ui.tooling)
     testImplementation(libs.junit)
