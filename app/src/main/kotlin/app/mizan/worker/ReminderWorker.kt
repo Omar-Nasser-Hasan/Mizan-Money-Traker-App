@@ -2,6 +2,7 @@
 package app.mizan.worker
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -30,6 +31,7 @@ class ReminderWorker(
     context: Context,
     parameters: WorkerParameters,
 ) : CoroutineWorker(context, parameters) {
+    @SuppressLint("MissingPermission") // canNotify() runs before any notification is posted.
     override suspend fun doWork(): Result {
         val cairo = ZoneId.of("Africa/Cairo")
         val today = LocalDate.now(cairo)
@@ -138,6 +140,7 @@ class ReminderWorker(
     private fun repository(): MizanRepository =
         EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java).repository()
 
+    @SuppressLint("MissingPermission") // canNotify() guards every entry to doWork.
     private fun notifyPlanned(
         plannedId: String,
         name: String,
@@ -161,6 +164,7 @@ class ReminderWorker(
         )
     }
 
+    @SuppressLint("MissingPermission") // canNotify() guards every entry to doWork.
     private fun notifySimple(
         channel: String,
         title: String,
