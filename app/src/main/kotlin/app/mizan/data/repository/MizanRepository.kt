@@ -434,6 +434,8 @@ class MizanRepository
 
         fun observeHideAmounts(): Flow<Boolean> = context.dataStore.data.map { it[HIDE_AMOUNTS] ?: false }
 
+        suspend fun hideAmountsEnabled(): Boolean = context.dataStore.data.first()[HIDE_AMOUNTS] ?: false
+
         /**
          * The V2 interface is deliberately opt-in until its screens replace their legacy equivalents.
          * Keeping this preference here makes the choice survive activity recreation and app restarts.

@@ -87,8 +87,13 @@ class ReminderWorker(
                             .Builder(applicationContext, NotificationChannels.BUDGETS)
                             .setSmallIcon(android.R.drawable.ic_dialog_alert)
                             .setContentTitle("${budget.name} is at $threshold%")
-                            .setContentText("Spent $spent EGP minor of ${budget.limitMinor} EGP minor")
-                            .setAutoCancel(true)
+                            .setContentText(
+                                if (repository().hideAmountsEnabled()) {
+                                    "Amounts are hidden. Open Mizan to review this budget."
+                                } else {
+                                    "Spent $spent EGP minor of ${budget.limitMinor} EGP minor"
+                                },
+                            ).setAutoCancel(true)
                             .build(),
                     )
                 }
