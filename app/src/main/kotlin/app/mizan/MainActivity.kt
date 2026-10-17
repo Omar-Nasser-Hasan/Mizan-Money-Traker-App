@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
 import app.mizan.data.repository.MizanRepository
+import app.mizan.quick.EXTRA_QUICK_ACTION
 import app.mizan.security.AppLock
 import app.mizan.ui.mizanApp
 import app.mizan.ui.theme.MizanTheme
@@ -39,7 +40,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             MizanTheme {
-                mizanApp(repository)
+                mizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
             }
         }
     }

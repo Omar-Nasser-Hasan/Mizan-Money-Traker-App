@@ -54,6 +54,9 @@ import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.repository.MizanRepository
+import app.mizan.quick.ACTION_EXPENSE
+import app.mizan.quick.ACTION_INCOME
+import app.mizan.quick.ACTION_VOICE
 import app.mizan.domain.ledger.EntryCalculator
 import app.mizan.domain.ledger.ExpenseRequest
 import app.mizan.domain.ledger.IncomeAllocation
@@ -84,7 +87,10 @@ private val LocalHideAmounts = staticCompositionLocalOf { false }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun mizanApp(repository: MizanRepository) {
+fun mizanApp(
+    repository: MizanRepository,
+    quickAction: String? = null,
+) {
     var tab by remember { mutableStateOf("Home") }
     var route by remember { mutableStateOf<String?>(null) }
     val initialAccounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
@@ -93,6 +99,14 @@ fun mizanApp(repository: MizanRepository) {
     androidx.compose.runtime.LaunchedEffect(initialAccounts) {
         if (!firstRunChecked && initialAccounts.isEmpty()) route = "onboarding"
         if (initialAccounts.isNotEmpty()) firstRunChecked = true
+    }
+    androidx.compose.runtime.LaunchedEffect(quickAction) {
+        route = when (quickAction) {
+            ACTION_EXPENSE -> "entry:EXPENSE"
+            ACTION_INCOME -> "entry:INCOME"
+            ACTION_VOICE -> "voice"
+            else -> route
+        }
     }
     val scope = rememberCoroutineScope()
     CompositionLocalProvider(LocalHideAmounts provides hideAmounts) {
@@ -133,9 +147,11 @@ fun mizanApp(repository: MizanRepository) {
         ) { padding ->
             val modifier = Modifier.fillMaxSize().padding(padding)
             when (route) {
-                "entry" -> {
+                "entry", "entry:EXPENSE", "entry:INCOME" -> {
                     entryScreen(repository, modifier, onDone = { route = null })
                 }
+
+                "voice" -> voiceEntryScreen(repository, modifier, onDone = { route = null })
 
                 "onboarding" -> {
                     onboardingScreen(repository, modifier, onDone = { route = null })
