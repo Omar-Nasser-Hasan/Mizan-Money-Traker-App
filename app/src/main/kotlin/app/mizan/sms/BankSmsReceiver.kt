@@ -6,16 +6,17 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import dagger.hilt.android.AndroidEntryPoint
-import java.time.Instant
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Instant
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class BankSmsReceiver : BroadcastReceiver() {
     @Inject lateinit var repository: app.mizan.data.repository.MizanRepository
+
     @Inject lateinit var capture: InboxCapture
 
     override fun onReceive(
@@ -28,7 +29,12 @@ class BankSmsReceiver : BroadcastReceiver() {
             try {
                 if (!repository.observeSmsInboxEnabled().first()) return@launch
                 Telephony.Sms.Intents.getMessagesFromIntent(intent).forEach { message ->
-                    capture.capture("SMS", message.originatingAddress.orEmpty(), message.messageBody.orEmpty(), Instant.ofEpochMilli(message.timestampMillis))
+                    capture.capture(
+                        "SMS",
+                        message.originatingAddress.orEmpty(),
+                        message.messageBody.orEmpty(),
+                        Instant.ofEpochMilli(message.timestampMillis),
+                    )
                 }
             } finally {
                 pending.finish()

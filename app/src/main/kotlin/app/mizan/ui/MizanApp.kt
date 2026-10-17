@@ -201,7 +201,9 @@ fun mizanApp(
                     notificationSettingsScreen(repository, modifier)
                 }
 
-                "inbox" -> inboxScreen(repository, modifier, onOpenGuide = { route = "battery-guide" })
+                "inbox" -> {
+                    inboxScreen(repository, modifier, onOpenGuide = { route = "battery-guide" })
+                }
 
                 "trash" -> {
                     trashScreen(repository, modifier)

@@ -4,16 +4,17 @@ package app.mizan.sms
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import dagger.hilt.android.AndroidEntryPoint
-import java.time.Instant
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Instant
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class BankNotificationListener : NotificationListenerService() {
     @Inject lateinit var repository: app.mizan.data.repository.MizanRepository
+
     @Inject lateinit var capture: InboxCapture
 
     override fun onNotificationPosted(notification: StatusBarNotification) {

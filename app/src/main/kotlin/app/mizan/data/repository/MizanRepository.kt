@@ -34,9 +34,9 @@ import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.GoalContributionEntity
 import app.mizan.data.db.GoalEntity
 import app.mizan.data.db.GoalLinkEntity
-import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.InboxDao
 import app.mizan.data.db.InboxDraftEntity
+import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PayeeEntity
@@ -57,6 +57,7 @@ import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetType
 import app.mizan.domain.assets.GoldRatios
+import app.mizan.domain.entry.SmsDraft
 import app.mizan.domain.ledger.AssetCashRequest
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
@@ -67,7 +68,6 @@ import app.mizan.domain.ledger.PaymentType
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnKind
 import app.mizan.domain.ledger.TxnStatus
-import app.mizan.domain.entry.SmsDraft
 import app.mizan.domain.ports.GoldPriceProvider
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -143,7 +143,11 @@ class MizanRepository
             source: String,
             draft: SmsDraft,
         ): Boolean {
-            val id = UUID.nameUUIDFromBytes("$source|${draft.sender}|${draft.occurredAt.toEpochMilli()}|${draft.rawMessage}".toByteArray()).toString()
+            val id =
+                UUID
+                    .nameUUIDFromBytes(
+                        "$source|${draft.sender}|${draft.occurredAt.toEpochMilli()}|${draft.rawMessage}".toByteArray(),
+                    ).toString()
             return saveInboxDraft(
                 InboxDraftEntity(
                     id,

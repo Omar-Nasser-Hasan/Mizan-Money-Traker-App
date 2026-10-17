@@ -574,7 +574,10 @@ interface InboxDao {
     suspend fun insert(value: InboxDraftEntity): Long
 
     @Query("UPDATE inbox_drafts SET status = :status WHERE id = :id")
-    suspend fun setStatus(id: String, status: String)
+    suspend fun setStatus(
+        id: String,
+        status: String,
+    )
 }
 
 @Dao
@@ -1116,7 +1119,9 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_8_9 =
             object : Migration(8, 9) {
                 override fun migrate(db: SupportSQLiteDatabase) {
-                    db.execSQL("CREATE TABLE IF NOT EXISTS inbox_drafts (id TEXT NOT NULL PRIMARY KEY, source TEXT NOT NULL, sender TEXT NOT NULL, amountMinor INTEGER NOT NULL, currency TEXT NOT NULL, merchant TEXT, cardLastFour TEXT, occurredAt INTEGER NOT NULL, receivedAt INTEGER NOT NULL, rawMessage TEXT NOT NULL, status TEXT NOT NULL)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS inbox_drafts (id TEXT NOT NULL PRIMARY KEY, source TEXT NOT NULL, sender TEXT NOT NULL, amountMinor INTEGER NOT NULL, currency TEXT NOT NULL, merchant TEXT, cardLastFour TEXT, occurredAt INTEGER NOT NULL, receivedAt INTEGER NOT NULL, rawMessage TEXT NOT NULL, status TEXT NOT NULL)",
+                    )
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_status ON inbox_drafts(status)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_receivedAt ON inbox_drafts(receivedAt)")
                 }

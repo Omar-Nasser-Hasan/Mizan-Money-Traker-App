@@ -8,8 +8,8 @@ import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.AssetDao
 import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.FxRateDao
-import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.InboxDao
+import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.ReferenceDataDao

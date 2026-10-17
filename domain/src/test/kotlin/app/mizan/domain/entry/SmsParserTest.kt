@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.entry
 
-import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class SmsParserTest {
     private val time = Instant.parse("2026-10-17T10:00:00Z")
@@ -24,6 +24,8 @@ class SmsParserTest {
 
     @Test fun `duplicate guard uses account amount payee and two minute window`() {
         val draft = SmsParser.parse("NBE", "Payment EGP 50 at Taxi", time)!!
-        assertTrue(SmsParser.isPossibleDuplicate(draft, "cash", listOf(DuplicateCandidate(5_000, "EGP", "cash", "Taxi", time.plusSeconds(119)))))
+        assertTrue(
+            SmsParser.isPossibleDuplicate(draft, "cash", listOf(DuplicateCandidate(5_000, "EGP", "cash", "Taxi", time.plusSeconds(119)))),
+        )
     }
 }

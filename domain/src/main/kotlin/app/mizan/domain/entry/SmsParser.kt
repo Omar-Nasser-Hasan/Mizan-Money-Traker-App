@@ -37,14 +37,34 @@ object SmsParser {
         message: String,
         occurredAt: Instant,
     ): SmsDraft? {
-        val template = templates.firstOrNull { template -> template.senderAliases.any { it.equals(sender, ignoreCase = true) } } ?: return null
+        val template =
+            templates.firstOrNull { template -> template.senderAliases.any { it.equals(sender, ignoreCase = true) } } ?: return null
         if (template.debitRegex.find(message) == null) return null
         val normalized = message.replace('،', ',')
-        val money = Regex("(?:(?<currency>EGP|USD|EUR|جنيه|دولار)\\s*(?<amount>[0-9,.]+)|(?<amount2>[0-9,.]+)\\s*(?<currency2>EGP|USD|EUR|جنيه|دولار))", RegexOption.IGNORE_CASE).find(normalized) ?: return null
+        val money =
+            Regex(
+                "(?:(?<currency>EGP|USD|EUR|جنيه|دولار)\\s*(?<amount>[0-9,.]+)|(?<amount2>[0-9,.]+)\\s*(?<currency2>EGP|USD|EUR|جنيه|دولار))",
+                RegexOption.IGNORE_CASE,
+            ).find(normalized)
+                ?: return null
         val currency = currency(money.groups["currency"]?.value ?: money.groups["currency2"]?.value ?: return null)
-        val amount = (money.groups["amount"]?.value ?: money.groups["amount2"]?.value)?.replace(",", "")?.toBigDecimalOrNull() ?: return null
-        val merchant = Regex("(?:at|merchant|to|لدى|الى|من)\\s+([A-Za-z0-9 .&-]+)", RegexOption.IGNORE_CASE).find(normalized)?.groupValues?.get(1)?.trim()?.trimEnd('.', ',')?.takeIf(String::isNotBlank)
-        return SmsDraft(sender, minor(amount, currency), currency, merchant, Regex("(?:card|بطاقة)\\s*([0-9]{4})", RegexOption.IGNORE_CASE).find(normalized)?.groupValues?.get(1), null, occurredAt, message)
+        val amount =
+            (money.groups["amount"]?.value ?: money.groups["amount2"]?.value)?.replace(",", "")?.toBigDecimalOrNull() ?: return null
+        val merchant =
+            Regex(
+                "(?:at|merchant|to|لدى|الى|من)\\s+([A-Za-z0-9 .&-]+)",
+                RegexOption.IGNORE_CASE,
+            ).find(normalized)?.groupValues?.get(1)?.trim()?.trimEnd('.', ',')?.takeIf(String::isNotBlank)
+        return SmsDraft(
+            sender,
+            minor(amount, currency),
+            currency,
+            merchant,
+            Regex("(?:card|بطاقة)\\s*([0-9]{4})", RegexOption.IGNORE_CASE).find(normalized)?.groupValues?.get(1),
+            null,
+            occurredAt,
+            message,
+        )
     }
 
     /** Same amount, account and payee within two minutes requires human review. */
@@ -64,9 +84,28 @@ object SmsParser {
         pattern: String,
     ) = SmsTemplate(senders, Regex(pattern, RegexOption.IGNORE_CASE))
 
-    private fun currency(value: String): String = when (value.lowercase()) { "جنيه", "egp" -> "EGP"; "دولار", "usd" -> "USD"; else -> "EUR" }
+    private fun currency(value: String): String =
+        when (value.lowercase()) {
+            "جنيه", "egp" -> "EGP"
+            "دولار", "usd" -> "USD"
+            else -> "EUR"
+        }
 
-    private fun minor(amount: BigDecimal, currency: String): Long = amount.movePointRight(if (currency == "JPY") 0 else 2).setScale(0, RoundingMode.HALF_UP).longValueExact()
+    private fun minor(
+        amount: BigDecimal,
+        currency: String,
+    ): Long =
+        amount
+            .movePointRight(
+                if (currency ==
+                    "JPY"
+                ) {
+                    0
+                } else {
+                    2
+                },
+            ).setScale(0, RoundingMode.HALF_UP)
+            .longValueExact()
 }
 
 data class DuplicateCandidate(

@@ -37,16 +37,25 @@ fun inboxScreen(
     val notificationsEnabled by repository.observeNotificationInboxEnabled().collectAsStateWithLifecycle(false)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val smsPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) scope.launch { repository.setSmsInboxEnabled(true) }
-    }
+    val smsPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) scope.launch { repository.setSmsInboxEnabled(true) }
+        }
     LazyColumn(modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text("Inbox") }
         item { Text("Bank messages become drafts only. Confirming a draft never happens automatically.") }
         item {
             Column {
                 Text("Read incoming SMS")
-                Switch(smsEnabled, { enabled -> if (enabled) scope.launch { repository.setSmsInboxEnabled(false) } else smsPermission.launch(android.Manifest.permission.RECEIVE_SMS) })
+                Switch(smsEnabled, { enabled ->
+                    if (enabled) {
+                        scope.launch {
+                            repository.setSmsInboxEnabled(false)
+                        }
+                    } else {
+                        smsPermission.launch(android.Manifest.permission.RECEIVE_SMS)
+                    }
+                })
             }
         }
         item {

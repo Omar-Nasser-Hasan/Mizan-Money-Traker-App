@@ -8,15 +8,17 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class InboxCapture @Inject constructor(
-    private val repository: MizanRepository,
-) {
-    suspend fun capture(
-        source: String,
-        sender: String,
-        message: String,
-        occurredAt: Instant,
+class InboxCapture
+    @Inject
+    constructor(
+        private val repository: MizanRepository,
     ) {
-        SmsParser.parse(sender, message, occurredAt)?.let { repository.captureInboxDraft(source, it) }
+        suspend fun capture(
+            source: String,
+            sender: String,
+            message: String,
+            occurredAt: Instant,
+        ) {
+            SmsParser.parse(sender, message, occurredAt)?.let { repository.captureInboxDraft(source, it) }
+        }
     }
-}
