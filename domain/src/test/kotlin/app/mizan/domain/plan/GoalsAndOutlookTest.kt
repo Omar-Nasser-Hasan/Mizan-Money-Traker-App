@@ -15,6 +15,9 @@ class GoalsAndOutlookTest {
         assertEquals(LocalDate.parse("2026-06-01"), goal.eta(LocalDate.parse("2026-02-01"), 20_000))
         assertFalse(goal.needsReachedPrompt)
         assertTrue(GoalProgress(100, 100, 0).needsReachedPrompt)
+        assertTrue(goal.isOverdue(LocalDate.parse("2026-07-02")))
+        assertTrue(GoalMath.allocationIsValid(60, 40))
+        assertFalse(GoalMath.allocationIsValid(60, 41))
     }
 
     @Test fun `forecast has no income unless planned income or assumption toggle exists`() {
@@ -30,6 +33,9 @@ class GoalsAndOutlookTest {
         assertEquals(2_500L, SavingsMath.savingsRate(250, 1_000))
         assertEquals(1_000L, SavingsMath.investRate(300, 200, 1_000))
         assertEquals(5_000L, CreditMath.utilization(listOf(CreditCardBalance(10_000, -5_000))))
+        assertEquals(2_500L, CreditMath.perCardUtilization(CreditCardBalance(20_000, -5_000)))
+        assertEquals(3_750L, CreditMath.averageUtilization(listOf(2_500L, 5_000L, null)))
+        assertEquals(5_000L, CreditMath.maximumUtilization(listOf(2_500L, 5_000L, null)))
         assertNull(CreditMath.debtToIncome(100, 0))
     }
 

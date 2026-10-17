@@ -19,6 +19,8 @@ data class GoalProgress(
     val remainingMinor: Long get() = (targetMinor - progressMinor).coerceAtLeast(0)
     val needsReachedPrompt: Boolean get() = status == GoalStatus.ACTIVE && progressMinor >= targetMinor
 
+    fun isOverdue(today: LocalDate): Boolean = status == GoalStatus.ACTIVE && targetDate?.isBefore(today) == true && remainingMinor > 0
+
     fun monthlyNeeded(today: LocalDate): Long {
         if (remainingMinor == 0L) return 0L
         val months = targetDate?.let { ChronoUnit.MONTHS.between(today.withDayOfMonth(1), it.withDayOfMonth(1)).coerceAtLeast(1) } ?: 1L
@@ -39,6 +41,17 @@ data class GoalProgress(
                 .longValueExact()
         return today.plusMonths(months)
     }
+}
+
+object GoalMath {
+    /** A source may support several goals, but its combined allocation can never exceed 100%. */
+    fun allocationIsValid(
+        otherGoalAllocationPct: Long,
+        requestedAllocationPct: Long,
+    ): Boolean =
+        otherGoalAllocationPct in 0..100 &&
+            requestedAllocationPct in 0..100 &&
+            otherGoalAllocationPct <= 100 - requestedAllocationPct
 }
 
 data class ForecastInput(
@@ -86,6 +99,18 @@ data class CreditCardBalance(
 )
 
 object CreditMath {
+    /** Basis points, or null when a card has no usable credit limit. */
+    fun perCardUtilization(card: CreditCardBalance): Long? =
+        card.limitMinor
+            .takeIf { it > 0 }
+            ?.let { limit ->
+                BigDecimal
+                    .valueOf((-card.balanceMinor).coerceAtLeast(0))
+                    .multiply(BigDecimal(10_000))
+                    .divide(BigDecimal.valueOf(limit), 0, RoundingMode.HALF_UP)
+                    .longValueExact()
+            }
+
     fun utilization(cards: Iterable<CreditCardBalance>): Long? {
         val values = cards.toList()
         val limit = values.sumOf { it.limitMinor.coerceAtLeast(0) }
@@ -98,6 +123,13 @@ object CreditMath {
             .divide(BigDecimal.valueOf(limit), 0, RoundingMode.HALF_UP)
             .longValueExact()
     }
+
+    fun averageUtilization(series: Iterable<Long?>): Long? {
+        val values = series.filterNotNull().toList()
+        return values.takeIf { it.isNotEmpty() }?.let { values -> values.sum() / values.size }
+    }
+
+    fun maximumUtilization(series: Iterable<Long?>): Long? = series.filterNotNull().maxOrNull()
 
     fun debtToIncome(
         debtServiceExpenseMinor: Long,
