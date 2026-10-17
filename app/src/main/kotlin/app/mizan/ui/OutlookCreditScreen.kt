@@ -114,9 +114,16 @@ fun outlookScreen(
             }
         } ?: Text("Calculating forecast…")
         Text("Planned timeline")
+        var running = forecast?.startMinor ?: 0L
         plannedOccurrences(planned, today, end).take(20).forEach { occurrence ->
+            running +=
+                when (occurrence.payment.kind) {
+                    "INCOME" -> occurrence.payment.amountMinor
+                    "EXPENSE" -> -occurrence.payment.amountMinor
+                    else -> 0L
+                }
             Text(
-                "${occurrence.date} · ${occurrence.payment.name} · ${occurrence.payment.kind.lowercase()} · ${occurrence.payment.amountMinor} ${occurrence.payment.currency} minor",
+                "${occurrence.date} · ${occurrence.payment.name} · ${occurrence.payment.kind.lowercase()} · running $running EGP minor",
             )
         }
     }
