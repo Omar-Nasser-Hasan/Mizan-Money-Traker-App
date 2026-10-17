@@ -138,8 +138,9 @@ fun creditAndSavingsScreen(
     modifier: Modifier,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val allBalances by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
     val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
+    val entries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
     val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val period = Period(today.withDayOfMonth(1), today)
@@ -160,7 +161,7 @@ fun creditAndSavingsScreen(
     val cards =
         accounts.filter { it.type == "CREDIT_CARD" }.map { account ->
             val balance =
-                balances.filter { it.accountId == account.id }.sumOf { row ->
+                allBalances.filter { it.accountId == account.id }.sumOf { row ->
                     app.mizan.domain.money.MoneyMath.baseMinor(
                         row.openingMinor + row.entryMinor,
                         row.decimals,
@@ -192,6 +193,37 @@ fun creditAndSavingsScreen(
             val monthFlow = StatsEngine.cashFlow(records, monthPeriod)
             ChartPoint(month.month.name.take(3), SavingsMath.savingsRate(monthFlow.netMinor, monthFlow.incomeMinor) ?: 0L)
         }
+    val creditAccounts = accounts.filter { it.type == "CREDIT_CARD" }
+    val openingByCard =
+        creditAccounts.associate { account ->
+            account.id to
+                allBalances.filter { it.accountId == account.id }.sumOf { row ->
+                    app.mizan.domain.money.MoneyMath.baseMinor(
+                        row.openingMinor,
+                        row.decimals,
+                        java.math.BigDecimal(row.openingEgpPerUnit),
+                    )
+                }
+        }
+    val cardBalanceById = openingByCard.toMutableMap()
+    entries.filter { it.accountId in openingByCard && LocalDate.parse(it.bookedDate) < period.start }.forEach { entry ->
+        cardBalanceById[entry.accountId] = cardBalanceById.getValue(entry.accountId) + entry.baseMinor
+    }
+    val utilizationSeries =
+        generateSequence(period.start) { it.plusDays(1).takeIf { next -> next <= period.end } }
+            .map { date ->
+                entries.filter { it.accountId in openingByCard && LocalDate.parse(it.bookedDate) == date }.forEach { entry ->
+                    cardBalanceById[entry.accountId] = cardBalanceById.getValue(entry.accountId) + entry.baseMinor
+                }
+                ChartPoint(
+                    date.dayOfMonth.toString(),
+                    CreditMath.utilization(
+                        creditAccounts.map { account ->
+                            CreditCardBalance(account.creditLimitMinor ?: 0L, cardBalanceById.getValue(account.id))
+                        },
+                    ) ?: 0L,
+                )
+            }.toList()
     Column(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Credit & savings")
         Text("Credit utilization: ${CreditMath.utilization(cards)?.let { "$it bp" } ?: "—"}")
@@ -204,6 +236,10 @@ fun creditAndSavingsScreen(
             )
         }
         Text("Debt-to-income: ${CreditMath.debtToIncome(debtService, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
+        Text("Utilization average: ${CreditMath.averageUtilization(utilizationSeries.map { it.value })?.let { "$it bp" } ?: "—"}")
+        Text("Utilization maximum: ${CreditMath.maximumUtilization(utilizationSeries.map { it.value })?.let { "$it bp" } ?: "—"}")
+        Text("Daily credit utilization")
+        lineAreaChart(utilizationSeries, { "$it bp" }, Modifier.fillMaxWidth())
         Text("Savings rate: ${SavingsMath.savingsRate(flow.netMinor, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
         Text("Invest rate: ${SavingsMath.investRate(buys, sells, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
         Text("Six-period savings-rate trend")
