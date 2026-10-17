@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AssetEntity
@@ -48,11 +49,14 @@ fun wealthScreen(
     val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
     var selectedType by remember { mutableStateOf<AssetType?>(null) }
     LazyColumn(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Text("Wealth")
             Text("Holdings are valued from their last known price. Stale values remain visible when offline.")
+            Text("Gold prices are indicative dealer aggregates; confirm them with the seller.")
+            TextButton(onClick = { uriHandler.openUri("https://getdaleelak.com") }) { Text("Daleelak (getdaleelak.com)") }
             TextButton(onClick = { scope.launch { repository.refreshGoldPrices() } }) { Text("Update gold prices") }
             TextButton(onClick = onPrices) { Text("Update all prices") }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -159,6 +163,7 @@ fun assetDetailScreen(
     val current = asset ?: return
     val priceKey = if (current.type == "GOLD") "GOLD_${current.symbolOrKarats.uppercase()}" else "MANUAL:${current.id}"
     val price = latestPrices.firstOrNull { it.key == priceKey }
+    val stale = price != null && !price.isManual && Instant.now().toEpochMilli() - price.asOf > 24L * 60 * 60 * 1000
     val position =
         remember(trades) {
             AverageCost.position(
@@ -186,7 +191,9 @@ fun assetDetailScreen(
                 "Held: ${position.quantity.stripTrailingZeros().toPlainString()} ${current.unit} · cost: ${position.costMinor} minor ${current.quoteCurrency}",
             )
             Text(
-                price?.let { "Price ${it.price} ${it.currency} · ${if (it.isManual) "Manual" else it.source}" }
+                price?.let {
+                    "Price ${it.price} ${it.currency} · ${if (it.isManual) "Manual" else it.source}${if (stale) " · stale" else ""}"
+                }
                     ?: "No price yet — add a manual value.",
             )
             OutlinedTextField(manualPrice, {
