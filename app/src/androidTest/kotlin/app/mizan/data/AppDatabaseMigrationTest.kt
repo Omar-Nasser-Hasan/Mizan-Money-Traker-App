@@ -71,4 +71,11 @@ class AppDatabaseMigrationTest {
         helper.createDatabase(databaseName, 6).close()
         helper.runMigrationsAndValidate(databaseName, 7, true, AppDatabase.MIGRATION_6_7).close()
     }
+
+    @Test
+    fun migratesAssetsSchemaToGoalsSchema() {
+        val databaseName = "migration-v7-test"
+        helper.createDatabase(databaseName, 7).close()
+        helper.runMigrationsAndValidate(databaseName, 8, true, AppDatabase.MIGRATION_7_8).close()
+    }
 }

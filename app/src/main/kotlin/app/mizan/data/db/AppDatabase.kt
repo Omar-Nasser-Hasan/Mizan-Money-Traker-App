@@ -221,6 +221,35 @@ data class BudgetAlertEntity(
     val sentAt: Long,
 )
 
+@Entity(tableName = "goals", indices = [Index("status")])
+data class GoalEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val targetMinor: Long,
+    val targetDate: String? = null,
+    val icon: String,
+    val color: String,
+    val status: String = "ACTIVE",
+    val createdAt: Long,
+)
+
+@Entity(tableName = "goal_links", primaryKeys = ["goalId", "accountId", "assetId"])
+data class GoalLinkEntity(
+    val goalId: String,
+    val accountId: String = "",
+    val assetId: String = "",
+    val allocationPct: Long,
+)
+
+@Entity(tableName = "goal_contributions", indices = [Index("goalId"), Index("date")])
+data class GoalContributionEntity(
+    @PrimaryKey val id: String,
+    val goalId: String,
+    val date: String,
+    val amountMinor: Long,
+    val note: String = "",
+)
+
 @Entity(
     tableName = "transactions",
     indices = [Index("bookedDate"), Index(value = ["kind", "bookedDate"]), Index(value = ["categoryId", "bookedDate"]), Index("deletedAt")],
@@ -573,6 +602,15 @@ interface PlanningDao {
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     fun observeDebts(): Flow<List<DebtEntity>>
 
+    @Query("SELECT * FROM goals ORDER BY status, targetDate, name")
+    fun observeGoals(): Flow<List<GoalEntity>>
+
+    @Query("SELECT * FROM goal_links WHERE goalId = :goalId")
+    fun observeGoalLinks(goalId: String): Flow<List<GoalLinkEntity>>
+
+    @Query("SELECT * FROM goal_contributions WHERE goalId = :goalId ORDER BY date")
+    fun observeGoalContributions(goalId: String): Flow<List<GoalContributionEntity>>
+
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     suspend fun activeDebts(): List<DebtEntity>
 
@@ -620,6 +658,21 @@ interface PlanningDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertDebt(value: DebtEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertGoal(value: GoalEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertGoalLink(value: GoalLinkEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertGoalContribution(value: GoalContributionEntity)
+
+    @Query("UPDATE goals SET status = :status WHERE id = :id")
+    suspend fun setGoalStatus(
+        id: String,
+        status: String,
+    )
 
     @Query("UPDATE debts SET status = :status WHERE id = :id")
     suspend fun setDebtStatus(
@@ -823,8 +876,8 @@ interface AssetDao {
 }
 
 @Database(
-    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
-    version = 7,
+    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, GoalEntity::class, GoalLinkEntity::class, GoalContributionEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
+    version = 8,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -975,6 +1028,24 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_price_snapshots_assetId ON price_snapshots(assetId)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_price_snapshots_key_asOf ON price_snapshots(key, asOf)")
+                }
+            }
+
+        val MIGRATION_7_8 =
+            object : Migration(7, 8) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS goals (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, targetMinor INTEGER NOT NULL, targetDate TEXT, icon TEXT NOT NULL, color TEXT NOT NULL, status TEXT NOT NULL, createdAt INTEGER NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_goals_status ON goals(status)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS goal_links (goalId TEXT NOT NULL, accountId TEXT NOT NULL, assetId TEXT NOT NULL, allocationPct INTEGER NOT NULL, PRIMARY KEY(goalId, accountId, assetId))",
+                    )
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS goal_contributions (id TEXT NOT NULL PRIMARY KEY, goalId TEXT NOT NULL, date TEXT NOT NULL, amountMinor INTEGER NOT NULL, note TEXT NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_goal_contributions_goalId ON goal_contributions(goalId)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_goal_contributions_date ON goal_contributions(date)")
                 }
             }
     }
