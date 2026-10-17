@@ -201,6 +201,8 @@ fun mizanApp(
                     notificationSettingsScreen(repository, modifier)
                 }
 
+                "inbox" -> inboxScreen(repository, modifier, onOpenGuide = { route = "battery-guide" })
+
                 "trash" -> {
                     trashScreen(repository, modifier)
                 }
@@ -666,6 +668,7 @@ private fun settingsScreen(
             "payees" to "Payees",
             "security" to "Security",
             "notifications" to "Notifications",
+            "inbox" to "Bank message Inbox",
             "trash" to "Trash",
             "backup" to "Backup and restore",
             "export" to "Export records (CSV)",
