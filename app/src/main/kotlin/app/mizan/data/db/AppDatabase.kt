@@ -276,6 +276,58 @@ data class RecordLabelEntity(
     val labelId: String,
 )
 
+@Entity(tableName = "assets", indices = [Index("type"), Index("archived")])
+data class AssetEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val type: String,
+    val symbolOrKarats: String,
+    val quoteCurrency: String,
+    val unit: String,
+    val resaleDeductionPct: String,
+    val archived: Boolean = false,
+    val createdAt: Long,
+    val updatedAt: Long,
+)
+
+@Entity(
+    tableName = "asset_transactions",
+    foreignKeys = [
+        ForeignKey(
+            entity = AssetEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["assetId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("assetId"), Index("txnId"), Index(value = ["assetId", "date"])],
+)
+data class AssetTransactionEntity(
+    @PrimaryKey val id: String,
+    val assetId: String,
+    val kind: String,
+    val date: String,
+    val quantity: String,
+    val unitPrice: String,
+    val feeMinor: Long,
+    val totalMinor: Long,
+    val txnId: String? = null,
+    val note: String = "",
+    val deletedAt: Long? = null,
+)
+
+@Entity(tableName = "price_snapshots", primaryKeys = ["key", "asOf"], indices = [Index("assetId"), Index(value = ["key", "asOf"])])
+data class PriceSnapshotEntity(
+    val key: String,
+    val assetId: String? = null,
+    /** Decimal major price per unit, canonical text. */
+    val price: String,
+    val currency: String,
+    val asOf: Long,
+    val source: String,
+    val isManual: Boolean,
+)
+
 data class RecordRow(
     val id: String,
     val entryId: String,
@@ -707,9 +759,62 @@ interface LedgerDao {
     }
 }
 
+@Dao
+interface AssetDao {
+    @Query("SELECT * FROM assets WHERE archived = 0 ORDER BY type, name")
+    fun observeAssets(): Flow<List<AssetEntity>>
+
+    @Query("SELECT * FROM assets WHERE id = :id")
+    fun observeAsset(id: String): Flow<AssetEntity?>
+
+    @Query("SELECT * FROM asset_transactions WHERE assetId = :assetId AND deletedAt IS NULL ORDER BY date, id")
+    fun observeTransactions(assetId: String): Flow<List<AssetTransactionEntity>>
+
+    @Query("SELECT * FROM asset_transactions WHERE deletedAt IS NULL ORDER BY date, id")
+    fun observeAllTransactions(): Flow<List<AssetTransactionEntity>>
+
+    @Query("SELECT * FROM price_snapshots WHERE assetId = :assetId ORDER BY asOf DESC LIMIT 1")
+    fun observeLatestPrice(assetId: String): Flow<PriceSnapshotEntity?>
+
+    @Query("SELECT * FROM price_snapshots WHERE key = :key ORDER BY asOf DESC LIMIT 1")
+    suspend fun latestPrice(key: String): PriceSnapshotEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAsset(value: AssetEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPrice(value: PriceSnapshotEntity)
+
+    @Insert
+    suspend fun insertAssetTransaction(value: AssetTransactionEntity)
+
+    @Insert
+    suspend fun insertTransaction(value: TxnEntity)
+
+    @Insert
+    suspend fun insertEntry(value: EntryEntity)
+
+    @Query("UPDATE assets SET archived = 1, updatedAt = :now WHERE id = :id")
+    suspend fun archiveAsset(
+        id: String,
+        now: Long,
+    )
+
+    @androidx.room.Transaction
+    suspend fun persistTrade(
+        transaction: TxnEntity,
+        entry: EntryEntity,
+        assetTransaction: AssetTransactionEntity,
+    ) {
+        insertAssetTransaction(assetTransaction)
+        insertTransaction(transaction)
+        insertEntry(entry)
+    }
+}
+
 @Database(
-    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class],
-    version = 6,
+    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
+    version = 7,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -726,6 +831,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun planningDao(): PlanningDao
 
     abstract fun ledgerDao(): LedgerDao
+
+    abstract fun assetDao(): AssetDao
 
     companion object {
         val MIGRATION_1_2 =
@@ -836,6 +943,28 @@ abstract class AppDatabase : RoomDatabase() {
             object : Migration(5, 6) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("ALTER TABLE debts ADD COLUMN accountId TEXT NOT NULL DEFAULT ''")
+                }
+            }
+
+        val MIGRATION_6_7 =
+            object : Migration(6, 7) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS assets (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL, symbolOrKarats TEXT NOT NULL, quoteCurrency TEXT NOT NULL, unit TEXT NOT NULL, resaleDeductionPct TEXT NOT NULL, archived INTEGER NOT NULL, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_assets_type ON assets(type)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_assets_archived ON assets(archived)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS asset_transactions (id TEXT NOT NULL PRIMARY KEY, assetId TEXT NOT NULL, kind TEXT NOT NULL, date TEXT NOT NULL, quantity TEXT NOT NULL, unitPrice TEXT NOT NULL, feeMinor INTEGER NOT NULL, totalMinor INTEGER NOT NULL, txnId TEXT, note TEXT NOT NULL, deletedAt INTEGER, FOREIGN KEY(assetId) REFERENCES assets(id) ON DELETE CASCADE)",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_asset_transactions_assetId ON asset_transactions(assetId)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_asset_transactions_txnId ON asset_transactions(txnId)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_asset_transactions_assetId_date ON asset_transactions(assetId, date)")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS price_snapshots (key TEXT NOT NULL, assetId TEXT, price TEXT NOT NULL, currency TEXT NOT NULL, asOf INTEGER NOT NULL, source TEXT NOT NULL, isManual INTEGER NOT NULL, PRIMARY KEY(key, asOf))",
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_price_snapshots_assetId ON price_snapshots(assetId)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_price_snapshots_key_asOf ON price_snapshots(key, asOf)")
                 }
             }
     }

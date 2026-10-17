@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.room.Room
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AppDatabase
+import app.mizan.data.db.AssetDao
 import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.FxRateDao
 import app.mizan.data.db.IncomeSetupDao
@@ -31,7 +32,7 @@ object AppModule {
         Room
             .databaseBuilder(context, AppDatabase::class.java, "mizan.db")
             .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
-            .addMigrations(AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6)
+            .addMigrations(AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7)
             .build()
 
     @Provides
@@ -62,4 +63,7 @@ object AppModule {
 
     @Provides
     fun provideLedgerDao(database: AppDatabase): LedgerDao = database.ledgerDao()
+
+    @Provides
+    fun provideAssetDao(database: AppDatabase): AssetDao = database.assetDao()
 }

@@ -64,4 +64,11 @@ class AppDatabaseMigrationTest {
         helper.createDatabase(databaseName, 5).close()
         helper.runMigrationsAndValidate(databaseName, 6, true, AppDatabase.MIGRATION_5_6).close()
     }
+
+    @Test
+    fun migratesDebtAccountSchemaToAssetsSchema() {
+        val databaseName = "migration-v6-test"
+        helper.createDatabase(databaseName, 6).close()
+        helper.runMigrationsAndValidate(databaseName, 7, true, AppDatabase.MIGRATION_6_7).close()
+    }
 }
