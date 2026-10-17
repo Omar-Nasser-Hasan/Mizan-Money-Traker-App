@@ -36,6 +36,7 @@ import app.mizan.domain.assets.AverageCost
 import app.mizan.domain.assets.Xirr
 import app.mizan.domain.assets.XirrCashFlow
 import app.mizan.domain.money.MoneyMath
+import app.mizan.domain.plan.NetWorthMath
 import app.mizan.domain.stats.Period
 import app.mizan.domain.stats.StatKind
 import app.mizan.domain.stats.StatPeriods
@@ -68,6 +69,7 @@ fun statsScreen(
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val fxRates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
+    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val period = range.period(today)
     val comparisonPeriod = if (comparison == Comparison.PREVIOUS) StatPeriods.previous(period) else StatPeriods.lastYear(period)
@@ -148,7 +150,7 @@ fun statsScreen(
             }
 
             StatsTab.ASSETS -> {
-                assetsTab(assets, assetTrades, prices, balances, currencies, fxRates, data.balanceTrend)
+                assetsTab(assets, assetTrades, prices, balances, currencies, fxRates, data.balanceTrend, debts, rows)
             }
 
             StatsTab.OUTLOOK -> {
@@ -170,6 +172,8 @@ private fun LazyListScope.assetsTab(
     currencies: List<app.mizan.data.db.CurrencyEntity>,
     fxRates: List<app.mizan.data.db.FxRateEntity>,
     cashTrend: Map<LocalDate, Long>,
+    debts: List<app.mizan.data.db.DebtEntity>,
+    recordRows: List<app.mizan.data.db.StatsRecordRow>,
 ) {
     val cash = balances.sumOf { MoneyMath.baseMinor(it.openingMinor + it.entryMinor, it.decimals, BigDecimal(it.egpPerUnit)) }
     val rows =
@@ -231,11 +235,20 @@ private fun LazyListScope.assetsTab(
             AssetStatsRow(asset, position, value, xirr)
         }
     val holdings = rows.sumOf { it.valueMinor }
+    val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
+    val currentDebt = debtTotalsAt(debts, recordRows, today)
     item { Text("Assets", style = MaterialTheme.typography.titleLarge) }
-    item { Text("Net worth: ${cash + holdings} EGP minor · cash $cash · holdings $holdings") }
+    item {
+        Text(
+            "Net worth: ${NetWorthMath.total(cash, holdings, currentDebt.receivables, currentDebt.payables)} EGP minor · " +
+                "cash $cash · holdings $holdings · receivables ${currentDebt.receivables} · payables ${currentDebt.payables}",
+        )
+    }
     val netWorthTrend =
         cashTrend.mapValues { (date, cashAtDate) ->
-            cashAtDate +
+            val debt = debtTotalsAt(debts, recordRows, date)
+            NetWorthMath.total(
+                cashAtDate,
                 assets.sumOf { asset ->
                     val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
                     val snapshot =
@@ -287,7 +300,10 @@ private fun LazyListScope.assetsTab(
                                 ?: return@sumOf 0L
                         }
                     MoneyMath.baseMinor(quoteMinor, decimals, rate)
-                }
+                },
+                debt.receivables,
+                debt.payables,
+            )
         }
     item { Text("Net-worth trend") }
     item { lineAreaChart(netWorthTrend.map { ChartPoint(it.key.toString(), it.value) }, { "$it EGP minor" }, Modifier.fillMaxWidth()) }
@@ -311,6 +327,32 @@ private fun LazyListScope.assetsTab(
             }
         }
     }
+}
+
+private data class DebtTotals(
+    val receivables: Long,
+    val payables: Long,
+)
+
+private fun debtTotalsAt(
+    debts: List<app.mizan.data.db.DebtEntity>,
+    records: List<app.mizan.data.db.StatsRecordRow>,
+    date: LocalDate,
+): DebtTotals {
+    val amounts =
+        debts.filter { LocalDate.parse(it.openedAt) <= date }.fold(0L to 0L) { totals, debt ->
+            val repaid =
+                records
+                    .filter { it.debtId == debt.id && LocalDate.parse(it.bookedDate) <= date }
+                    .sumOf { kotlin.math.abs(it.baseMinor) }
+            val outstanding = (debt.principalMinor - repaid).coerceAtLeast(0)
+            if (debt.direction == "LENT") {
+                totals.first + outstanding to totals.second
+            } else {
+                totals.first to totals.second + outstanding
+            }
+        }
+    return DebtTotals(amounts.first, amounts.second)
 }
 
 private data class AssetStatsRow(
