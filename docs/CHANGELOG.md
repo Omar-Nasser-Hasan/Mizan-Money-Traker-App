@@ -1,5 +1,11 @@
 # Changelog
 
+## M8 — Goals, Outlook, Credit, and Savings
+
+- Added persisted goals with account or asset allocation links and manual contributions.
+- Added goal progress, monthly-needed, ETA, and reached-prompt rules.
+- Added Outlook forecast/timeline plus Credit, savings, invest-rate, and net-worth-trend statistics.
+
 ## M7 — Investments
 
 - Added pure asset valuation, average-cost, realized-P/L, gold-ratio, price-fallback and XIRR rules with unit coverage.

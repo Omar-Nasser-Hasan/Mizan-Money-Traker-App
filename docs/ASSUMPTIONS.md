@@ -1,5 +1,10 @@
 # Assumptions
 
+## M8 goals and outlook
+
+- A newly created goal can link one selected source initially; additional persisted links remain available for goal-detail editing in a later interaction pass.
+- Typical income is off by default and is explicitly labelled an assumption. Forecasts count only planned `INCOME` occurrences unless the toggle is enabled.
+
 ## M7 investments
 
 - An asset trade's `totalMinor` is cash paid including fees for a buy and net cash received after fees for a sell. Moving average cost therefore includes buy fees and realized P/L already reflects sell fees.
