@@ -55,6 +55,25 @@ fun exportScreen(
             },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Create and share CSV") }
+        Button(
+            onClick = {
+                scope.launch {
+                    status = "Building XLSX…"
+                    runCatching { repository.exportXlsx() }
+                        .onSuccess { file ->
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.backup", file)
+                            context.startActivity(
+                                Intent(Intent.ACTION_SEND)
+                                    .setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                                    .putExtra(Intent.EXTRA_STREAM, uri)
+                                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                            )
+                            status = "Ready to share ${file.name}."
+                        }.onFailure { status = "XLSX export failed: ${it.message}" }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Create and share XLSX") }
         Text(status)
     }
 }
