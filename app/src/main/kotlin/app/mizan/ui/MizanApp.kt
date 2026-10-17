@@ -217,6 +217,10 @@ fun mizanApp(
                     exportScreen(repository, modifier)
                 }
 
+                "zakat" -> {
+                    zakatScreen(modifier)
+                }
+
                 "about" -> {
                     aboutScreen(modifier)
                 }
@@ -674,6 +678,7 @@ private fun settingsScreen(
             "trash" to "Trash",
             "backup" to "Backup and restore",
             "export" to "Export records (CSV)",
+            "zakat" to "Zakat calculator",
             "battery-guide" to "HyperOS battery and Autostart guide",
             "about" to "About, privacy, and rate attribution",
         ).forEach { (route, label) ->
