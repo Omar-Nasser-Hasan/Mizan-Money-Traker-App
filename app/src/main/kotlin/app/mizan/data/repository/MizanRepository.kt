@@ -133,6 +133,8 @@ class MizanRepository
 
         fun observeGoalLinks(goalId: String) = planning.observeGoalLinks(goalId)
 
+        fun observeAllGoalLinks() = planning.observeAllGoalLinks()
+
         fun observeGoalContributions(goalId: String) = planning.observeGoalContributions(goalId)
 
         fun observePlannedPayments() = planning.observePlanned()

@@ -404,6 +404,7 @@ data class StatsRecordRow(
     val categoryId: String?,
     val payeeId: String?,
     val labels: String,
+    val plannedId: String?,
 )
 
 /** A current bucket total evaluated with the most recently cached EGP rate. */
@@ -608,6 +609,9 @@ interface PlanningDao {
     @Query("SELECT * FROM goal_links WHERE goalId = :goalId")
     fun observeGoalLinks(goalId: String): Flow<List<GoalLinkEntity>>
 
+    @Query("SELECT * FROM goal_links")
+    fun observeAllGoalLinks(): Flow<List<GoalLinkEntity>>
+
     @Query("SELECT * FROM goal_contributions WHERE goalId = :goalId ORDER BY date")
     fun observeGoalContributions(goalId: String): Flow<List<GoalContributionEntity>>
 
@@ -784,7 +788,7 @@ interface LedgerDao {
     ): Flow<List<DailyBaseDelta>>
 
     @Query(
-        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
+        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels, t.plannedId AS plannedId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
     )
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
 
