@@ -487,7 +487,7 @@ private fun goalSummary(
     val links by repository.observeGoalLinks(goal.id).collectAsStateWithLifecycle(emptyList())
     val allLinks by repository.observeAllGoalLinks().collectAsStateWithLifecycle(emptyList())
     val contributions by repository.observeGoalContributions(goal.id).collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val balances by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
     val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
     val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
