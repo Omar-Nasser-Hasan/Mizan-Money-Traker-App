@@ -1,5 +1,11 @@
 # Assumptions
 
+## M10 SMS and notification Inbox
+
+- Only the Banque Misr and HSBC templates are enabled because they are the only sender formats represented by redacted samples. CIB, NBE, QNB, InstaPay, and Vodafone Cash templates are retained as disabled, unverified sender definitions; they will not create drafts until samples are supplied.
+- An ATM withdrawal is offered as a transfer to the Cash account and a payment to Thndr Securities Brokerage as a transfer to the Investment account. Inbox drafts remain pending until the user confirms them.
+- A reversal references its original draft when the bank supplies a reference; otherwise the match requires amount, merchant, card ending, and a three-day window. If the original is still pending, both drafts are dismissed. A reversal of a confirmed draft remains a pending refund draft for explicit review.
+
 ## M9 quick entry
 
 - SPIKE-V1 remains inconclusive, so Mizan attempts only Android's on-device recognizer for `ar-EG` and `en-US`; online speech recognition is not enabled.

@@ -3,6 +3,7 @@
 ## M10 — SMS and notification Inbox
 
 - Added opt-in SMS and notification-listener capture, a versioned persistent Inbox, sender-template parsing, and pending-draft confirmation/rejection controls.
+- Added sample-backed Banque Misr and HSBC parsing, reversal linking, transfer classification for ATM and Thndr, and balance-aware duplicate identity.
 
 ## M9 — Quick entry
 

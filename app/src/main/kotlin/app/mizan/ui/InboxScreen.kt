@@ -72,9 +72,22 @@ fun inboxScreen(
         items(drafts, key = { it.id }) { draft ->
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text("${draft.sender} · ${draft.amountMinor} ${draft.currency} minor")
+                    Text("${draft.kind.lowercase().replaceFirstChar(Char::uppercase)} · ${draft.amountMinor} ${draft.currency} minor")
                     Text(draft.merchant ?: "No merchant")
                     Text("${draft.source} · ${draft.cardLastFour?.let { "card ••••$it" } ?: "no card hint"}")
+                    draft.reference?.let { Text("Reference $it") }
+                    when {
+                        draft.kind == "TRANSFER" && draft.merchant == "ATM" -> Text("Draft destination: Cash account")
+
+                        draft.kind == "TRANSFER" &&
+                            draft.merchant.equals(
+                                "Thndr Securities Brokerage",
+                                true,
+                            )
+                        -> Text("Draft destination: Investment account")
+
+                        draft.kind == "REVERSAL" -> Text("Refund draft — confirm only after review")
+                    }
                     Button(onClick = { scope.launch { repository.confirmInboxDraft(draft.id) } }) { Text("Confirm draft") }
                     Button(onClick = { scope.launch { repository.rejectInboxDraft(draft.id) } }) { Text("Reject") }
                 }
