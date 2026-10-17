@@ -231,7 +231,7 @@ fun mizanApp(
                 }
 
                 "about" -> {
-                    aboutScreen(modifier)
+                    aboutScreen(repository, modifier)
                 }
 
                 "dev" -> {

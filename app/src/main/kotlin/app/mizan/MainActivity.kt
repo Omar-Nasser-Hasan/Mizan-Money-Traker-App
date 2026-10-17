@@ -5,12 +5,17 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import app.mizan.data.repository.MizanRepository
 import app.mizan.quick.EXTRA_QUICK_ACTION
 import app.mizan.security.AppLock
 import app.mizan.ui.mizanApp
 import app.mizan.ui.theme.MizanTheme
+import app.mizan.ui.v2.AppInterface
+import app.mizan.ui.v2.appInterface
+import app.mizan.ui.v2.v2MizanApp
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -39,8 +44,15 @@ class MainActivity : ComponentActivity() {
             }
         }
         setContent {
-            MizanTheme {
-                mizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
+            val newInterface by repository.observeNewInterface().collectAsStateWithLifecycle(false)
+            if (appInterface(newInterface) == AppInterface.V2) {
+                app.mizan.ui.v2.MizanTheme {
+                    v2MizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
+                }
+            } else {
+                MizanTheme {
+                    mizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
+                }
             }
         }
     }
