@@ -5,6 +5,7 @@
 - An asset trade's `totalMinor` is cash paid including fees for a buy and net cash received after fees for a sell. Moving average cost therefore includes buy fees and realized P/L already reflects sell fees.
 - The SPIKE-G1 Daleelak dealer aggregation is best-effort and indicative. It is refreshed at most every six hours, with an app-open refresh after two hours; an outage leaves the last known value intact and it becomes stale after 24 hours.
 - SPIKE-S1 remains failed: EGX stocks and funds are manual-price by default. No unauthorised keyless EGX endpoint is used.
+- The spot-derived gold formula is retained as the second fallback, but no key-backed spot vendor is configured in this local build; the live fallback therefore proceeds from the Daleelak cache to manual 21K pricing.
 
 - M0 uses stable build/tooling releases checked on 16 October 2026. The project compiles against Android API 37 because it is installed in the local SDK.
 - The source specification was supplied as `Personal Finance App — Spec v1.0 (Mizan).md`; it is copied verbatim to the canonical `docs/SPEC.md` path required by section 3.1.
