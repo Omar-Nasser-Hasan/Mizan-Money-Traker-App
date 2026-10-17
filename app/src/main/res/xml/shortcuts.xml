@@ -1,15 +1,15 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <shortcut android:shortcutId="add_expense" android:enabled="true" android:shortcutShortLabel="Add expense">
+    <shortcut android:shortcutId="add_expense" android:enabled="true" android:shortcutShortLabel="@string/shortcut_add_expense">
         <intent android:action="android.intent.action.VIEW" android:targetPackage="app.mizan" android:targetClass="app.mizan.MainActivity">
             <extra android:name="app.mizan.extra.QUICK_ACTION" android:value="expense" />
         </intent>
     </shortcut>
-    <shortcut android:shortcutId="add_income" android:enabled="true" android:shortcutShortLabel="Add income">
+    <shortcut android:shortcutId="add_income" android:enabled="true" android:shortcutShortLabel="@string/shortcut_add_income">
         <intent android:action="android.intent.action.VIEW" android:targetPackage="app.mizan" android:targetClass="app.mizan.MainActivity">
             <extra android:name="app.mizan.extra.QUICK_ACTION" android:value="income" />
         </intent>
     </shortcut>
-    <shortcut android:shortcutId="voice_entry" android:enabled="true" android:shortcutShortLabel="Voice entry">
+    <shortcut android:shortcutId="voice_entry" android:enabled="true" android:shortcutShortLabel="@string/shortcut_voice_entry">
         <intent android:action="android.intent.action.VIEW" android:targetPackage="app.mizan" android:targetClass="app.mizan.MainActivity">
             <extra android:name="app.mizan.extra.QUICK_ACTION" android:value="voice" />
         </intent>

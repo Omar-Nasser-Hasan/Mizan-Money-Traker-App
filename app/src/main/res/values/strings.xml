@@ -6,4 +6,7 @@
     <string name="tab_insights">Insights</string>
     <string name="tab_more">More</string>
     <string name="empty_tab">This tab is intentionally empty in M0.</string>
+    <string name="shortcut_add_expense">Add expense</string>
+    <string name="shortcut_add_income">Add income</string>
+    <string name="shortcut_voice_entry">Voice entry</string>
 </resources>
