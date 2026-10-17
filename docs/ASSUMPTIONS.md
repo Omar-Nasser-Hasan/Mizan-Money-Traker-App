@@ -2,8 +2,9 @@
 
 ## M8 goals and outlook
 
-- A newly created goal can link one selected source initially; additional persisted links remain available for goal-detail editing in a later interaction pass.
+- A goal can start with a single account or asset source and its detail card can add or change further account/asset allocations. A shared source cannot be allocated above 100% across goals; entering 0% detaches its effective contribution.
 - Typical income is off by default and is explicitly labelled an assumption. Forecasts count only planned `INCOME` occurrences unless the toggle is enabled.
+- The current debt form creates EGP debts. Net-worth debt history therefore subtracts each recorded repayment's EGP booking value from the EGP principal; non-EGP debt entry requires the future per-debt FX booking UI.
 
 ## M7 investments
 
