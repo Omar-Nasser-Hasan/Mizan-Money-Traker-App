@@ -51,6 +51,7 @@ import app.mizan.domain.assets.Asset
 import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetType
+import app.mizan.domain.assets.GoldRatios
 import app.mizan.domain.ledger.AssetCashRequest
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
@@ -467,6 +468,27 @@ class MizanRepository
             assetDao.insertPrice(
                 PriceSnapshotEntity("MANUAL:$assetId", assetId, price.toPlainString(), currency, asOf.toEpochMilli(), "Manual", true),
             )
+        }
+
+        /** A manual dealer 21K price calibrates every Egyptian gold denomination. */
+        suspend fun saveManualGold21Price(
+            price21K: BigDecimal,
+            asOf: Instant = Instant.ofEpochMilli(clock.millis()),
+        ) {
+            require(price21K > BigDecimal.ZERO) { "Price must be positive" }
+            GoldRatios.from21K(price21K).forEach { (name, price) ->
+                assetDao.insertPrice(
+                    PriceSnapshotEntity(
+                        "GOLD_$name",
+                        null,
+                        price.toPlainString(),
+                        "EGP",
+                        asOf.toEpochMilli(),
+                        "Manual 21K dealer price",
+                        true,
+                    ),
+                )
+            }
         }
 
         /** SPIKE-G1's best-effort public dealer aggregation. A failure deliberately preserves every cached price. */

@@ -196,7 +196,11 @@ fun assetDetailScreen(
                     error = "Enter a positive price."
                 } else {
                     scope.launch {
-                        repository.saveManualPrice(current.id, value, current.quoteCurrency)
+                        if (current.type == "GOLD" && current.symbolOrKarats.equals("21K", ignoreCase = true)) {
+                            repository.saveManualGold21Price(value)
+                        } else {
+                            repository.saveManualPrice(current.id, value, current.quoteCurrency)
+                        }
                         manualPrice =
                             ""
                     }
