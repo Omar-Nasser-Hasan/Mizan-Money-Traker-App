@@ -452,6 +452,8 @@ class MizanRepository
 
         fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()
 
+        fun observeAllAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAllAccountBalances()
+
         fun observeAssets(): Flow<List<AssetEntity>> = assetDao.observeAssets()
 
         fun observeAsset(id: String): Flow<AssetEntity?> = assetDao.observeAsset(id)

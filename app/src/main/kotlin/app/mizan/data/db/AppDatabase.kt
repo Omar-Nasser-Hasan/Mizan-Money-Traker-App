@@ -812,6 +812,22 @@ interface LedgerDao {
     )
     fun observeAccountBalances(): Flow<List<AccountBalanceRow>>
 
+    @Query(
+        """
+        SELECT a.id AS accountId, a.name AS accountName, b.currency AS currency, c.decimals AS decimals,
+               b.openingMinor AS openingMinor,
+               COALESCE((SELECT SUM(e.amountMinor) FROM entries e JOIN transactions t ON t.id = e.txnId
+                         WHERE e.accountId = a.id AND e.currency = b.currency AND t.deletedAt IS NULL), 0) AS entryMinor,
+               COALESCE((SELECT f.egpPerUnit FROM fx_rates f WHERE f.currency = b.currency ORDER BY f.date DESC LIMIT 1), '1') AS egpPerUnit,
+               COALESCE((SELECT f.egpPerUnit FROM fx_rates f WHERE f.currency = b.currency AND f.date <= a.openingDate
+                         ORDER BY f.date DESC LIMIT 1), '1') AS openingEgpPerUnit
+        FROM accounts a JOIN account_buckets b ON b.accountId = a.id JOIN currencies c ON c.code = b.currency
+        WHERE a.archived = 0
+        ORDER BY a.sortOrder, a.name, b.currency
+        """,
+    )
+    fun observeAllAccountBalances(): Flow<List<AccountBalanceRow>>
+
     @Query("DELETE FROM transactions WHERE note LIKE '[DEV-SEED]%'")
     suspend fun clearDevSeed(): Int
 
