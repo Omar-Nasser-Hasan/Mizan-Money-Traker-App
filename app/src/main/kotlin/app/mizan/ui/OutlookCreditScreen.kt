@@ -31,6 +31,8 @@ import app.mizan.domain.stats.Period
 import app.mizan.domain.stats.StatKind
 import app.mizan.domain.stats.StatRecord
 import app.mizan.domain.stats.StatsEngine
+import app.mizan.ui.charts.ChartPoint
+import app.mizan.ui.charts.lineAreaChart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -182,6 +184,13 @@ fun creditAndSavingsScreen(
             .filter {
                 it.kind == "ASSET_SELL" && LocalDate.parse(it.bookedDate) in period.start..period.end
             }.sumOf { kotlin.math.abs(it.baseMinor) }
+    val savingsSeries =
+        (5 downTo 0).map { offset ->
+            val month = today.minusMonths(offset.toLong())
+            val monthPeriod = Period(month.withDayOfMonth(1), month.withDayOfMonth(month.lengthOfMonth()))
+            val monthFlow = StatsEngine.cashFlow(records, monthPeriod)
+            ChartPoint(month.month.name.take(3), SavingsMath.savingsRate(monthFlow.netMinor, monthFlow.incomeMinor) ?: 0L)
+        }
     Column(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Credit & savings")
         Text("Credit utilization: ${CreditMath.utilization(cards)?.let { "$it bp" } ?: "—"}")
@@ -191,6 +200,8 @@ fun creditAndSavingsScreen(
         Text("Debt-to-income: ${CreditMath.debtToIncome(debtService, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
         Text("Savings rate: ${SavingsMath.savingsRate(flow.netMinor, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
         Text("Invest rate: ${SavingsMath.investRate(buys, sells, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
+        Text("Six-period savings-rate trend")
+        lineAreaChart(savingsSeries, { "$it bp" }, Modifier.fillMaxWidth())
     }
 }
 
