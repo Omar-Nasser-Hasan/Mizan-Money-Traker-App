@@ -295,7 +295,13 @@ fun priceUpdateScreen(
         item {
             Text("Update prices")
             Text("Gold uses the best-effort Daleelak dealer feed. EGX and fund prices remain manual because SPIKE-S1 failed.")
-            Button(onClick = { scope.launch { status = repository.refreshGoldPrices().fold({ "Gold prices updated." }, { "Gold update failed; last-known values were kept." }) } }) { Text("Update all") }
+            Button(
+                onClick = {
+                    scope.launch {
+                        status = repository.refreshGoldPrices().fold({ "Gold prices updated." }, { "Gold update failed; last-known values were kept." })
+                    }
+                },
+            ) { Text("Update all") }
             if (status.isNotBlank()) Text(status)
         }
         items(assets, key = { it.id }) { asset ->
