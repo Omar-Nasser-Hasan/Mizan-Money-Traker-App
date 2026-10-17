@@ -74,6 +74,25 @@ fun exportScreen(
             },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Create and share XLSX") }
+        Button(
+            onClick = {
+                scope.launch {
+                    status = "Building PDF…"
+                    runCatching { repository.exportPdf() }
+                        .onSuccess { file ->
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.backup", file)
+                            context.startActivity(
+                                Intent(Intent.ACTION_SEND)
+                                    .setType("application/pdf")
+                                    .putExtra(Intent.EXTRA_STREAM, uri)
+                                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                            )
+                            status = "Ready to share ${file.name}."
+                        }.onFailure { status = "PDF export failed: ${it.message}" }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Create and share PDF") }
         Text(status)
     }
 }

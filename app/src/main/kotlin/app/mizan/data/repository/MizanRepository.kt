@@ -52,6 +52,7 @@ import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
 import app.mizan.data.io.CsvExport
+import app.mizan.data.io.PdfExport
 import app.mizan.data.io.XlsxExport
 import app.mizan.domain.assets.Asset
 import app.mizan.domain.assets.AssetTransaction
@@ -295,6 +296,14 @@ class MizanRepository
                 val destination = java.io.File(context.filesDir, "exports").also { it.mkdirs() }
                 java.io.File(destination, "mizan-records-${clock.millis()}.xlsx").also { file ->
                     file.writeBytes(XlsxExport.records(ledger.exportRows()))
+                }
+            }
+
+        suspend fun exportPdf(): java.io.File =
+            withContext(Dispatchers.IO) {
+                val destination = java.io.File(context.filesDir, "exports").also { it.mkdirs() }
+                java.io.File(destination, "mizan-records-${clock.millis()}.pdf").also { file ->
+                    PdfExport.records(file, ledger.exportRows())
                 }
             }
 
