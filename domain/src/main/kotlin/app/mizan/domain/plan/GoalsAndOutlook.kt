@@ -182,3 +182,16 @@ object SavingsMath {
                     .longValueExact()
             }
 }
+
+object NetWorthMath {
+    fun total(
+        cashMinor: Long,
+        holdingsMinor: Long,
+        receivablesMinor: Long,
+        payablesMinor: Long,
+    ): Long =
+        Math.subtractExact(
+            Math.addExact(Math.addExact(cashMinor, holdingsMinor), receivablesMinor),
+            payablesMinor,
+        )
+}

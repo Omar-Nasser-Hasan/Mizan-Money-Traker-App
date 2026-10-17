@@ -44,6 +44,6 @@ class GoalsAndOutlookTest {
         val holdings = 50_000L
         val receivables = 10_000L
         val payables = 15_000L
-        assertEquals(145_000L, cash + holdings + receivables - payables)
+        assertEquals(145_000L, NetWorthMath.total(cash, holdings, receivables, payables))
     }
 }
