@@ -344,6 +344,22 @@ class MizanRepository
 
         fun observeHideAmounts(): Flow<Boolean> = context.dataStore.data.map { it[HIDE_AMOUNTS] ?: false }
 
+        fun observeLearnedPayeeCategories(): Flow<Map<String, String>> =
+            context.dataStore.data.map { preferences ->
+                preferences.asMap().entries.mapNotNull { (key, value) ->
+                    key.name.removePrefix(LEARNED_PAYEE_PREFIX).takeIf { key.name.startsWith(LEARNED_PAYEE_PREFIX) }
+                        ?.let { payee -> (value as? String)?.let { payee to it } }
+                }.toMap()
+            }
+
+        suspend fun learnPayeeCategory(
+            payee: String,
+            categoryId: String,
+        ) {
+            val normalized = payee.trim().lowercase()
+            if (normalized.isNotBlank()) context.dataStore.edit { it[stringPreferencesKey("$LEARNED_PAYEE_PREFIX$normalized")] = categoryId }
+        }
+
         fun observeSecureScreens(): Flow<Boolean> = context.dataStore.data.map { it[SECURE_SCREENS] ?: false }
 
         fun observeLockTimeoutSeconds(): Flow<Int> = context.dataStore.data.map { it[LOCK_TIMEOUT_SECONDS] ?: 30 }
@@ -1007,6 +1023,7 @@ class MizanRepository
             private val QUIET_HOURS_START = stringPreferencesKey("quiet_hours_start")
             private val QUIET_HOURS_END = stringPreferencesKey("quiet_hours_end")
             private val BACKUP_PASSPHRASE = stringPreferencesKey("backup_passphrase_keystore_wrapped")
+            private const val LEARNED_PAYEE_PREFIX = "learned_payee_"
 
             private fun String?.toLocalTimeOrDefault(default: LocalTime): LocalTime =
                 this?.let { runCatching { LocalTime.parse(it) }.getOrNull() } ?: default
