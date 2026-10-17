@@ -68,7 +68,9 @@ import app.mizan.domain.stats.Period
 import app.mizan.domain.stats.StatKind
 import app.mizan.domain.stats.StatRecord
 import app.mizan.domain.stats.StatsEngine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
@@ -240,19 +242,31 @@ private fun homeScreen(
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val statsRows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(cairo)
-    val summary =
-        StatsEngine.cashFlow(
-            statsRows.map {
-                StatRecord(
-                    it.id,
-                    LocalDate.parse(it.bookedDate),
-                    runCatching { StatKind.valueOf(it.kind) }.getOrDefault(StatKind.OTHER),
-                    it.baseMinor,
-                    it.accountId,
+    val summary by androidx.compose.runtime.produceState(
+        initialValue =
+            app.mizan.domain.stats
+                .CashFlow(0L, 0L),
+        statsRows,
+        today,
+    ) {
+        value =
+            withContext(Dispatchers.Default) {
+                StatsEngine.cashFlow(
+                    statsRows
+                        .asSequence()
+                        .map {
+                            StatRecord(
+                                it.id,
+                                LocalDate.parse(it.bookedDate),
+                                runCatching { StatKind.valueOf(it.kind) }.getOrDefault(StatKind.OTHER),
+                                it.baseMinor,
+                                it.accountId,
+                            )
+                        }.asIterable(),
+                    Period(today.withDayOfMonth(1), today),
                 )
-            },
-            Period(today.withDayOfMonth(1), today),
-        )
+            }
+    }
     LazyColumn(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("This month", style = MaterialTheme.typography.headlineMedium) }
         item {
