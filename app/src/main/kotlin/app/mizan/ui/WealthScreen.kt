@@ -113,9 +113,10 @@ fun assetEditorScreen(
         Button(onClick = {
             val pct = runCatching { BigDecimal(deduction) }.getOrNull()
             if (name.isBlank() || symbol.isBlank() || pct == null ||
-                pct < BigDecimal.ZERO
+                pct < BigDecimal.ZERO ||
+                pct > BigDecimal(100)
             ) {
-                error = "Enter a name, identifier, and non-negative deduction."
+                error = "Enter a name, identifier, and deduction from 0 to 100."
             } else {
                 scope.launch {
                     repository.saveAsset(

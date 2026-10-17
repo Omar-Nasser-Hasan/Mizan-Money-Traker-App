@@ -441,7 +441,9 @@ class MizanRepository
         fun observeLatestPrices(): Flow<List<PriceSnapshotEntity>> = assetDao.observeLatestPrices()
 
         suspend fun saveAsset(asset: Asset) {
-            require(asset.resaleDeductionPct >= BigDecimal.ZERO) { "Resale deduction must not be negative" }
+            require(asset.resaleDeductionPct >= BigDecimal.ZERO && asset.resaleDeductionPct <= BigDecimal(100)) {
+                "Resale deduction must be from 0 to 100"
+            }
             val now = clock.millis()
             assetDao.upsertAsset(
                 AssetEntity(
