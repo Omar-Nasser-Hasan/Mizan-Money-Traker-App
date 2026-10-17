@@ -30,4 +30,11 @@ class V2RouteTest {
         assertEquals(V2Presentation.SHEET, V2Route.PeriodSelector.presentation)
         assertTrue(V2Route.placeholders.any { it == V2Route.RestrictedSettingsGuide })
     }
+
+    @Test
+    fun `dynamic detail paths restore their exact IDs after process recreation`() {
+        assertEquals(V2Route.RecordDetail("record-id"), V2Route.fromPath("record:record-id"))
+        assertEquals(V2Route.AccountDetail("account-id"), V2Route.fromPath("account:account-id"))
+        assertEquals(V2Route.AssetDetail("asset-id"), V2Route.fromPath("asset:asset-id"))
+    }
 }

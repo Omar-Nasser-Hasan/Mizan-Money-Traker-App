@@ -200,7 +200,13 @@ sealed interface V2Route {
                 RestrictedSettingsGuide,
             )
 
-        fun fromPath(path: String): V2Route? = placeholders.firstOrNull { it.path == path }
+        fun fromPath(path: String): V2Route? =
+            when {
+                path.startsWith("record:") && path.removePrefix("record:").isNotBlank() -> RecordDetail(path.removePrefix("record:"))
+                path.startsWith("account:") && path.removePrefix("account:").isNotBlank() -> AccountDetail(path.removePrefix("account:"))
+                path.startsWith("asset:") && path.removePrefix("asset:").isNotBlank() -> AssetDetail(path.removePrefix("asset:"))
+                else -> placeholders.firstOrNull { it.path == path }
+            }
     }
 }
 
