@@ -870,6 +870,12 @@ private fun devScreen(
                 status = "Seeded 5,000 records in ${repository.seedFiveThousand()} ms"
             }
         }) { Text("Seed 5,000 records") }
+        Button(onClick = {
+            scope.launch {
+                status = "Seeding 50,000…"
+                status = "Seeded 50,000 records in ${repository.seedFiftyThousand()} ms"
+            }
+        }) { Text("Seed 50,000 records") }
         Button(
             onClick = { scope.launch { status = "Removed ${repository.clearDevSeed()} seeded records" } },
         ) { Text("Clear seeded records") }

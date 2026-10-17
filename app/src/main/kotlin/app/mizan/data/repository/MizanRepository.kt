@@ -620,6 +620,15 @@ class MizanRepository
         suspend fun clearDevSeed(): Int = ledger.clearDevSeed()
 
         suspend fun seedFiveThousand(): Long {
+            return seedRecords(5_000)
+        }
+
+        suspend fun seedFiftyThousand(): Long {
+            return seedRecords(50_000)
+        }
+
+        private suspend fun seedRecords(count: Int): Long {
+            require(count > 0)
             seedReferenceData()
             val existing = accounts.observeActive().first()
             val accountId =
@@ -635,9 +644,9 @@ class MizanRepository
             val started = clock.millis()
             val now = Instant.ofEpochMilli(started)
             val today = LocalDate.now(clock.withZone(cairo))
-            val transactions = ArrayList<TxnEntity>(5_000)
-            val entries = ArrayList<EntryEntity>(5_000)
-            repeat(5_000) { index ->
+            val transactions = ArrayList<TxnEntity>(count)
+            val entries = ArrayList<EntryEntity>(count)
+            repeat(count) { index ->
                 val id = "dev-$index-${UUID.randomUUID()}"
                 val date = today.minusDays((index % 120).toLong()).toString()
                 val amount = -((index % 900 + 100) * 100L)
