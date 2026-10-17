@@ -61,6 +61,7 @@ import app.mizan.domain.assets.AssetType
 import app.mizan.domain.assets.GoldRatios
 import app.mizan.domain.entry.SmsDraft
 import app.mizan.domain.entry.SmsDraftKind
+import app.mizan.domain.io.WalletCsvImporter
 import app.mizan.domain.ledger.AssetCashRequest
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
@@ -306,6 +307,8 @@ class MizanRepository
                     PdfExport.records(file, ledger.exportRows())
                 }
             }
+
+        suspend fun previewWalletCsv(file: java.io.File) = withContext(Dispatchers.IO) { WalletCsvImporter.preview(file.readText()) }
 
         suspend fun markPlannedOccurrence(
             plannedId: String,
