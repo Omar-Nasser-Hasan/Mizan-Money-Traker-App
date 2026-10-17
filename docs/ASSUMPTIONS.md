@@ -1,5 +1,10 @@
 # Assumptions
 
+## M12 import, export, and performance
+
+- `docs/wallet-sample.csv` is absent from this checkout. The Wallet importer maps common export headers and provides a no-write preview, but the required per-account total reconciliation remains unverified until the supplied redacted sample is added.
+- XLSX export is a self-contained OOXML workbook and PDF export is a paginated records report. Both preserve exact minor-unit values; neither converts values through floating point.
+
 ## M10 SMS and notification Inbox
 
 - Only the Banque Misr and HSBC templates are enabled because they are the only sender formats represented by redacted samples. CIB, NBE, QNB, InstaPay, and Vodafone Cash templates are retained as disabled, unverified sender definitions; they will not create drafts until samples are supplied.

@@ -3,6 +3,10 @@
 ## M10 — SMS and notification Inbox
 
 - Added opt-in SMS and notification-listener capture, a versioned persistent Inbox, sender-template parsing, and pending-draft confirmation/rejection controls.
+
+## M12 — Import, export, zakat, and performance
+
+- Added a header-driven, no-write Wallet CSV preview, XLSX and PDF record exports, and the exact-minor-unit Zakat calculator foundation.
 - Added sample-backed Banque Misr and HSBC parsing, reversal linking, transfer classification for ATM and Thndr, and balance-aware duplicate identity.
 
 ## M9 — Quick entry
