@@ -148,7 +148,12 @@ fun mizanApp(
             val modifier = Modifier.fillMaxSize().padding(padding)
             when (route) {
                 "entry", "entry:EXPENSE", "entry:INCOME" -> {
-                    entryScreen(repository, modifier, onDone = { route = null })
+                    entryScreen(
+                        repository,
+                        modifier,
+                        initialKind = route?.substringAfter(':')?.takeIf { it in setOf("EXPENSE", "INCOME") } ?: "EXPENSE",
+                        onDone = { route = null },
+                    )
                 }
 
                 "voice" -> voiceEntryScreen(repository, modifier, onDone = { route = null })
@@ -383,11 +388,12 @@ private fun recordsScreen(
 private fun entryScreen(
     repository: MizanRepository,
     modifier: Modifier,
+    initialKind: String = "EXPENSE",
     onDone: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    var kind by remember { mutableStateOf("EXPENSE") }
+    var kind by remember(initialKind) { mutableStateOf(initialKind) }
     val categories by repository.observeCategories(if (kind == "INCOME") "INCOME" else "EXPENSE").collectAsStateWithLifecycle(emptyList())
     val incomeSources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
     val splitTemplates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
