@@ -422,6 +422,8 @@ class MizanRepository
 
         fun observeLatestFx(currency: String) = fxRates.observeLatest(currency)
 
+        fun observeLatestFxRates(): Flow<List<FxRateEntity>> = fxRates.observeLatestPerCurrency()
+
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
         fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()

@@ -66,6 +66,8 @@ fun statsScreen(
     val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
     val assetTrades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
+    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
+    val fxRates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val period = range.period(today)
     val comparisonPeriod = if (comparison == Comparison.PREVIOUS) StatPeriods.previous(period) else StatPeriods.lastYear(period)
@@ -146,7 +148,7 @@ fun statsScreen(
             }
 
             StatsTab.ASSETS -> {
-                assetsTab(assets, assetTrades, prices, balances)
+                assetsTab(assets, assetTrades, prices, balances, currencies, fxRates)
             }
         }
     }
@@ -157,6 +159,8 @@ private fun LazyListScope.assetsTab(
     trades: List<app.mizan.data.db.AssetTransactionEntity>,
     prices: List<app.mizan.data.db.PriceSnapshotEntity>,
     balances: List<app.mizan.data.db.AccountBalanceRow>,
+    currencies: List<app.mizan.data.db.CurrencyEntity>,
+    fxRates: List<app.mizan.data.db.FxRateEntity>,
 ) {
     val cash = balances.sumOf { MoneyMath.baseMinor(it.openingMinor + it.entryMinor, it.decimals, BigDecimal(it.egpPerUnit)) }
     val rows =
@@ -181,8 +185,24 @@ private fun LazyListScope.assetsTab(
                 )
             val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
             val price = prices.firstOrNull { it.key == key } ?: return@mapNotNull null
-            if (price.currency != "EGP") return@mapNotNull null
-            val value = AssetValuation.valueMinor(position.quantity, BigDecimal(price.price), 2, BigDecimal(asset.resaleDeductionPct))
+            val decimals = currencies.firstOrNull { it.code == price.currency }?.decimals ?: return@mapNotNull null
+            val quoteMinor =
+                AssetValuation.valueMinor(
+                    position.quantity,
+                    BigDecimal(price.price),
+                    decimals,
+                    BigDecimal(asset.resaleDeductionPct),
+                )
+            val rate =
+                if (price.currency ==
+                    "EGP"
+                ) {
+                    BigDecimal.ONE
+                } else {
+                    fxRates.firstOrNull { it.currency == price.currency }?.egpPerUnit?.let(::BigDecimal)
+                        ?: return@mapNotNull null
+                }
+            val value = MoneyMath.baseMinor(quoteMinor, decimals, rate)
             val xirr =
                 Xirr.calculate(
                     assetTrades.map {
@@ -204,7 +224,11 @@ private fun LazyListScope.assetsTab(
     val holdings = rows.sumOf { it.valueMinor }
     item { Text("Assets", style = MaterialTheme.typography.titleLarge) }
     item { Text("Net worth: ${cash + holdings} EGP minor · cash $cash · holdings $holdings") }
-    item { Text("Allocation uses current EGP prices; foreign-currency holdings need an EGP price snapshot before they contribute.") }
+    item {
+        Text(
+            "Allocation uses current FX for every quoted holding; a holding with no cached FX stays visible but is excluded from the total.",
+        )
+    }
     items(rows, key = { it.asset.id }) { row ->
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {

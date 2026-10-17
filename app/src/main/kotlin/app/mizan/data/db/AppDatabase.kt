@@ -429,6 +429,11 @@ interface FxRateDao {
     @Query("SELECT MAX(fetchedAt) FROM fx_rates")
     fun observeLatestFetch(): Flow<Long?>
 
+    @Query(
+        "SELECT f.* FROM fx_rates f INNER JOIN (SELECT currency, MAX(date) AS latestDate FROM fx_rates GROUP BY currency) recent ON f.currency = recent.currency AND f.date = recent.latestDate",
+    )
+    fun observeLatestPerCurrency(): Flow<List<FxRateEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(values: List<FxRateEntity>)
 }
