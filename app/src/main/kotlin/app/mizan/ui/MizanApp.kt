@@ -3,6 +3,7 @@
 
 package app.mizan.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -549,11 +554,13 @@ private fun calculatorKeypad(
     value: String,
     onChange: (String) -> Unit,
 ) {
+    val haptics = LocalHapticFeedback.current
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         listOf("123", "456", "789", ".0⌫").forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 row.forEach { key ->
                     Button(onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         onChange(
                             if (key ==
                                 '⌫'
@@ -571,6 +578,7 @@ private fun calculatorKeypad(
             listOf("÷", "×", "−", "+", "=").forEach { key ->
                 Button(
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         if (key == "=") {
                             runCatching { EntryCalculator.evaluate(value).stripTrailingZeros().toPlainString() }.onSuccess(onChange)
                         } else {
@@ -866,7 +874,14 @@ private fun emptyState(
     message: String,
     action: String,
     onAction: () -> Unit,
-) = Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center) {
+) = Column(
+    Modifier
+        .fillMaxSize()
+        .padding(24.dp)
+        .animateContentSize()
+        .semantics { contentDescription = message },
+    verticalArrangement = Arrangement.Center,
+) {
     Text(message)
     Button(onClick = onAction) { Text(action) }
 }
