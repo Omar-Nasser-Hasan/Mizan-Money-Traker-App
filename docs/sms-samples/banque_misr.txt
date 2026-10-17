@@ -1,0 +1,68 @@
+# REAL messages from Banque Misr (credit card), redacted: card digits replaced, available balances shifted by a constant.
+# Merchant text and amounts are unchanged. Inner spacing in 'text:' is real. Do not normalize it before parsing.
+# Lines starting with # are comments.
+#
+# expect: <kind> | <amount> | <currency> | <merchant or empty> | <card/account last 4 or empty> | key=value ...
+# kinds: expense, income, transfer, reversal, ignore
+# optional key=value fields after the first five: date (YYYY-MM-DD), time (HH:MM), ref, balance. The test asserts the ones present.
+
+sender: Banque Misr
+source: sms
+
+---
+# note: One-time code. Contains an amount and a merchant but is NOT a transaction.
+text: عميلنا العزيز، برجاء عدم الافصاح عن الكود OTP: 48392 الصالح لمره واحدة لإتمام معاملة الدفع بمبلغ EGP 1,047.61 من MY FAWRY بطاقة رقم xxxx-xxxx-xxxx-4417 و عدم مشاركته مع أي طرف بأي وسيلة كانت.
+expect: ignore
+---
+text: عميلنا العزيز، برجاء عدم الافصاح عن الكود OTP: 71520 الصالح لمره واحدة لإتمام معاملة الدفع بمبلغ EGP 1,047.61 من MY FAWRY بطاقة رقم xxxx-xxxx-xxxx-4417 و عدم مشاركته مع أي طرف بأي وسيلة كانت.
+expect: ignore
+---
+# note: Declined charge. Not a transaction.
+text: Dear Customer, The transaction on your credit card ending *****4417 was declined due to an incorrect CVV entry. For support, please contact 19888.
+expect: ignore
+---
+# note: This is the real purchase that follows the one-time codes above.
+text: Thank you for using BM credit card *****4417 now debited by EGP 1047.61 at MY FAWRY         on 10/10/2026 , available now EGP 13645.79 For more info join https://bnkmsr.com/online
+expect: expense | 1047.61 | EGP | MY FAWRY | 4417 | date=2026-10-10 | balance=13645.79
+---
+# note: Merchant is cut at 15 characters and padded with spaces to 16. Trim it. Keep the inner spaces in text.
+text: Thank you for using BM credit card *****4417 now debited by EGP 429 at PAYMOB*WILLYS K  on 10/10/2026 , available now EGP 12405.23 For more info join https://bnkmsr.com/online
+expect: expense | 429.00 | EGP | PAYMOB*WILLYS K | 4417 | date=2026-10-10 | balance=12405.23
+---
+text: Thank you for using BM credit card *****4417 now debited by EGP 15 at Orange - Home I  on 13/10/2026 , available now EGP 10203.28 For more info join https://bnkmsr.com/online
+expect: expense | 15.00 | EGP | Orange - Home I | 4417 | date=2026-10-13 | balance=10203.28
+---
+text: Thank you for using BM credit card *****4417 now debited by EGP 15 at Orange - Home I  on 09/10/2026 , available now EGP 17243.73 For more info join https://bnkmsr.com/online
+expect: expense | 15.00 | EGP | Orange - Home I | 4417 | date=2026-10-09 | balance=17243.73
+---
+text: Thank you for using BM credit card *****4417 now debited by EGP 470 at FAWRY*PANCAKES   on 03/10/2026 , available now EGP 22990.85 For more info join https://bnkmsr.com/online
+expect: expense | 470.00 | EGP | FAWRY*PANCAKES | 4417 | date=2026-10-03 | balance=22990.85
+---
+# note: Uber charges EGP 5, then the bank reverses it (a card check). See the reversal below.
+text: Thank you for using BM credit card *****4417 now debited by EGP 5 at Uber             on 27/09/2026 , available now EGP 33206.15 For more info join https://bnkmsr.com/online
+expect: expense | 5.00 | EGP | Uber | 4417 | date=2026-09-27 | balance=33206.15
+---
+# note: Reversal of the Uber charge above (same amount, merchant, card and date).
+text: Your Transaction of EGP 5 with card ****4417 on 27/09/2026 at Uber has been reversed, for more info. call 19888
+expect: reversal | 5.00 | EGP | Uber | 4417 | date=2026-09-27
+---
+# note: Amount has one decimal, no thousands separator.
+text: Thank you for using BM credit card *****4417 now debited by EGP 70.3 at Didi Mobility E  on 28/09/2026 , available now EGP 33140.85 For more info join https://bnkmsr.com/online
+expect: expense | 70.30 | EGP | Didi Mobility E | 4417 | date=2026-09-28 | balance=33140.85
+---
+text: Thank you for using BM credit card *****4417 now debited by EGP 5 at Uber             on 04/10/2026 , available now EGP 22485.85 For more info join https://bnkmsr.com/online
+expect: expense | 5.00 | EGP | Uber | 4417 | date=2026-10-04 | balance=22485.85
+---
+# note: Part of this message was hidden behind the scroll button in the screenshot; the date and wording are reconstructed.
+text: Your Transaction of EGP 5 with card ****4417 on 04/10/2026 at Uber has been reversed, for more info. call 19888
+expect: reversal | 5.00 | EGP | Uber | 4417 | date=2026-10-04
+---
+text: Thank you for using BM credit card *****4417 now debited by EGP 5 at Uber             on 09/10/2026 , available now EGP 14788.98 For more info join https://bnkmsr.com/online
+expect: expense | 5.00 | EGP | Uber | 4417 | date=2026-10-09 | balance=14788.98
+---
+text: Your Transaction of EGP 5 with card ****4417 on 09/10/2026 at Uber has been reversed, for more info. call 19888
+expect: reversal | 5.00 | EGP | Uber | 4417 | date=2026-10-09
+---
+# note: Balance has one decimal.
+text: Thank you for using BM credit card *****4417 now debited by EGP 100.58 at Didi Mobility E  on 09/10/2026 , available now EGP 14693.4 For more info join https://bnkmsr.com/online
+expect: expense | 100.58 | EGP | Didi Mobility E | 4417 | date=2026-10-09 | balance=14693.4

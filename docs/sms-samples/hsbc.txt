@@ -1,0 +1,66 @@
+# REAL messages from HSBC, redacted: account digits, names, InstaPay handles, references and recipient codes replaced; balances shifted by a constant.
+# Two formats: 'Your HSBC Account ... IPN transfer ...' and 'From HSBC: <date> ...'.
+# Lines starting with # are comments.
+#
+# expect: <kind> | <amount> | <currency> | <counterparty or empty> | <account last 4 or empty> | key=value ...
+# kinds: expense, income, transfer, reversal, ignore
+# optional key=value fields after the first five: date (YYYY-MM-DD), time (HH:MM), ref, balance. The test asserts the ones present.
+
+sender: HSBC
+source: sms
+
+---
+# note: Incoming InstaPay transfer from a person. The sender name is replaced.
+text: Your HSBC Account ********2002 was credited with IPN inward transfer for EGP 12,580.00 on 05-10-2026 00:53 from AHMED SAMIR KHALED YOUSSEF with reference 7c2e91ab. For further details, please contact HSBC call centre
+expect: income | 12580.00 | EGP | AHMED SAMIR KHALED YOUSSEF | 2002 | date=2026-10-05 | time=00:53 | ref=7c2e91ab
+---
+text: Your HSBC Account ********2002 was credited with IPN inward transfer for EGP 196.00 on 07-07-2026 16:25 from mona55@instapay with reference 03bc7e19. For further details, please contact HSBC call centre
+expect: income | 196.00 | EGP | mona55@instapay | 2002 | date=2026-07-07 | time=16:25 | ref=03bc7e19
+---
+text: Your HSBC Account ********2002 was credited with IPN inward transfer for EGP 9,640.00 on 13-07-2026 01:21 from yaraz@instapay with reference c68f2d05. For further details, please contact HSBC call centre
+expect: income | 9640.00 | EGP | yaraz@instapay | 2002 | date=2026-07-13 | time=01:21 | ref=c68f2d05
+---
+# note: Money sent to your brokerage. Treated as a transfer to the Investment account, not an expense (assumption, see chat).
+text: Your HSBC Account ********2002 was debited with IPN outward transfer for EGP 6,306.30 on 05-10-2026 15:09 to Thndr Securities Brokerage with reference b05d3e72. For further details, please contact HSBC call centre
+expect: transfer | 6306.30 | EGP | Thndr Securities Brokerage | 2002 | date=2026-10-05 | time=15:09 | ref=b05d3e72
+---
+# note: Recipient is only a short code; no merchant name is available. This payment is reversed below (same ref).
+text: Your HSBC Account ********2002 was debited with IPN outward transfer for EGP 1,436.44 on 05-10-2026 15:52 to 7315 with reference 5f1a88c3. For further details, please contact HSBC call centre
+expect: expense | 1436.44 | EGP | 7315 | 2002 | date=2026-10-05 | time=15:52 | ref=5f1a88c3
+---
+# note: Reversal. Match the original by ref.
+text: Your HSBC Account ********2002 was reversed with IPN outward transfer for EGP 1,436.44 on 06-10-2026 21:14 from hanyz@instapay with reference 5f1a88c3. For further details, please contact HSBC call centre
+expect: reversal | 1436.44 | EGP | hanyz@instapay | 2002 | date=2026-10-06 | time=21:14 | ref=5f1a88c3
+---
+# note: Same amount and recipient again with a NEW ref. Not a duplicate of the first.
+text: Your HSBC Account ********2002 was debited with IPN outward transfer for EGP 1,436.44 on 06-10-2026 21:35 to 7315 with reference e2840b61. For further details, please contact HSBC call centre
+expect: expense | 1436.44 | EGP | 7315 | 2002 | date=2026-10-06 | time=21:35 | ref=e2840b61
+---
+# note: The start of this message was cut off in the screenshot; the first line is reconstructed from the other IPN messages.
+text: Your HSBC Account ********2002 was debited with IPN outward transfer for EGP 2,607.61 on 26-09-2026 16:42 to 7315 with reference 9d37a0f4. For further details, please contact HSBC call centre
+expect: expense | 2607.61 | EGP | 7315 | 2002 | date=2026-09-26 | time=16:42 | ref=9d37a0f4
+---
+# note: Cash withdrawal treated as a transfer to your cash account (assumption, see chat). Note: the SMS was received on 27 Sep at 11:17 PM but says 28SEP26; use the date in the text.
+text: From HSBC: 28SEP26 ATM Cash Withdrawal from 103-114***-001 EGP 5,000.00- Your available balance is EGP 12,315.71
+expect: transfer | 5000.00 | EGP | ATM | | date=2026-09-28 | balance=12,315.71
+---
+# note: Text format: '<merchant> Purchase from <account> EGP <amount>-'.
+text: From HSBC: 28SEP26 Vox Cinemas Purchase from 103-114***-001 EGP 50.00- Your available balance is EGP 12,265.71
+expect: expense | 50.00 | EGP | Vox Cinemas | | date=2026-09-28 | balance=12,265.71
+---
+# note: Bank fee. Suggest category Financial expenses > Fees & charges.
+text: From HSBC: 30SEP26 Charges from 103-114***-001 EGP 48.00- Your available balance is EGP 12,217.71
+expect: expense | 48.00 | EGP | Charges | | date=2026-09-30 | balance=12,217.71
+---
+text: From HSBC: 04JUL26 ATM Cash Withdrawal from 103-114***-001 EGP 4,000.00- Your available balance is EGP 26,888.74
+expect: transfer | 4000.00 | EGP | ATM | | date=2026-07-04 | balance=26,888.74
+---
+# note: Three identical 4,000 withdrawals on the same day. The balance drops by 4,000 each time, so they are three real withdrawals. The duplicate guard must use the balance when present.
+text: From HSBC: 25JUL26 ATM Cash Withdrawal from 103-114***-001 EGP 4,000.00- Your available balance is EGP 28,724.74
+expect: transfer | 4000.00 | EGP | ATM | | date=2026-07-25 | balance=28,724.74
+---
+text: From HSBC: 25JUL26 ATM Cash Withdrawal from 103-114***-001 EGP 4,000.00- Your available balance is EGP 24,724.74
+expect: transfer | 4000.00 | EGP | ATM | | date=2026-07-25 | balance=24,724.74
+---
+text: From HSBC: 25JUL26 ATM Cash Withdrawal from 103-114***-001 EGP 4,000.00- Your available balance is EGP 20,724.74
+expect: transfer | 4000.00 | EGP | ATM | | date=2026-07-25 | balance=20,724.74
