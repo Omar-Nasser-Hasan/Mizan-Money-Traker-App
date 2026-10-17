@@ -1,0 +1,2 @@
+HSPLapp/mizan/MainActivity;
+Lapp/mizan/MainActivity;
