@@ -405,6 +405,7 @@ data class StatsRecordRow(
     val payeeId: String?,
     val labels: String,
     val plannedId: String?,
+    val debtId: String?,
 )
 
 /** A current bucket total evaluated with the most recently cached EGP rate. */
@@ -603,6 +604,9 @@ interface PlanningDao {
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     fun observeDebts(): Flow<List<DebtEntity>>
 
+    @Query("SELECT * FROM debts ORDER BY openedAt")
+    fun observeAllDebts(): Flow<List<DebtEntity>>
+
     @Query("SELECT * FROM goals ORDER BY status, targetDate, name")
     fun observeGoals(): Flow<List<GoalEntity>>
 
@@ -788,7 +792,7 @@ interface LedgerDao {
     ): Flow<List<DailyBaseDelta>>
 
     @Query(
-        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels, t.plannedId AS plannedId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
+        "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels, t.plannedId AS plannedId, t.debtId AS debtId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
     )
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
 
