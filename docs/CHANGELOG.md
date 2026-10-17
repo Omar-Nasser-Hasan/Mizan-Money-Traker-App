@@ -1,5 +1,10 @@
 # Changelog
 
+## M9 — Quick entry
+
+- Added the Glance quick-entry widget, icon shortcuts, and Quick Settings expense tile.
+- Added an on-device-only speech-to-review path, a deterministic English/Egyptian-Arabic multi-record parser, and local payee/category learning after explicit confirmation.
+
 ## M8 — Goals, Outlook, Credit, and Savings
 
 - Added persisted goals with account or asset allocation links and manual contributions.

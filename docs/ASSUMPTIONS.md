@@ -1,5 +1,11 @@
 # Assumptions
 
+## M9 quick entry
+
+- SPIKE-V1 remains inconclusive, so Mizan attempts only Android's on-device recognizer for `ar-EG` and `en-US`; online speech recognition is not enabled.
+- The 4×2 widget is optional under section 10 and is not shipped in this build. The compact 2×1 widget deliberately displays no amounts, so it remains safe when hide-amounts is enabled.
+- A voice draft is edited by changing its transcript and reviewing the regenerated drafts. Records are posted only after the separate confirmation dialog's **Save all** action.
+
 ## M8 goals and outlook
 
 - A goal can start with a single account or asset source and its detail card can add or change further account/asset allocations. A shared source cannot be allocated above 100% across goals; entering 0% detaches its effective contribution.
