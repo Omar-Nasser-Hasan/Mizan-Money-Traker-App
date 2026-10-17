@@ -32,4 +32,12 @@ class GoalsAndOutlookTest {
         assertEquals(5_000L, CreditMath.utilization(listOf(CreditCardBalance(10_000, -5_000))))
         assertNull(CreditMath.debtToIncome(100, 0))
     }
+
+    @Test fun `net worth is cash plus holdings plus receivables minus payables`() {
+        val cash = 100_000L
+        val holdings = 50_000L
+        val receivables = 10_000L
+        val payables = 15_000L
+        assertEquals(145_000L, cash + holdings + receivables - payables)
+    }
 }

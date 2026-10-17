@@ -148,7 +148,7 @@ fun statsScreen(
             }
 
             StatsTab.ASSETS -> {
-                assetsTab(assets, assetTrades, prices, balances, currencies, fxRates)
+                assetsTab(assets, assetTrades, prices, balances, currencies, fxRates, data.balanceTrend)
             }
 
             StatsTab.OUTLOOK -> {
@@ -169,6 +169,7 @@ private fun LazyListScope.assetsTab(
     balances: List<app.mizan.data.db.AccountBalanceRow>,
     currencies: List<app.mizan.data.db.CurrencyEntity>,
     fxRates: List<app.mizan.data.db.FxRateEntity>,
+    cashTrend: Map<LocalDate, Long>,
 ) {
     val cash = balances.sumOf { MoneyMath.baseMinor(it.openingMinor + it.entryMinor, it.decimals, BigDecimal(it.egpPerUnit)) }
     val rows =
@@ -232,6 +233,64 @@ private fun LazyListScope.assetsTab(
     val holdings = rows.sumOf { it.valueMinor }
     item { Text("Assets", style = MaterialTheme.typography.titleLarge) }
     item { Text("Net worth: ${cash + holdings} EGP minor · cash $cash · holdings $holdings") }
+    val netWorthTrend =
+        cashTrend.mapValues { (date, cashAtDate) ->
+            cashAtDate +
+                assets.sumOf { asset ->
+                    val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+                    val snapshot =
+                        prices
+                            .filter {
+                                it.key == key &&
+                                    java.time.Instant
+                                        .ofEpochMilli(it.asOf)
+                                        .atZone(ZoneId.of("Africa/Cairo"))
+                                        .toLocalDate() <= date
+                            }.maxByOrNull { it.asOf }
+                            ?: return@sumOf 0L
+                    val decimals = currencies.firstOrNull { it.code == snapshot.currency }?.decimals ?: return@sumOf 0L
+                    val quantity =
+                        trades.filter { it.assetId == asset.id && LocalDate.parse(it.date) <= date }.fold(BigDecimal.ZERO) { total, trade ->
+                            total +
+                                if (trade.kind ==
+                                    "BUY"
+                                ) {
+                                    BigDecimal(trade.quantity)
+                                } else if (trade.kind ==
+                                    "SELL"
+                                ) {
+                                    BigDecimal(trade.quantity).negate()
+                                } else {
+                                    BigDecimal.ZERO
+                                }
+                        }
+                    val quoteMinor =
+                        AssetValuation.valueMinor(
+                            if (quantity <
+                                BigDecimal.ZERO
+                            ) {
+                                BigDecimal.ZERO
+                            } else {
+                                quantity
+                            },
+                            BigDecimal(snapshot.price),
+                            decimals,
+                            BigDecimal(asset.resaleDeductionPct),
+                        )
+                    val rate =
+                        if (snapshot.currency ==
+                            "EGP"
+                        ) {
+                            BigDecimal.ONE
+                        } else {
+                            fxRates.firstOrNull { it.currency == snapshot.currency }?.egpPerUnit?.let(::BigDecimal)
+                                ?: return@sumOf 0L
+                        }
+                    MoneyMath.baseMinor(quoteMinor, decimals, rate)
+                }
+        }
+    item { Text("Net-worth trend") }
+    item { lineAreaChart(netWorthTrend.map { ChartPoint(it.key.toString(), it.value) }, { "$it EGP minor" }, Modifier.fillMaxWidth()) }
     item {
         Text(
             "Allocation uses current FX for every quoted holding; a holding with no cached FX stays visible but is excluded from the total.",
