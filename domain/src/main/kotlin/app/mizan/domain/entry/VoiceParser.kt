@@ -44,10 +44,36 @@ data class ParserContext(
 object VoiceParser {
     private val numberRegex = Regex("(?<![\\p{L}\\d])(\\d+(?:[.,]\\d+)?)(?:\\s*([kK]))?")
     private val payeeRegex = Regex("(?:at|to|on|في|عند)\\s+([\\p{L}][\\p{L}\\d-]{1,30})")
-    private val arabicDigits = mapOf('٠' to '0', '١' to '1', '٢' to '2', '٣' to '3', '٤' to '4', '٥' to '5', '٦' to '6', '٧' to '7', '٨' to '8', '٩' to '9')
+    private val arabicDigits =
+        mapOf(
+            '٠' to '0',
+            '١' to '1',
+            '٢' to '2',
+            '٣' to '3',
+            '٤' to '4',
+            '٥' to '5',
+            '٦' to '6',
+            '٧' to '7',
+            '٨' to '8',
+            '٩' to '9',
+        )
     private val keywordCategories =
         mapOf(
-            "food" to setOf("lunch", "dinner", "breakfast", "coffee", "supermarket", "groceries", "غدا", "غداء", "عشا", "فطار", "قهوه", "سوبر ماركت"),
+            "food" to
+                setOf(
+                    "lunch",
+                    "dinner",
+                    "breakfast",
+                    "coffee",
+                    "supermarket",
+                    "groceries",
+                    "غدا",
+                    "غداء",
+                    "عشا",
+                    "فطار",
+                    "قهوه",
+                    "سوبر ماركت",
+                ),
             "transport" to setOf("uber", "taxi", "careem", "indrive", "metro", "microbus", "تاكسي", "اوبر", "مترو", "ميكروباص"),
             "fuel" to setOf("fuel", "petrol", "بنزين", "بنزينة"),
             "utilities" to setOf("electricity", "water bill", "gas bill", "كهرباء", "ميه", "غاز"),
@@ -55,18 +81,52 @@ object VoiceParser {
         )
     private val currencyWords =
         mapOf(
-            "usd" to "USD", "dollar" to "USD", "dollars" to "USD", "دولار" to "USD",
-            "eur" to "EUR", "euro" to "EUR", "euros" to "EUR", "يورو" to "EUR",
-            "kwd" to "KWD", "دينار" to "KWD", "دنانير" to "KWD",
-            "jpy" to "JPY", "yen" to "JPY", "ين" to "JPY",
-            "egp" to "EGP", "pound" to "EGP", "pounds" to "EGP", "جنيه" to "EGP", "جنيهات" to "EGP",
+            "usd" to "USD",
+            "dollar" to "USD",
+            "dollars" to "USD",
+            "دولار" to "USD",
+            "eur" to "EUR",
+            "euro" to "EUR",
+            "euros" to "EUR",
+            "يورو" to "EUR",
+            "kwd" to "KWD",
+            "دينار" to "KWD",
+            "دنانير" to "KWD",
+            "jpy" to "JPY",
+            "yen" to "JPY",
+            "ين" to "JPY",
+            "egp" to "EGP",
+            "pound" to "EGP",
+            "pounds" to "EGP",
+            "جنيه" to "EGP",
+            "جنيهات" to "EGP",
         )
     private val wordNumbers =
         mapOf(
-            "zero" to 0, "one" to 1, "two" to 2, "three" to 3, "four" to 4, "five" to 5,
-            "ten" to 10, "twenty" to 20, "thirty" to 30, "fifty" to 50, "hundred" to 100,
-            "صفر" to 0, "واحد" to 1, "واحدة" to 1, "اتنين" to 2, "اثنين" to 2, "ثلاثة" to 3,
-            "خمسة" to 5, "عشرة" to 10, "عشرين" to 20, "ثلاثين" to 30, "خمسين" to 50, "مية" to 100, "مائة" to 100,
+            "zero" to 0,
+            "one" to 1,
+            "two" to 2,
+            "three" to 3,
+            "four" to 4,
+            "five" to 5,
+            "ten" to 10,
+            "twenty" to 20,
+            "thirty" to 30,
+            "fifty" to 50,
+            "hundred" to 100,
+            "صفر" to 0,
+            "واحد" to 1,
+            "واحدة" to 1,
+            "اتنين" to 2,
+            "اثنين" to 2,
+            "ثلاثة" to 3,
+            "خمسة" to 5,
+            "عشرة" to 10,
+            "عشرين" to 20,
+            "ثلاثين" to 30,
+            "خمسين" to 50,
+            "مية" to 100,
+            "مائة" to 100,
         )
 
     fun parse(
@@ -84,7 +144,17 @@ object VoiceParser {
             val payee = extractPayee(clause)
             val category = extractCategory(clause, payee, context)
             val confidence = 60 + if (account != null) 20 else 0 + if (category != null) 20 else 0
-            DraftRecord(kind, toMinor(amount, currency, context), currency, extractDate(clause, context.today), account, category, payee, confidence, clause)
+            DraftRecord(
+                kind,
+                toMinor(amount, currency, context),
+                currency,
+                extractDate(clause, context.today),
+                account,
+                category,
+                payee,
+                confidence,
+                clause,
+            )
         }
     }
 
@@ -103,7 +173,8 @@ object VoiceParser {
             .trim()
 
     private fun splitClauses(value: String): List<String> =
-        value.split(Regex("\\s*(?:,|;|\\band\\b|\\bthen\\b|\\bafter that\\b|وكمان|و كمان|ثم|وبعدين|\\s+و\\s+)\\s*"))
+        value
+            .split(Regex("\\s*(?:,|;|\\band\\b|\\bthen\\b|\\bafter that\\b|وكمان|و كمان|ثم|وبعدين|\\s+و\\s+)\\s*"))
             .map(String::trim)
             .filter(String::isNotBlank)
 
@@ -125,7 +196,13 @@ object VoiceParser {
         return total.takeIf { found && it > 0 }?.let(::BigDecimal)
     }
 
-    private fun extractCurrency(clause: String): String? = currencyWords.entries.firstOrNull { (word, _) -> Regex("(?<!\\p{L})${Regex.escape(word)}(?!\\p{L})").containsMatchIn(clause) }?.value
+    private fun extractCurrency(clause: String): String? =
+        currencyWords.entries
+            .firstOrNull { (word, _) ->
+                Regex(
+                    "(?<!\\p{L})${Regex.escape(word)}(?!\\p{L})",
+                ).containsMatchIn(clause)
+            }?.value
 
     private fun extractDate(
         clause: String,
@@ -141,26 +218,34 @@ object VoiceParser {
         clause: String,
         context: ParserContext,
     ): String? =
-        context.accounts.firstOrNull { account ->
-            account.names.map(::normalize).any { name ->
-                clause.contains("from $name") || clause.contains("من $name") || clause.contains("على $name")
-            }
-        }?.id
+        context.accounts
+            .firstOrNull { account ->
+                account.names.map(::normalize).any { name ->
+                    clause.contains("from $name") || clause.contains("من $name") || clause.contains("على $name")
+                }
+            }?.id
 
     private fun extractPayee(clause: String): String? =
-        payeeRegex.find(clause)?.groupValues?.get(1)?.trim()
+        payeeRegex
+            .find(clause)
+            ?.groupValues
+            ?.get(1)
+            ?.trim()
 
     private fun extractCategory(
         clause: String,
         payee: String?,
         context: ParserContext,
     ): String? {
-        context.learnedPhrases.entries.firstOrNull { (phrase, _) -> clause.contains(normalize(phrase)) }?.let { return it.value }
+        context.learnedPhrases.entries
+            .firstOrNull { (phrase, _) -> clause.contains(normalize(phrase)) }
+            ?.let { return it.value }
         payee?.let { value -> context.learnedPayees[normalize(value)]?.let { return it } }
         keywordCategories.entries.firstOrNull { (_, words) -> words.any(clause::contains) }?.let { (key, _) ->
-            context.categories.firstOrNull { category ->
-                category.id == key || category.names.map(::normalize).any { name -> name == key || name in clause }
-            }?.let { return it.id }
+            context.categories
+                .firstOrNull { category ->
+                    category.id == key || category.names.map(::normalize).any { name -> name == key || name in clause }
+                }?.let { return it.id }
         }
         return context.categories.firstOrNull { category -> category.names.map(::normalize).any { name -> name in clause } }?.id
     }
@@ -169,8 +254,7 @@ object VoiceParser {
         amount: BigDecimal,
         currency: String,
         context: ParserContext,
-    ): Long =
-        amount.movePointRight(context.decimalsByCurrency[currency] ?: 2).setScale(0, RoundingMode.HALF_UP).longValueExact()
+    ): Long = amount.movePointRight(context.decimalsByCurrency[currency] ?: 2).setScale(0, RoundingMode.HALF_UP).longValueExact()
 
     private val incomeWords = setOf("got", "received", "salary", "قبضت", "جالي", "استلمت")
 }

@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.entry
 
-import java.time.LocalDate
-import kotlin.system.measureNanoTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
+import kotlin.system.measureNanoTime
 
 class VoiceParserTest {
     private val today = LocalDate.of(2026, 10, 17)

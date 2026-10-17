@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,10 +79,16 @@ fun voiceEntryScreen(
         Text(status)
         Button(onClick = { permission.launch(android.Manifest.permission.RECORD_AUDIO) }) { Text("Allow microphone") }
         Button(onClick = {
-            recognizer.start("ar-EG", { transcript = it; status = "Transcript ready for review" }, { status = it })
+            recognizer.start("ar-EG", {
+                transcript = it
+                status = "Transcript ready for review"
+            }, { status = it })
         }, modifier = Modifier.fillMaxWidth()) { Text("Speak Arabic (on-device)") }
         Button(onClick = {
-            recognizer.start("en-US", { transcript = it; status = "Transcript ready for review" }, { status = it })
+            recognizer.start("en-US", {
+                transcript = it
+                status = "Transcript ready for review"
+            }, { status = it })
         }, modifier = Modifier.fillMaxWidth()) { Text("Speak English (on-device)") }
         OutlinedTextField(transcript, { transcript = it }, label = { Text("Transcript") }, modifier = Modifier.fillMaxWidth())
         Text("Review ${drafts.size} draft(s) — nothing is saved here")
@@ -90,7 +96,9 @@ fun voiceEntryScreen(
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp)) {
                     Text("${draft.kind} · ${draft.amountMinor} ${draft.currency} minor")
-                    Text("${draft.date} · account ${draft.accountId ?: "choose in Entry"} · category ${draft.categoryId ?: "choose in Entry"}")
+                    Text(
+                        "${draft.date} · account ${draft.accountId ?: "choose in Entry"} · category ${draft.categoryId ?: "choose in Entry"}",
+                    )
                     Text("Confidence ${draft.confidence}%")
                 }
             }
@@ -111,13 +119,36 @@ fun voiceEntryScreen(
                         val service = LedgerService()
                         var saved = 0
                         drafts.forEach { draft ->
-                            val account = accounts.firstOrNull { it.id == draft.accountId && it.defaultCurrency == draft.currency } ?: return@forEach
+                            val account =
+                                accounts.firstOrNull { it.id == draft.accountId && it.defaultCurrency == draft.currency } ?: return@forEach
                             val category = draft.categoryId ?: MizanRepository.UNCATEGORIZED_ID
                             val posting =
                                 if (draft.kind.name == "INCOME") {
-                                    service.postIncome(IncomeRequest(account.id, draft.currency, draft.amountMinor, currencyDecimals(draft.currency), BigDecimal.ONE, Instant.now(), draft.date, category))
+                                    service.postIncome(
+                                        IncomeRequest(
+                                            account.id,
+                                            draft.currency,
+                                            draft.amountMinor,
+                                            currencyDecimals(draft.currency),
+                                            BigDecimal.ONE,
+                                            Instant.now(),
+                                            draft.date,
+                                            category,
+                                        ),
+                                    )
                                 } else {
-                                    service.postExpense(ExpenseRequest(account.id, draft.currency, draft.amountMinor, currencyDecimals(draft.currency), BigDecimal.ONE, category, Instant.now(), draft.date))
+                                    service.postExpense(
+                                        ExpenseRequest(
+                                            account.id,
+                                            draft.currency,
+                                            draft.amountMinor,
+                                            currencyDecimals(draft.currency),
+                                            BigDecimal.ONE,
+                                            category,
+                                            Instant.now(),
+                                            draft.date,
+                                        ),
+                                    )
                                 }
                             repository.post(posting)
                             draft.payee?.let { repository.learnPayeeCategory(it, category) }

@@ -54,9 +54,6 @@ import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.repository.MizanRepository
-import app.mizan.quick.ACTION_EXPENSE
-import app.mizan.quick.ACTION_INCOME
-import app.mizan.quick.ACTION_VOICE
 import app.mizan.domain.ledger.EntryCalculator
 import app.mizan.domain.ledger.ExpenseRequest
 import app.mizan.domain.ledger.IncomeAllocation
@@ -71,6 +68,9 @@ import app.mizan.domain.stats.Period
 import app.mizan.domain.stats.StatKind
 import app.mizan.domain.stats.StatRecord
 import app.mizan.domain.stats.StatsEngine
+import app.mizan.quick.ACTION_EXPENSE
+import app.mizan.quick.ACTION_INCOME
+import app.mizan.quick.ACTION_VOICE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -101,12 +101,13 @@ fun mizanApp(
         if (initialAccounts.isNotEmpty()) firstRunChecked = true
     }
     androidx.compose.runtime.LaunchedEffect(quickAction) {
-        route = when (quickAction) {
-            ACTION_EXPENSE -> "entry:EXPENSE"
-            ACTION_INCOME -> "entry:INCOME"
-            ACTION_VOICE -> "voice"
-            else -> route
-        }
+        route =
+            when (quickAction) {
+                ACTION_EXPENSE -> "entry:EXPENSE"
+                ACTION_INCOME -> "entry:INCOME"
+                ACTION_VOICE -> "voice"
+                else -> route
+            }
     }
     val scope = rememberCoroutineScope()
     CompositionLocalProvider(LocalHideAmounts provides hideAmounts) {
@@ -156,7 +157,9 @@ fun mizanApp(
                     )
                 }
 
-                "voice" -> voiceEntryScreen(repository, modifier, onDone = { route = null })
+                "voice" -> {
+                    voiceEntryScreen(repository, modifier, onDone = { route = null })
+                }
 
                 "onboarding" -> {
                     onboardingScreen(repository, modifier, onDone = { route = null })

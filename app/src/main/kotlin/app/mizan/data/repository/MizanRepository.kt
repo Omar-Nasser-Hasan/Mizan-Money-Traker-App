@@ -346,10 +346,15 @@ class MizanRepository
 
         fun observeLearnedPayeeCategories(): Flow<Map<String, String>> =
             context.dataStore.data.map { preferences ->
-                preferences.asMap().entries.mapNotNull { (key, value) ->
-                    key.name.removePrefix(LEARNED_PAYEE_PREFIX).takeIf { key.name.startsWith(LEARNED_PAYEE_PREFIX) }
-                        ?.let { payee -> (value as? String)?.let { payee to it } }
-                }.toMap()
+                preferences
+                    .asMap()
+                    .entries
+                    .mapNotNull { (key, value) ->
+                        key.name
+                            .removePrefix(LEARNED_PAYEE_PREFIX)
+                            .takeIf { key.name.startsWith(LEARNED_PAYEE_PREFIX) }
+                            ?.let { payee -> (value as? String)?.let { payee to it } }
+                    }.toMap()
             }
 
         suspend fun learnPayeeCategory(
@@ -357,7 +362,15 @@ class MizanRepository
             categoryId: String,
         ) {
             val normalized = payee.trim().lowercase()
-            if (normalized.isNotBlank()) context.dataStore.edit { it[stringPreferencesKey("$LEARNED_PAYEE_PREFIX$normalized")] = categoryId }
+            if (normalized.isNotBlank()) {
+                context.dataStore.edit {
+                    it[
+                        stringPreferencesKey(
+                            "$LEARNED_PAYEE_PREFIX$normalized",
+                        ),
+                    ] = categoryId
+                }
+            }
         }
 
         fun observeSecureScreens(): Flow<Boolean> = context.dataStore.data.map { it[SECURE_SCREENS] ?: false }
