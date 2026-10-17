@@ -1,5 +1,9 @@
 # Changelog
 
+## M10 — SMS and notification Inbox
+
+- Added opt-in SMS and notification-listener capture, a versioned persistent Inbox, sender-template parsing, and pending-draft confirmation/rejection controls.
+
 ## M9 — Quick entry
 
 - Added the Glance quick-entry widget, icon shortcuts, and Quick Settings expense tile.
