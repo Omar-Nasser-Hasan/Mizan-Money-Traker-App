@@ -35,6 +35,8 @@ import app.mizan.data.db.GoalContributionEntity
 import app.mizan.data.db.GoalEntity
 import app.mizan.data.db.GoalLinkEntity
 import app.mizan.data.db.IncomeSetupDao
+import app.mizan.data.db.InboxDao
+import app.mizan.data.db.InboxDraftEntity
 import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PayeeEntity
@@ -101,6 +103,7 @@ class MizanRepository
         private val accounts: AccountDao,
         private val reference: ReferenceDataDao,
         private val incomeSetup: IncomeSetupDao,
+        private val inbox: InboxDao,
         private val planning: PlanningDao,
         private val ledger: LedgerDao,
         private val assetDao: AssetDao,
@@ -118,6 +121,14 @@ class MizanRepository
         fun observeLabels() = reference.observeLabels()
 
         fun observePayees() = reference.observePayees()
+
+        fun observeInboxDrafts() = inbox.observePending()
+
+        suspend fun saveInboxDraft(value: InboxDraftEntity): Boolean = inbox.insert(value) != -1L
+
+        suspend fun rejectInboxDraft(id: String) = inbox.setStatus(id, "REJECTED")
+
+        suspend fun confirmInboxDraft(id: String) = inbox.setStatus(id, "CONFIRMED")
 
         fun observeIncomeSources() = incomeSetup.observeSources()
 

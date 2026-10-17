@@ -9,6 +9,7 @@ import app.mizan.data.db.AssetDao
 import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.FxRateDao
 import app.mizan.data.db.IncomeSetupDao
+import app.mizan.data.db.InboxDao
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.ReferenceDataDao
@@ -42,6 +43,7 @@ object AppModule {
                 AppDatabase.MIGRATION_5_6,
                 AppDatabase.MIGRATION_6_7,
                 AppDatabase.MIGRATION_7_8,
+                AppDatabase.MIGRATION_8_9,
             ).build()
 
     @Provides
@@ -71,6 +73,9 @@ object AppModule {
 
     @Provides
     fun provideReferenceDataDao(database: AppDatabase): ReferenceDataDao = database.referenceDataDao()
+
+    @Provides
+    fun provideInboxDao(database: AppDatabase): InboxDao = database.inboxDao()
 
     @Provides
     fun provideIncomeSetupDao(database: AppDatabase): IncomeSetupDao = database.incomeSetupDao()
