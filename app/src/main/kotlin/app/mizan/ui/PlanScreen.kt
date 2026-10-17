@@ -36,6 +36,7 @@ import app.mizan.domain.plan.BudgetMathInput
 import app.mizan.domain.plan.BudgetPeriod
 import app.mizan.domain.plan.DebtBalance
 import app.mizan.domain.plan.Frequency
+import app.mizan.domain.plan.GoalMath
 import app.mizan.domain.plan.GoalProgress
 import app.mizan.domain.plan.Recurrence
 import app.mizan.domain.plan.RecurrenceEngine
@@ -484,6 +485,7 @@ private fun goalSummary(
     goal: GoalEntity,
 ) {
     val links by repository.observeGoalLinks(goal.id).collectAsStateWithLifecycle(emptyList())
+    val allLinks by repository.observeAllGoalLinks().collectAsStateWithLifecycle(emptyList())
     val contributions by repository.observeGoalContributions(goal.id).collectAsStateWithLifecycle(emptyList())
     val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
     val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
@@ -492,6 +494,19 @@ private fun goalSummary(
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val fxRates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
+    var linkType by remember(goal.id) { mutableStateOf("ACCOUNT") }
+    var linkSourceId by remember(goal.id) { mutableStateOf("") }
+    var linkPercentText by remember(goal.id) { mutableStateOf("100") }
+    var contributionText by remember(goal.id) { mutableStateOf("") }
+    val linkCandidates =
+        if (linkType == "ACCOUNT") {
+            accountsForGoal(balances)
+        } else {
+            assets.map { it.id to it.name }
+        }
+    LaunchedEffect(linkType, linkCandidates) {
+        if (linkCandidates.none { it.first == linkSourceId }) linkSourceId = linkCandidates.firstOrNull()?.first.orEmpty()
+    }
     val linked =
         links.sumOf { link ->
             val accountValue =
@@ -522,6 +537,7 @@ private fun goalSummary(
         Text(goal.name)
         Text("Progress ${progress.progressMinor} / ${goal.targetMinor} EGP minor")
         Text("Monthly needed: ${progress.monthlyNeeded(today)} EGP minor")
+        if (progress.isOverdue(today)) Text("Overdue")
         val recent = contributions.takeLast(3)
         val averageGain = if (recent.isEmpty()) 0L else recent.sumOf { it.amountMinor } / recent.size
         Text(progress.eta(today, averageGain)?.let { "ETA $it" } ?: "ETA —")
@@ -530,8 +546,63 @@ private fun goalSummary(
                 scope.launch { repository.setGoalStatus(goal.id, "REACHED") }
             }) { Text("Mark as reached") }
         }
+        Text("Allocate a source")
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("ACCOUNT", "ASSET").forEach { type ->
+                FilterChip(linkType == type, { linkType = type }, label = { Text(type.lowercase().replaceFirstChar(Char::uppercase)) })
+            }
+        }
+        linkCandidates.forEach { (id, name) ->
+            FilterChip(linkSourceId == id, { linkSourceId = id }, label = { Text(name) })
+        }
+        OutlinedTextField(
+            linkPercentText,
+            { linkPercentText = it },
+            label = { Text("Allocation % (0 detaches)") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Button(onClick = {
+            val percent = linkPercentText.toLongOrNull() ?: return@Button
+            if (linkSourceId.isBlank() || percent !in 0..100) return@Button
+            val usedByOtherGoals =
+                allLinks
+                    .filter {
+                        it.goalId != goal.id &&
+                            if (linkType == "ACCOUNT") it.accountId == linkSourceId else it.assetId == linkSourceId
+                    }.sumOf { it.allocationPct }
+            if (GoalMath.allocationIsValid(usedByOtherGoals, percent)) {
+                scope.launch {
+                    repository.saveGoalLink(
+                        if (linkType == "ACCOUNT") {
+                            GoalLinkEntity(goal.id, accountId = linkSourceId, allocationPct = percent)
+                        } else {
+                            GoalLinkEntity(goal.id, assetId = linkSourceId, allocationPct = percent)
+                        },
+                    )
+                }
+            }
+        }) { Text("Save allocation") }
+        OutlinedTextField(
+            contributionText,
+            { contributionText = it },
+            label = { Text("Manual contribution (EGP)") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Button(onClick = {
+            amountToMinor(contributionText, 2).takeIf { it > 0 }?.let { contribution ->
+                scope.launch {
+                    repository.saveGoalContribution(
+                        GoalContributionEntity(UUID.randomUUID().toString(), goal.id, today.toString(), contribution),
+                    )
+                    contributionText = ""
+                }
+            }
+        }) { Text("Add contribution") }
     }
 }
+
+private fun accountsForGoal(balances: List<app.mizan.data.db.AccountBalanceRow>): List<Pair<String, String>> =
+    balances.map { it.accountId to it.accountName }.distinct()
 
 private fun linkedAssetValue(
     asset: app.mizan.data.db.AssetEntity,

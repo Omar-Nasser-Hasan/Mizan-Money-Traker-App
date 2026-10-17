@@ -60,7 +60,8 @@ fun outlookScreen(
                 val daily =
                     records
                         .filter {
-                            it.kind == "EXPENSE" && LocalDate.parse(it.bookedDate) >= today.minusDays(89) && it.categoryId !in excluded
+                            it.kind == "EXPENSE" && it.plannedId == null &&
+                                LocalDate.parse(it.bookedDate) >= today.minusDays(89) && it.categoryId !in excluded
                         }.groupBy { it.bookedDate }
                         .values
                         .map { day -> day.sumOf { kotlin.math.abs(it.baseMinor) } }
@@ -195,7 +196,12 @@ fun creditAndSavingsScreen(
         Text("Credit & savings")
         Text("Credit utilization: ${CreditMath.utilization(cards)?.let { "$it bp" } ?: "—"}")
         accounts.filter { it.type == "CREDIT_CARD" }.forEach { account ->
-            Text("${account.name} · limit ${account.creditLimitMinor ?: 0} minor")
+            val card = cards[accounts.filter { it.type == "CREDIT_CARD" }.indexOf(account)]
+            val owed = (-card.balanceMinor).coerceAtLeast(0)
+            Text(
+                "${account.name} · owed $owed EGP minor · limit ${card.limitMinor} minor · " +
+                    "${CreditMath.perCardUtilization(card)?.let { "$it bp" } ?: "—"}",
+            )
         }
         Text("Debt-to-income: ${CreditMath.debtToIncome(debtService, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
         Text("Savings rate: ${SavingsMath.savingsRate(flow.netMinor, flow.incomeMinor)?.let { "$it bp" } ?: "—"}")
