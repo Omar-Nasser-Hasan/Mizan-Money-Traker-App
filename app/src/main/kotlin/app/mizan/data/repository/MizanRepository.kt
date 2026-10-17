@@ -619,13 +619,9 @@ class MizanRepository
 
         suspend fun clearDevSeed(): Int = ledger.clearDevSeed()
 
-        suspend fun seedFiveThousand(): Long {
-            return seedRecords(5_000)
-        }
+        suspend fun seedFiveThousand(): Long = seedRecords(5_000)
 
-        suspend fun seedFiftyThousand(): Long {
-            return seedRecords(50_000)
-        }
+        suspend fun seedFiftyThousand(): Long = seedRecords(50_000)
 
         private suspend fun seedRecords(count: Int): Long {
             require(count > 0)
