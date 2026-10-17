@@ -12,6 +12,10 @@ import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PlanningDao
 import app.mizan.data.db.ReferenceDataDao
+import app.mizan.data.prices.DaleelakGoldPriceProvider
+import app.mizan.data.prices.ManualQuoteProvider
+import app.mizan.domain.ports.GoldPriceProvider
+import app.mizan.domain.ports.QuoteProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,6 +42,14 @@ object AppModule {
     @Provides
     @Singleton
     fun provideHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
+
+    @Provides
+    @Singleton
+    fun provideGoldPriceProvider(client: OkHttpClient): GoldPriceProvider = DaleelakGoldPriceProvider(client)
+
+    @Provides
+    @Singleton
+    fun provideQuoteProvider(): QuoteProvider = ManualQuoteProvider()
 
     @Provides
     @Singleton

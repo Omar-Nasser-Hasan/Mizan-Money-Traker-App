@@ -62,6 +62,7 @@ import app.mizan.domain.ledger.PaymentType
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnKind
 import app.mizan.domain.ledger.TxnStatus
+import app.mizan.domain.ports.GoldPriceProvider
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +71,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
@@ -101,6 +101,7 @@ class MizanRepository
         private val planning: PlanningDao,
         private val ledger: LedgerDao,
         private val assetDao: AssetDao,
+        private val goldPriceProvider: GoldPriceProvider,
         @ApplicationContext private val context: Context,
         private val client: OkHttpClient,
         private val clock: Clock,
@@ -493,49 +494,27 @@ class MizanRepository
 
         /** SPIKE-G1's best-effort public dealer aggregation. A failure deliberately preserves every cached price. */
         suspend fun refreshGoldPrices(): Result<Unit> =
-            withContext(Dispatchers.IO) {
-                runCatching {
-                    client.newCall(Request.Builder().url(GOLD_FEED_URL).build()).execute().use { response ->
-                        check(response.isSuccessful) { "Gold HTTP ${response.code}" }
-                        val root = Json.parseToJsonElement(response.body.string()).jsonObject
-                        val assets = root.getValue("assets").jsonArray
+            runCatching {
+                val snapshot = requireNotNull(goldPriceProvider.latest()) { "Dealer gold price unavailable" }
 
-                        fun item(id: String) = assets.first { it.jsonObject["id"]?.jsonPrimitive?.content == id }.jsonObject
-
-                        fun buy(id: String): BigDecimal =
-                            BigDecimal(
-                                item(
-                                    id,
-                                ).getValue(
-                                    "directions",
-                                ).jsonObject
-                                    .getValue("buy")
-                                    .jsonObject
-                                    .getValue("best")
-                                    .jsonObject
-                                    .getValue("value")
-                                    .jsonPrimitive.content,
-                            )
-                        val asOf = Instant.parse(item("GOLD24K-EGP").getValue("observedAt").jsonPrimitive.content).toEpochMilli()
-                        listOf(
-                            "24K" to buy("GOLD24K-EGP"),
-                            "21K" to buy("GOLD21K-EGP"),
-                            "18K" to buy("GOLD18K-EGP"),
-                            "POUND" to buy("GOLDPOUND-EGP"),
-                        ).forEach { (karat, value) ->
-                            assetDao.insertPrice(
-                                PriceSnapshotEntity(
-                                    "GOLD_$karat",
-                                    null,
-                                    value.toPlainString(),
-                                    "EGP",
-                                    asOf,
-                                    "Daleelak public feed (dealer aggregation)",
-                                    false,
-                                ),
-                            )
-                        }
-                    }
+                fun major(minor: Long): BigDecimal = BigDecimal.valueOf(minor).movePointLeft(2)
+                listOf(
+                    "24K" to major(snapshot.karats.getValue(24).buyEgp),
+                    "21K" to major(snapshot.karats.getValue(21).buyEgp),
+                    "18K" to major(snapshot.karats.getValue(18).buyEgp),
+                    "POUND" to major(snapshot.pound.buyEgp),
+                ).forEach { (karat, value) ->
+                    assetDao.insertPrice(
+                        PriceSnapshotEntity(
+                            "GOLD_$karat",
+                            null,
+                            value.toPlainString(),
+                            "EGP",
+                            snapshot.asOf.toEpochMilli(),
+                            snapshot.source,
+                            false,
+                        ),
+                    )
                 }
             }
 
@@ -982,7 +961,6 @@ class MizanRepository
         companion object {
             const val UNCATEGORIZED_ID = "system-uncategorized"
             const val FX_URL = "https://open.er-api.com/v6/latest/USD"
-            const val GOLD_FEED_URL = "https://getdaleelak.com/api/v1/feed.json"
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
             private const val TWO_HOURS_MILLIS = 2L * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
