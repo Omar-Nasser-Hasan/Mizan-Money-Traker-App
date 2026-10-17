@@ -34,6 +34,10 @@ class ReminderWorker(
         val cairo = ZoneId.of("Africa/Cairo")
         val today = LocalDate.now(cairo)
         if (!canNotify() || repository().notificationsMutedNow(LocalTime.now(cairo))) return Result.success()
+        if (inputData.getBoolean(KEY_DAILY_ONLY, false)) {
+            notifyDailyLogIfNeeded(today)
+            return Result.success()
+        }
         val snoozedId = inputData.getString(KEY_PLANNED_ID)
         if (snoozedId != null) {
             if (!repository().plannedRemindersEnabled()) return Result.success()
@@ -88,14 +92,7 @@ class ReminderWorker(
                 }
             }
         }
-        if (
-            repository().dailyExpenseReminderEnabled() &&
-            LocalTime.now(cairo) >= repository().dailyExpenseReminderTime() &&
-            repository().activeTransactionCount(today) == 0 &&
-            repository().claimNotification("daily-log-$today")
-        ) {
-            notifySimple(NotificationChannels.DAILY_LOG, "Log today's expenses", "No records have been added today.", "daily-log-$today")
-        }
+        notifyDailyLogIfNeeded(today)
         if (repository().debtRemindersEnabled()) {
             repository().activeDebts().forEach { debt ->
                 val due = debt.dueDate?.let(LocalDate::parse) ?: return@forEach
@@ -197,9 +194,20 @@ class ReminderWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
+    private suspend fun notifyDailyLogIfNeeded(today: LocalDate) {
+        if (
+            repository().dailyExpenseReminderEnabled() &&
+            repository().activeTransactionCount(today) == 0 &&
+            repository().claimNotification("daily-log-$today")
+        ) {
+            notifySimple(NotificationChannels.DAILY_LOG, "Log today's expenses", "No records have been added today.", "daily-log-$today")
+        }
+    }
+
     companion object {
         const val KEY_PLANNED_ID = "planned_id"
         const val KEY_DUE_DATE = "due_date"
+        const val KEY_DAILY_ONLY = "daily_only"
 
         fun input(
             plannedId: String,

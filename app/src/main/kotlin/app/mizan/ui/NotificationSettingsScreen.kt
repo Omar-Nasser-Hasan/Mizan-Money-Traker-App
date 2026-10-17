@@ -22,10 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.repository.MizanRepository
+import app.mizan.worker.DailyReminderScheduler
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 
 @Composable
 fun notificationSettingsScreen(
@@ -45,6 +48,7 @@ fun notificationSettingsScreen(
     var quietStart by remember(savedQuietStart) { mutableStateOf(savedQuietStart) }
     var quietEnd by remember(savedQuietEnd) { mutableStateOf(savedQuietEnd) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    val context = LocalContext.current
     Column(
         modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -57,7 +61,16 @@ fun notificationSettingsScreen(
         }
         notificationToggle("Planned payment reminders", reminders) { scope.launch { repository.setPlannedRemindersEnabled(it) } }
         notificationToggle("Budget alerts at 80% and 100%", budgets) { scope.launch { repository.setBudgetAlertsEnabled(it) } }
-        notificationToggle("Daily expense reminder", dailyLog) { scope.launch { repository.setDailyExpenseReminderEnabled(it) } }
+        notificationToggle("Daily expense reminder", dailyLog) {
+            scope.launch {
+                repository.setDailyExpenseReminderEnabled(it)
+                if (it) {
+                    DailyReminderScheduler.schedule(context, runCatching { LocalTime.parse(dailyTime) }.getOrDefault(LocalTime.of(20, 0)))
+                } else {
+                    DailyReminderScheduler.cancel(context)
+                }
+            }
+        }
         if (dailyLog) {
             OutlinedTextField(
                 dailyTime,
@@ -65,7 +78,15 @@ fun notificationSettingsScreen(
                 label = { Text("Daily reminder time (HH:mm)") },
                 modifier = Modifier.fillMaxWidth(),
             )
-            Button(onClick = { scope.launch { repository.setDailyExpenseReminderTime(dailyTime) } }) { Text("Save daily reminder time") }
+            Button(
+                onClick = {
+                    scope.launch {
+                        val parsed = runCatching { LocalTime.parse(dailyTime) }.getOrNull() ?: return@launch
+                        repository.setDailyExpenseReminderTime(parsed.toString())
+                        DailyReminderScheduler.schedule(context, parsed)
+                    }
+                },
+            ) { Text("Save daily reminder time") }
         }
         notificationToggle("Debt due reminders", debtReminders) { scope.launch { repository.setDebtRemindersEnabled(it) } }
         notificationToggle("Credit-card statement and due reminders", cardReminders) {

@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import app.mizan.data.repository.MizanRepository
 import app.mizan.notify.NotificationChannels
 import app.mizan.worker.BackupWorker
+import app.mizan.worker.DailyReminderScheduler
 import app.mizan.worker.FxRefreshWorker
 import app.mizan.worker.ReminderWorker
 import app.mizan.worker.TrashPurgeWorker
@@ -31,6 +32,9 @@ class MizanApplication : Application() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             repository.seedReferenceData()
             repository.refreshFxIfMissingOrStale()
+            if (repository.dailyExpenseReminderEnabled()) {
+                DailyReminderScheduler.schedule(this@MizanApplication, repository.dailyExpenseReminderTime())
+            }
         }
         val request =
             PeriodicWorkRequestBuilder<FxRefreshWorker>(24, TimeUnit.HOURS)
