@@ -64,6 +64,7 @@ fun planScreen(
     var dueDate by remember { mutableStateOf("") }
     var repaymentAmount by remember { mutableStateOf("") }
     var allocationPct by remember { mutableStateOf("100") }
+    var goalLinkSource by remember { mutableStateOf("ACCOUNT") }
     var goalDate by remember { mutableStateOf("") }
     var manualContribution by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
@@ -72,6 +73,7 @@ fun planScreen(
     val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
     val goals by repository.observeGoals().collectAsStateWithLifecycle(emptyList())
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
+    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
     val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
     val selectedScopeId = if (budgetScope == "ACCOUNT") accounts.firstOrNull()?.id.orEmpty() else categories.firstOrNull()?.id.orEmpty()
     LazyColumn(
@@ -157,11 +159,22 @@ fun planScreen(
             }
 
             PlanSection.GOALS -> {
-                item { Text("The first account can be linked now; add more allocations from the goal details.") }
+                item { optionChips("Link source", listOf("ACCOUNT", "ASSET", "MANUAL"), goalLinkSource) { goalLinkSource = it } }
+                item {
+                    Text(
+                        if (goalLinkSource ==
+                            "ASSET"
+                        ) {
+                            "Asset source: ${assets.firstOrNull()?.name ?: "Create an asset first"}"
+                        } else {
+                            "Account source: ${accounts.firstOrNull()?.name ?: "Create an account first"}"
+                        },
+                    )
+                }
                 item {
                     OutlinedTextField(allocationPct, {
                         allocationPct = it
-                    }, label = { Text("First-account allocation %") }, modifier = Modifier.fillMaxWidth())
+                    }, label = { Text("Linked-source allocation %") }, modifier = Modifier.fillMaxWidth())
                 }
                 item {
                     OutlinedTextField(
@@ -255,10 +268,22 @@ fun planScreen(
                                     )
                                 repository.saveGoal(goal)
                                 allocationPct.toLongOrNull()?.takeIf { it in 0..100 }?.let { percent ->
-                                    account?.let {
-                                        repository.saveGoalLink(
-                                            GoalLinkEntity(goal.id, accountId = it.id, allocationPct = percent),
-                                        )
+                                    when (goalLinkSource) {
+                                        "ACCOUNT" -> {
+                                            account?.let {
+                                                repository.saveGoalLink(GoalLinkEntity(goal.id, accountId = it.id, allocationPct = percent))
+                                            }
+                                        }
+
+                                        "ASSET" -> {
+                                            assets.firstOrNull()?.let {
+                                                repository.saveGoalLink(GoalLinkEntity(goal.id, assetId = it.id, allocationPct = percent))
+                                            }
+                                        }
+
+                                        else -> {
+                                            Unit
+                                        }
                                     }
                                 }
                                 amountToMinor(manualContribution, 2).takeIf { it > 0 }?.let { contribution ->
@@ -461,6 +486,11 @@ private fun goalSummary(
     val links by repository.observeGoalLinks(goal.id).collectAsStateWithLifecycle(emptyList())
     val contributions by repository.observeGoalContributions(goal.id).collectAsStateWithLifecycle(emptyList())
     val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
+    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
+    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
+    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
+    val fxRates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val linked =
         links.sumOf { link ->
@@ -472,7 +502,9 @@ private fun goalSummary(
                         java.math.BigDecimal(row.egpPerUnit),
                     )
                 }
-            accountValue * link.allocationPct / 100
+            val linkedAsset = assets.firstOrNull { it.id == link.assetId }
+            val assetValue = linkedAsset?.let { linkedAssetValue(it, trades, prices, currencies, fxRates) } ?: 0L
+            (accountValue + assetValue) * link.allocationPct / 100
         }
     val progress =
         GoalProgress(
@@ -499,6 +531,44 @@ private fun goalSummary(
             }) { Text("Mark as reached") }
         }
     }
+}
+
+private fun linkedAssetValue(
+    asset: app.mizan.data.db.AssetEntity,
+    trades: List<app.mizan.data.db.AssetTransactionEntity>,
+    prices: List<app.mizan.data.db.PriceSnapshotEntity>,
+    currencies: List<app.mizan.data.db.CurrencyEntity>,
+    fxRates: List<app.mizan.data.db.FxRateEntity>,
+): Long {
+    val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+    val price = prices.firstOrNull { it.key == key } ?: return 0L
+    val decimals = currencies.firstOrNull { it.code == price.currency }?.decimals ?: return 0L
+    val quantity =
+        trades
+            .filter { it.assetId == asset.id }
+            .fold(java.math.BigDecimal.ZERO) { total, trade ->
+                total +
+                    when (trade.kind) {
+                        "BUY" -> java.math.BigDecimal(trade.quantity)
+                        "SELL" -> java.math.BigDecimal(trade.quantity).negate()
+                        else -> java.math.BigDecimal.ZERO
+                    }
+            }
+    val quote =
+        app.mizan.domain.assets.AssetValuation.valueMinor(
+            if (quantity < java.math.BigDecimal.ZERO) java.math.BigDecimal.ZERO else quantity,
+            java.math.BigDecimal(price.price),
+            decimals,
+            java.math.BigDecimal(asset.resaleDeductionPct),
+        )
+    val rate =
+        if (price.currency == "EGP") {
+            java.math.BigDecimal.ONE
+        } else {
+            fxRates.firstOrNull { it.currency == price.currency }?.egpPerUnit?.let { java.math.BigDecimal(it) } ?: return 0L
+        }
+    return app.mizan.domain.money.MoneyMath
+        .baseMinor(quote, decimals, rate)
 }
 
 @Composable
