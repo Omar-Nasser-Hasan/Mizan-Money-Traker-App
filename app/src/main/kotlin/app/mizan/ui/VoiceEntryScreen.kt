@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +28,13 @@ import app.mizan.domain.entry.ParserAccount
 import app.mizan.domain.entry.ParserCategory
 import app.mizan.domain.entry.ParserContext
 import app.mizan.domain.entry.VoiceParser
+import app.mizan.domain.ledger.ExpenseRequest
+import app.mizan.domain.ledger.IncomeRequest
+import app.mizan.domain.ledger.LedgerService
 import app.mizan.voice.OnDeviceVoiceRecognizer
+import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -41,14 +48,18 @@ fun voiceEntryScreen(
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val expenses by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
     val incomes by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
+    val learnedPayees by repository.observeLearnedPayeeCategories().collectAsStateWithLifecycle(emptyMap())
     val context = LocalContext.current
     val recognizer = remember { OnDeviceVoiceRecognizer(context) }
     var transcript by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("On-device recognition only; SPIKE-V1 has no offline pass yet.") }
+    var confirmSave by remember { mutableStateOf(false) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val parserContext =
         ParserContext(
             accounts.map { ParserAccount(it.id, setOf(it.name)) },
             (expenses + incomes).map { ParserCategory(it.id, setOf(it.name)) },
+            learnedPayees = learnedPayees,
             defaultAccountId = accounts.firstOrNull()?.id,
             today = LocalDate.now(ZoneId.of("Africa/Cairo")),
         )
@@ -79,6 +90,40 @@ fun voiceEntryScreen(
                 }
             }
         }
+        if (drafts.isNotEmpty()) {
+            Button(onClick = { confirmSave = true }, modifier = Modifier.fillMaxWidth()) { Text("Review complete — confirm Save all") }
+        }
         Button(onClick = onDone) { Text("Discard review") }
+    }
+    if (confirmSave) {
+        AlertDialog(
+            onDismissRequest = { confirmSave = false },
+            title = { Text("Save ${drafts.size} reviewed drafts?") },
+            text = { Text("This is the only action that posts records. Drafts with an unavailable account or currency are left unsaved.") },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        val service = LedgerService()
+                        var saved = 0
+                        drafts.forEach { draft ->
+                            val account = accounts.firstOrNull { it.id == draft.accountId && it.defaultCurrency == draft.currency } ?: return@forEach
+                            val category = draft.categoryId ?: MizanRepository.UNCATEGORIZED_ID
+                            val posting =
+                                if (draft.kind.name == "INCOME") {
+                                    service.postIncome(IncomeRequest(account.id, draft.currency, draft.amountMinor, currencyDecimals(draft.currency), BigDecimal.ONE, Instant.now(), draft.date, category))
+                                } else {
+                                    service.postExpense(ExpenseRequest(account.id, draft.currency, draft.amountMinor, currencyDecimals(draft.currency), BigDecimal.ONE, category, Instant.now(), draft.date))
+                                }
+                            repository.post(posting)
+                            draft.payee?.let { repository.learnPayeeCategory(it, category) }
+                            saved++
+                        }
+                        status = "Saved $saved reviewed draft(s)."
+                        confirmSave = false
+                    }
+                }) { Text("Save all") }
+            },
+            dismissButton = { Button(onClick = { confirmSave = false }) { Text("Cancel") } },
+        )
     }
 }
