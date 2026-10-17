@@ -19,6 +19,9 @@ import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.AppDatabase
+import app.mizan.data.db.AssetDao
+import app.mizan.data.db.AssetEntity
+import app.mizan.data.db.AssetTransactionEntity
 import app.mizan.data.db.BudgetAlertEntity
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
@@ -35,6 +38,7 @@ import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.PlannedOccurrenceEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.PlanningDao
+import app.mizan.data.db.PriceSnapshotEntity
 import app.mizan.data.db.RecordRow
 import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.db.ReferenceDataDao
@@ -43,6 +47,11 @@ import app.mizan.data.db.SplitTemplateEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.db.TxnEntity
 import app.mizan.data.io.CsvExport
+import app.mizan.domain.assets.Asset
+import app.mizan.domain.assets.AssetTransaction
+import app.mizan.domain.assets.AssetTransactionKind
+import app.mizan.domain.assets.AssetType
+import app.mizan.domain.ledger.AssetCashRequest
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
 import app.mizan.domain.ledger.IncomeRequest
@@ -60,6 +69,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
@@ -89,6 +99,7 @@ class MizanRepository
         private val incomeSetup: IncomeSetupDao,
         private val planning: PlanningDao,
         private val ledger: LedgerDao,
+        private val assetDao: AssetDao,
         @ApplicationContext private val context: Context,
         private val client: OkHttpClient,
         private val clock: Clock,
@@ -412,6 +423,161 @@ class MizanRepository
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
         fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()
+
+        fun observeAssets(): Flow<List<AssetEntity>> = assetDao.observeAssets()
+
+        fun observeAsset(id: String): Flow<AssetEntity?> = assetDao.observeAsset(id)
+
+        fun observeAssetTransactions(id: String): Flow<List<AssetTransactionEntity>> = assetDao.observeTransactions(id)
+
+        fun observeLatestAssetPrice(id: String): Flow<PriceSnapshotEntity?> = assetDao.observeLatestPrice(id)
+
+        fun observeLatestPrices(): Flow<List<PriceSnapshotEntity>> = assetDao.observeLatestPrices()
+
+        suspend fun saveAsset(asset: Asset) {
+            require(asset.resaleDeductionPct >= BigDecimal.ZERO) { "Resale deduction must not be negative" }
+            val now = clock.millis()
+            assetDao.upsertAsset(
+                AssetEntity(
+                    asset.id,
+                    asset.name,
+                    asset.type.name,
+                    asset.symbolOrKarats,
+                    asset.quoteCurrency,
+                    asset.unit,
+                    asset.resaleDeductionPct.toPlainString(),
+                    asset.archived,
+                    now,
+                    now,
+                ),
+            )
+        }
+
+        suspend fun archiveAsset(id: String) = assetDao.archiveAsset(id, clock.millis())
+
+        suspend fun saveManualPrice(
+            assetId: String,
+            price: BigDecimal,
+            currency: String,
+            asOf: Instant = Instant.ofEpochMilli(clock.millis()),
+        ) {
+            require(price > BigDecimal.ZERO) { "Price must be positive" }
+            assetDao.insertPrice(
+                PriceSnapshotEntity("MANUAL:$assetId", assetId, price.toPlainString(), currency, asOf.toEpochMilli(), "Manual", true),
+            )
+        }
+
+        /** SPIKE-G1's best-effort public dealer aggregation. A failure deliberately preserves every cached price. */
+        suspend fun refreshGoldPrices(): Result<Unit> =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    client.newCall(Request.Builder().url(GOLD_FEED_URL).build()).execute().use { response ->
+                        check(response.isSuccessful) { "Gold HTTP ${response.code}" }
+                        val root = Json.parseToJsonElement(response.body.string()).jsonObject
+                        val assets = root.getValue("assets").jsonArray
+
+                        fun item(id: String) = assets.first { it.jsonObject["id"]?.jsonPrimitive?.content == id }.jsonObject
+
+                        fun buy(id: String): BigDecimal =
+                            BigDecimal(
+                                item(
+                                    id,
+                                ).getValue(
+                                    "directions",
+                                ).jsonObject
+                                    .getValue("buy")
+                                    .jsonObject
+                                    .getValue("best")
+                                    .jsonObject
+                                    .getValue("value")
+                                    .jsonPrimitive.content,
+                            )
+                        val asOf = Instant.parse(item("GOLD24K-EGP").getValue("observedAt").jsonPrimitive.content).toEpochMilli()
+                        listOf(
+                            "24K" to buy("GOLD24K-EGP"),
+                            "21K" to buy("GOLD21K-EGP"),
+                            "18K" to buy("GOLD18K-EGP"),
+                            "POUND" to buy("GOLDPOUND-EGP"),
+                        ).forEach { (karat, value) ->
+                            assetDao.insertPrice(
+                                PriceSnapshotEntity(
+                                    "GOLD_$karat",
+                                    null,
+                                    value.toPlainString(),
+                                    "EGP",
+                                    asOf,
+                                    "Daleelak public feed (dealer aggregation)",
+                                    false,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+
+        suspend fun refreshGoldPricesIfStale() {
+            val latest = assetDao.latestPrice("GOLD_24K")
+            if (latest == null || clock.millis() - latest.asOf > TWO_HOURS_MILLIS) refreshGoldPrices()
+        }
+
+        /** Atomically writes a holding trade and its one ASSET_BUY/ASSET_SELL cash ledger entry. */
+        suspend fun postAssetTrade(
+            trade: AssetTransaction,
+            accountId: String,
+            currencyDecimals: Int,
+            rateToBase: BigDecimal,
+        ) {
+            require(
+                trade.kind == AssetTransactionKind.BUY || trade.kind == AssetTransactionKind.SELL,
+            ) { "Only buys and sells have cash legs" }
+            val kind = if (trade.kind == AssetTransactionKind.BUY) TxnKind.ASSET_BUY else TxnKind.ASSET_SELL
+            val posting =
+                LedgerService().postAssetCash(
+                    AssetCashRequest(
+                        accountId,
+                        requireNotNull(observeAsset(trade.assetId).first()).quoteCurrency,
+                        trade.totalMinor,
+                        currencyDecimals,
+                        rateToBase,
+                        kind,
+                        Instant.ofEpochMilli(clock.millis()),
+                        trade.date,
+                        trade.note,
+                    ),
+                )
+            val now = clock.millis()
+            database.withTransaction {
+                assetDao.persistTrade(
+                    TxnEntity(
+                        posting.transaction.id,
+                        posting.transaction.kind.name,
+                        posting.transaction.bookedAt.toEpochMilli(),
+                        posting.transaction.bookedDate.toString(),
+                        note = posting.transaction.note,
+                        status = posting.transaction.status.name,
+                        paymentType = posting.transaction.paymentType.name,
+                        assetTxnId = trade.id,
+                        createdAt = now,
+                        updatedAt = now,
+                    ),
+                    posting.entries.single().let {
+                        EntryEntity(it.id, it.txnId, it.accountId, it.currency, it.amountMinor, it.rateToBase.toPlainString(), it.baseMinor)
+                    },
+                    AssetTransactionEntity(
+                        trade.id,
+                        trade.assetId,
+                        trade.kind.name,
+                        trade.date.toString(),
+                        trade.quantity.toPlainString(),
+                        trade.unitPrice.toPlainString(),
+                        trade.feeMinor,
+                        trade.totalMinor,
+                        posting.transaction.id,
+                        trade.note,
+                    ),
+                )
+            }
+        }
 
         fun records(query: RecordQuery): PagingSource<Int, RecordRow> =
             ledger.records(
@@ -792,7 +958,9 @@ class MizanRepository
         companion object {
             const val UNCATEGORIZED_ID = "system-uncategorized"
             const val FX_URL = "https://open.er-api.com/v6/latest/USD"
+            const val GOLD_FEED_URL = "https://getdaleelak.com/api/v1/feed.json"
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
+            private const val TWO_HOURS_MILLIS = 2L * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
             private val SECURE_SCREENS = booleanPreferencesKey("secure_screens")
             private val LOCK_TIMEOUT_SECONDS = intPreferencesKey("lock_timeout_seconds")

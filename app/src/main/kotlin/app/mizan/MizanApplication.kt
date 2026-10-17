@@ -12,6 +12,7 @@ import app.mizan.notify.NotificationChannels
 import app.mizan.worker.BackupWorker
 import app.mizan.worker.DailyReminderScheduler
 import app.mizan.worker.FxRefreshWorker
+import app.mizan.worker.PriceRefreshWorker
 import app.mizan.worker.ReminderWorker
 import app.mizan.worker.TrashPurgeWorker
 import dagger.hilt.android.HiltAndroidApp
@@ -32,6 +33,7 @@ class MizanApplication : Application() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             repository.seedReferenceData()
             repository.refreshFxIfMissingOrStale()
+            repository.refreshGoldPricesIfStale()
             if (repository.dailyExpenseReminderEnabled()) {
                 DailyReminderScheduler.schedule(this@MizanApplication, repository.dailyExpenseReminderTime())
             }
@@ -44,6 +46,13 @@ class MizanApplication : Application() {
             "daily-fx-refresh",
             ExistingPeriodicWorkPolicy.KEEP,
             request,
+        )
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "gold-price-refresh",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<PriceRefreshWorker>(6, TimeUnit.HOURS)
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build(),
         )
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "daily-reminders",

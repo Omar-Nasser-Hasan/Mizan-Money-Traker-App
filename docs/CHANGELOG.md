@@ -1,5 +1,11 @@
 # Changelog
 
+## M7 — Investments
+
+- Added pure asset valuation, average-cost, realized-P/L, gold-ratio, price-fallback and XIRR rules with unit coverage.
+- Added Room asset, asset transaction and price snapshot tables with a 6-to-7 migration test.
+- Added Wealth holding creation, manual price entry, buy/sell posting, and scheduled best-effort dealer gold refresh.
+
 ## Unreleased
 
 - Moved Stats aggregation off composition, added account-bucket/current-FX balance totals and historical booking-value trends, interactive chart tooltips, and a 50,000-record aggregation regression test.

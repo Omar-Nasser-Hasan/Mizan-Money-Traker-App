@@ -197,17 +197,23 @@ fun mizanApp(repository: MizanRepository) {
                     devScreen(repository, modifier)
                 }
 
+                "asset-create" -> {
+                    assetEditorScreen(repository, modifier, onDone = { route = null })
+                }
+
                 else -> {
                     val currentRoute = route
                     if (currentRoute?.startsWith("account:") ==
                         true
                     ) {
                         accountDetail(repository, currentRoute.removePrefix("account:"), modifier)
+                    } else if (currentRoute?.startsWith("asset:") == true) {
+                        assetDetailScreen(repository, currentRoute.removePrefix("asset:"), modifier)
                     } else {
                         tabScreen(repository, tab, modifier, onAccount = {
                             route =
                                 "account:$it"
-                        }, onEntry = { route = "entry" })
+                        }, onEntry = { route = "entry" }, onAsset = { route = "asset:$it" }, onCreateAsset = { route = "asset-create" })
                     }
                 }
             }
@@ -222,12 +228,15 @@ private fun tabScreen(
     modifier: Modifier,
     onAccount: (String) -> Unit,
     onEntry: () -> Unit,
+    onAsset: (String) -> Unit,
+    onCreateAsset: () -> Unit,
 ) {
     when (tab) {
         "Home" -> homeScreen(repository, modifier, onAccount, onEntry)
         "Records" -> recordsScreen(repository, modifier)
         "Plan" -> planScreen(repository, modifier)
         "Stats" -> statsScreen(repository, modifier)
+        "Wealth" -> wealthScreen(repository, modifier, onAsset, onCreateAsset)
         else -> emptyScreen(tab, modifier)
     }
 }

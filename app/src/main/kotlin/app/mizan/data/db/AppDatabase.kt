@@ -779,6 +779,11 @@ interface AssetDao {
     @Query("SELECT * FROM price_snapshots WHERE key = :key ORDER BY asOf DESC LIMIT 1")
     suspend fun latestPrice(key: String): PriceSnapshotEntity?
 
+    @Query(
+        "SELECT p.* FROM price_snapshots p INNER JOIN (SELECT key, MAX(asOf) AS latestAsOf FROM price_snapshots GROUP BY key) recent ON p.key = recent.key AND p.asOf = recent.latestAsOf",
+    )
+    fun observeLatestPrices(): Flow<List<PriceSnapshotEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAsset(value: AssetEntity)
 
