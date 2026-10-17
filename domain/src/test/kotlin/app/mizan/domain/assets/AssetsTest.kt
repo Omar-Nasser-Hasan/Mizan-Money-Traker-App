@@ -97,6 +97,25 @@ class AssetsTest {
         assertEquals(9_000L, AssetValuation.valueMinor(BigDecimal("10"), BigDecimal("10"), 2, BigDecimal("10")))
     }
 
+    @Test fun `spot formula applies karat and local premium without floating point`() {
+        val base24 = GoldSpotFormula.dealerEquivalentPerGram(BigDecimal("2400"), BigDecimal("50"), 24, BigDecimal.ZERO)
+        val premium21 = GoldSpotFormula.dealerEquivalentPerGram(BigDecimal("2400"), BigDecimal("50"), 21, BigDecimal("10"))
+        assertEquals(
+            0,
+            premium21.compareTo(
+                base24.multiply(BigDecimal(21)).divide(BigDecimal(24), 12, java.math.RoundingMode.HALF_UP).multiply(BigDecimal("1.10")),
+            ),
+        )
+        assertEquals(
+            0,
+            GoldSpotFormula
+                .premiumPct(
+                    premium21,
+                    base24.multiply(BigDecimal(21)).divide(BigDecimal(24), 12, java.math.RoundingMode.HALF_UP),
+                ).compareTo(BigDecimal("10.0")),
+        )
+    }
+
     private fun trade(
         id: String,
         kind: AssetTransactionKind,

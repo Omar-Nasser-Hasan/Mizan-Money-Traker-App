@@ -153,6 +153,36 @@ object GoldRatios {
     }
 }
 
+/** Secondary fallback from §8.2; a key-backed spot provider may supply the two input values later. */
+object GoldSpotFormula {
+    private val gramsPerTroyOunce = BigDecimal("31.1035")
+
+    fun dealerEquivalentPerGram(
+        spotUsdPerOunce: BigDecimal,
+        usdEgp: BigDecimal,
+        karat: Int,
+        localPremiumPct: BigDecimal,
+    ): BigDecimal {
+        require(spotUsdPerOunce > BigDecimal.ZERO && usdEgp > BigDecimal.ZERO)
+        require(karat in setOf(24, 22, 21, 18))
+        require(localPremiumPct > BigDecimal("-100"))
+        return spotUsdPerOunce
+            .multiply(usdEgp)
+            .divide(gramsPerTroyOunce, 12, RoundingMode.HALF_UP)
+            .multiply(BigDecimal(karat))
+            .divide(BigDecimal(24), 12, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.ONE.add(localPremiumPct.movePointLeft(2)))
+    }
+
+    fun premiumPct(
+        manualDealer21K: BigDecimal,
+        computed21K: BigDecimal,
+    ): BigDecimal {
+        require(manualDealer21K > BigDecimal.ZERO && computed21K > BigDecimal.ZERO)
+        return manualDealer21K.divide(computed21K, 12, RoundingMode.HALF_UP).subtract(BigDecimal.ONE).movePointRight(2)
+    }
+}
+
 data class XirrCashFlow(
     val date: LocalDate,
     val amount: BigDecimal,
