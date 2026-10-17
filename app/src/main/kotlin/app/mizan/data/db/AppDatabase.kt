@@ -408,6 +408,12 @@ data class StatsRecordRow(
     val debtId: String?,
 )
 
+data class StatsEntryRow(
+    val bookedDate: String,
+    val accountId: String,
+    val baseMinor: Long,
+)
+
 /** A current bucket total evaluated with the most recently cached EGP rate. */
 data class AccountBalanceRow(
     val accountId: String,
@@ -795,6 +801,11 @@ interface LedgerDao {
         "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels, t.plannedId AS plannedId, t.debtId AS debtId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
     )
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
+
+    @Query(
+        "SELECT t.bookedDate AS bookedDate, e.accountId AS accountId, e.baseMinor AS baseMinor FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL",
+    )
+    fun observeStatsEntries(): Flow<List<StatsEntryRow>>
 
     @Query(
         """

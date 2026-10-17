@@ -450,6 +450,8 @@ class MizanRepository
 
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
+        fun observeStatsEntries() = ledger.observeStatsEntries()
+
         fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()
 
         fun observeAllAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAllAccountBalances()
