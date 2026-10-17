@@ -28,6 +28,7 @@
 
 ## Unreleased
 
+- Started the V2 Obsidian & Champagne component layer with bundled Manrope and Material Symbols Rounded fonts, tokenized dark/light/OLED themes, and verified AmountText formatting and contrast.
 - Moved Stats aggregation off composition, added account-bucket/current-FX balance totals and historical booking-value trends, interactive chart tooltips, and a 50,000-record aggregation regression test.
 - Added an exact-time daily expense reminder alarm, a constrained WorkManager fallback, and boot rescheduling.
 - Added tactile calculator feedback, accessible chart/empty-state descriptions, and size motion for empty-state transitions.
