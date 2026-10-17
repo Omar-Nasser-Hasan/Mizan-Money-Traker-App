@@ -67,6 +67,7 @@ import app.mizan.domain.ledger.PaymentType
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnKind
 import app.mizan.domain.ledger.TxnStatus
+import app.mizan.domain.entry.SmsDraft
 import app.mizan.domain.ports.GoldPriceProvider
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -124,11 +125,40 @@ class MizanRepository
 
         fun observeInboxDrafts() = inbox.observePending()
 
+        fun observeSmsInboxEnabled(): Flow<Boolean> = context.dataStore.data.map { it[SMS_INBOX_ENABLED] ?: false }
+
+        fun observeNotificationInboxEnabled(): Flow<Boolean> = context.dataStore.data.map { it[NOTIFICATION_INBOX_ENABLED] ?: false }
+
+        suspend fun setSmsInboxEnabled(enabled: Boolean) = context.dataStore.edit { it[SMS_INBOX_ENABLED] = enabled }
+
+        suspend fun setNotificationInboxEnabled(enabled: Boolean) = context.dataStore.edit { it[NOTIFICATION_INBOX_ENABLED] = enabled }
+
         suspend fun saveInboxDraft(value: InboxDraftEntity): Boolean = inbox.insert(value) != -1L
 
         suspend fun rejectInboxDraft(id: String) = inbox.setStatus(id, "REJECTED")
 
         suspend fun confirmInboxDraft(id: String) = inbox.setStatus(id, "CONFIRMED")
+
+        suspend fun captureInboxDraft(
+            source: String,
+            draft: SmsDraft,
+        ): Boolean {
+            val id = UUID.nameUUIDFromBytes("$source|${draft.sender}|${draft.occurredAt.toEpochMilli()}|${draft.rawMessage}".toByteArray()).toString()
+            return saveInboxDraft(
+                InboxDraftEntity(
+                    id,
+                    source,
+                    draft.sender,
+                    draft.amountMinor,
+                    draft.currency,
+                    draft.merchant,
+                    draft.cardLastFour,
+                    draft.occurredAt.toEpochMilli(),
+                    clock.millis(),
+                    draft.rawMessage,
+                ),
+            )
+        }
 
         fun observeIncomeSources() = incomeSetup.observeSources()
 
@@ -1047,6 +1077,8 @@ class MizanRepository
             private val QUIET_HOURS_START = stringPreferencesKey("quiet_hours_start")
             private val QUIET_HOURS_END = stringPreferencesKey("quiet_hours_end")
             private val BACKUP_PASSPHRASE = stringPreferencesKey("backup_passphrase_keystore_wrapped")
+            private val SMS_INBOX_ENABLED = booleanPreferencesKey("sms_inbox_enabled")
+            private val NOTIFICATION_INBOX_ENABLED = booleanPreferencesKey("notification_inbox_enabled")
             private const val LEARNED_PAYEE_PREFIX = "learned_payee_"
 
             private fun String?.toLocalTimeOrDefault(default: LocalTime): LocalTime =
