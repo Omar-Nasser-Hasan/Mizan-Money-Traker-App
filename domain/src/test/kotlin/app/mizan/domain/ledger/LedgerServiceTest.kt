@@ -77,6 +77,18 @@ class LedgerServiceTest {
         assertEquals(2_000L, repayment.entries.single().amountMinor)
     }
 
+    @Test fun asset_buy_and_sell_are_cash_movements_not_expenses() {
+        val buy = service.postAssetCash(AssetCashRequest("investment", "EGP", 12_000, 2, BigDecimal.ONE, TxnKind.ASSET_BUY, instant, date))
+        val sell =
+            service.postAssetCash(
+                AssetCashRequest("investment", "EGP", 13_000, 2, BigDecimal.ONE, TxnKind.ASSET_SELL, instant, date),
+            )
+        assertEquals(TxnKind.ASSET_BUY, buy.transaction.kind)
+        assertEquals(-12_000L, buy.entries.single().amountMinor)
+        assertEquals(TxnKind.ASSET_SELL, sell.transaction.kind)
+        assertEquals(13_000L, sell.entries.single().amountMinor)
+    }
+
     @Test fun calculator_respects_precedence_and_guards_zero_division() {
         assertEquals(BigDecimal("7"), EntryCalculator.evaluate("1+2×3"))
         try {

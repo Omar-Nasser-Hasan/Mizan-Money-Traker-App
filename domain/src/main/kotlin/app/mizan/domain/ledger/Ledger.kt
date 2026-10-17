@@ -142,6 +142,20 @@ data class DebtRequest(
     val paymentType: PaymentType = PaymentType.CASH,
 )
 
+/** The cash leg of an investment buy or sale.  The holding leg belongs to AssetTxn in the data layer. */
+data class AssetCashRequest(
+    val accountId: String,
+    val currency: String,
+    val amountMinor: Long,
+    val currencyDecimals: Int,
+    val rateToBase: BigDecimal,
+    val kind: TxnKind,
+    val bookedAt: Instant,
+    val bookedDate: LocalDate,
+    val note: String = "",
+    val paymentType: PaymentType = PaymentType.BANK_TRANSFER,
+)
+
 /** Validates and constructs immutable ledger postings. Persistence is intentionally outside this service. */
 class LedgerService(
     private val id: () -> String = { UUID.randomUUID().toString() },
@@ -291,6 +305,27 @@ class LedgerService(
         return LedgerPosting(
             transaction,
             listOf(entry(transaction.id, request.accountId, request.currency, signedAmount, request.currencyDecimals, request.rateToBase)),
+        )
+    }
+
+    fun postAssetCash(request: AssetCashRequest): LedgerPosting {
+        require(request.kind == TxnKind.ASSET_BUY || request.kind == TxnKind.ASSET_SELL) { "Invalid asset transaction kind" }
+        require(request.amountMinor > 0) { "Asset cash amount must be positive" }
+        val transaction =
+            transaction(
+                request.kind,
+                request.bookedAt,
+                request.bookedDate,
+                null,
+                null,
+                request.note,
+                TxnStatus.CLEARED,
+                request.paymentType,
+            )
+        val signed = if (request.kind == TxnKind.ASSET_BUY) -request.amountMinor else request.amountMinor
+        return LedgerPosting(
+            transaction,
+            listOf(entry(transaction.id, request.accountId, request.currency, signed, request.currencyDecimals, request.rateToBase)),
         )
     }
 
