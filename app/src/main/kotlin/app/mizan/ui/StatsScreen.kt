@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,7 +38,10 @@ import app.mizan.domain.stats.compare
 import app.mizan.ui.charts.ChartPoint
 import app.mizan.ui.charts.lineAreaChart
 import app.mizan.ui.charts.spendingDonut
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -50,28 +54,13 @@ fun statsScreen(
     var range by remember { mutableStateOf(StatsRange.MONTH) }
     var comparison by remember { mutableStateOf(Comparison.PREVIOUS) }
     val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
+    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val period = range.period(today)
-    val records =
-        rows.map {
-            StatRecord(
-                it.id,
-                LocalDate.parse(it.bookedDate),
-                runCatching { StatKind.valueOf(it.kind) }.getOrDefault(StatKind.OTHER),
-                it.baseMinor,
-                it.accountId,
-                it.categoryId,
-                it.payeeId,
-                it.labels
-                    .split('|')
-                    .filter(String::isNotBlank)
-                    .toSet(),
-            )
-        }
-    val current = StatsEngine.cashFlow(records, period)
     val comparisonPeriod = if (comparison == Comparison.PREVIOUS) StatPeriods.previous(period) else StatPeriods.lastYear(period)
-    val previous = StatsEngine.cashFlow(records, comparisonPeriod)
-    val netChange = compare(current.netMinor, previous.netMinor, cashFlow = true)
+    val data by produceState(StatsUiData.empty(period), rows, balances, period, comparisonPeriod, comparison) {
+        value = withContext(Dispatchers.Default) { StatsUiData.from(rows, balances, period, comparisonPeriod, comparison.label) }
+    }
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     LazyColumn(
@@ -103,9 +92,9 @@ fun statsScreen(
                                 context,
                                 "${tab.label} · ${period.start} to ${period.end}",
                                 listOf(
-                                    "Income: ${current.incomeMinor} EGP minor",
-                                    "Expenses: ${current.expenseMinor} EGP minor",
-                                    "Cash flow: ${current.netMinor} EGP minor",
+                                    "Income: ${data.current.incomeMinor} EGP minor",
+                                    "Expenses: ${data.current.expenseMinor} EGP minor",
+                                    "Cash flow: ${data.current.netMinor} EGP minor",
                                 ),
                             )
                         val uri = FileProvider.getUriForFile(context, "${context.packageName}.backup", file)
@@ -128,54 +117,38 @@ fun statsScreen(
         }
         when (tab) {
             StatsTab.BALANCE -> {
-                balanceTab(records, period)
+                balanceTab(data)
             }
 
             StatsTab.CASH_FLOW -> {
                 cashFlowTab(
-                    records,
-                    period,
-                    current.incomeMinor,
-                    current.expenseMinor,
-                    current.netMinor,
-                    netChange.percentBasisPoints,
-                    netChange.absoluteChange,
-                    comparison.label,
+                    data,
                 )
             }
 
             StatsTab.SPENDING -> {
-                spendingTab(records, period)
+                spendingTab(data)
             }
 
             StatsTab.REPORTS -> {
-                reportsTab(records, period)
+                reportsTab(data)
             }
         }
     }
 }
 
-private fun LazyListScope.balanceTab(
-    records: List<StatRecord>,
-    period: Period,
-) {
-    val cumulative = StatsEngine.cumulativeTrend(records, period)
-    item { Text("Recorded balance movement", style = MaterialTheme.typography.titleLarge) }
+private fun LazyListScope.balanceTab(data: StatsUiData) {
+    item { Text("Balance trend", style = MaterialTheme.typography.titleLarge) }
     item {
         lineAreaChart(
-            cumulative.map { ChartPoint(it.key.toString(), it.value) },
+            data.balanceTrend.map { ChartPoint(it.key.toString(), it.value) },
             { "$it EGP minor" },
             Modifier.fillMaxWidth(),
         )
     }
     item { Text("By account", style = MaterialTheme.typography.titleLarge) }
     items(
-        records
-            .filter { !it.deleted }
-            .groupBy { it.accountId }
-            .mapValues { (_, values) ->
-                values.sumOf { it.baseMinor }
-            }.toList(),
+        data.accountTotals,
         key = { it.first },
     ) { (account, amount) ->
         Card(Modifier.fillMaxWidth()) {
@@ -187,30 +160,21 @@ private fun LazyListScope.balanceTab(
     }
 }
 
-private fun LazyListScope.cashFlowTab(
-    records: List<StatRecord>,
-    period: Period,
-    income: Long,
-    expenses: Long,
-    net: Long,
-    percentBasisPoints: Long?,
-    absoluteChange: Boolean,
-    comparisonLabel: String,
-) {
+private fun LazyListScope.cashFlowTab(data: StatsUiData) {
     item {
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Income")
-                amountText(income, "EGP")
+                amountText(data.current.incomeMinor, "EGP")
                 Text("Expenses")
-                amountText(expenses, "EGP")
+                amountText(data.current.expenseMinor, "EGP")
                 Text("Cash flow")
-                amountText(net, "EGP")
+                amountText(data.current.netMinor, "EGP")
                 Text(
                     when {
-                        absoluteChange -> "vs $comparisonLabel: absolute change"
-                        percentBasisPoints == null -> "vs $comparisonLabel: —"
-                        else -> "vs $comparisonLabel: ${formatPercent(percentBasisPoints)}%"
+                        data.change.absoluteChange -> "vs ${data.comparisonLabel}: absolute change"
+                        data.change.percentBasisPoints == null -> "vs ${data.comparisonLabel}: —"
+                        else -> "vs ${data.comparisonLabel}: ${formatPercent(requireNotNull(data.change.percentBasisPoints))}%"
                     },
                 )
             }
@@ -218,53 +182,125 @@ private fun LazyListScope.cashFlowTab(
     }
     item {
         lineAreaChart(
-            StatsEngine.dailyCashFlow(records, period).map { ChartPoint(it.key.toString(), it.value.netMinor) },
+            data.cashFlowTrend.map { ChartPoint(it.key.toString(), it.value) },
             { "$it EGP minor" },
         )
     }
 }
 
-private fun LazyListScope.spendingTab(
-    records: List<StatRecord>,
-    period: Period,
-) {
-    val categories = StatsEngine.byCategory(records, period).toList().sortedByDescending { it.second }
+private fun LazyListScope.spendingTab(data: StatsUiData) {
     item { Text("Spending by category", style = MaterialTheme.typography.titleLarge) }
-    item { spendingDonut(categories) }
-    val labels = StatsEngine.byLabel(records, period).toList().sortedByDescending { it.second }
+    item { spendingDonut(data.categories) }
     item { Text("Spending by label", style = MaterialTheme.typography.titleLarge) }
-    item { spendingDonut(labels) }
+    item { spendingDonut(data.labels) }
     item { Text("Labels overlap: a record with several labels counts fully in each label.") }
     item { Text("Top payees", style = MaterialTheme.typography.titleLarge) }
-    items(StatsEngine.topPayees(records, period), key = { it.first }) { (payee, amount) -> Text("$payee · $amount EGP minor") }
+    items(data.topPayees, key = { it.first }) { (payee, amount) -> Text("$payee · $amount EGP minor") }
     item { Text("Largest expenses", style = MaterialTheme.typography.titleLarge) }
-    items(StatsEngine.largestExpenses(records, period), key = {
+    items(data.largestExpenses, key = {
         it.id
     }) { record -> Text("${record.date} · ${record.categoryId ?: "Uncategorized"} · ${-record.baseMinor} EGP minor") }
 }
 
-private fun LazyListScope.reportsTab(
-    records: List<StatRecord>,
-    period: Period,
-) {
-    val report = StatsEngine.report(records, period)
+private fun LazyListScope.reportsTab(data: StatsUiData) {
     item { Text("Cash-flow table", style = MaterialTheme.typography.titleLarge) }
     item {
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("Income records: ${report.incomeCount} · average/day ${report.averageIncomePerDay} minor")
-                Text("Expense records: ${report.expenseCount} · average/day ${report.averageExpensePerDay} minor")
-                Text("Net: ${report.cashFlow.netMinor} EGP minor")
+                Text("Income records: ${data.report.incomeCount} · average/day ${data.report.averageIncomePerDay} minor")
+                Text("Expense records: ${data.report.expenseCount} · average/day ${data.report.averageExpensePerDay} minor")
+                Text("Net: ${data.report.cashFlow.netMinor} EGP minor")
             }
         }
     }
     item { Text("Expense book", style = MaterialTheme.typography.titleLarge) }
     items(
-        StatsEngine.byCategory(records, period).toList().sortedByDescending {
-            it.second
-        },
+        data.categories,
         key = { it.first },
     ) { (category, amount) -> Text("$category · $amount EGP minor") }
+}
+
+private data class StatsUiData(
+    val current: app.mizan.domain.stats.CashFlow,
+    val change: app.mizan.domain.stats.Change,
+    val comparisonLabel: String,
+    val balanceTrend: Map<LocalDate, Long>,
+    val accountTotals: List<Pair<String, Long>>,
+    val cashFlowTrend: Map<LocalDate, Long>,
+    val categories: List<Pair<String, Long>>,
+    val labels: List<Pair<String, Long>>,
+    val topPayees: List<Pair<String, Long>>,
+    val largestExpenses: List<StatRecord>,
+    val report: app.mizan.domain.stats.CashFlowReport,
+) {
+    companion object {
+        fun empty(period: Period) = from(emptyList(), emptyList(), period, StatPeriods.previous(period), "Previous period")
+
+        fun from(
+            rows: List<app.mizan.data.db.StatsRecordRow>,
+            balanceRows: List<app.mizan.data.db.AccountBalanceRow>,
+            period: Period,
+            comparisonPeriod: Period,
+            comparisonLabel: String,
+        ): StatsUiData {
+            val records =
+                rows.map {
+                    StatRecord(
+                        it.id,
+                        LocalDate.parse(it.bookedDate),
+                        runCatching {
+                            StatKind.valueOf(it.kind)
+                        }.getOrDefault(
+                            StatKind.OTHER,
+                        ),
+                        it.baseMinor,
+                        it.accountId,
+                        it.categoryId,
+                        it.payeeId,
+                        it.labels
+                            .split('|')
+                            .filter(String::isNotBlank)
+                            .toSet(),
+                    )
+                }
+            val current = StatsEngine.cashFlow(records, period)
+            val accountTotals =
+                balanceRows.groupBy { it.accountName }.map { (name, buckets) ->
+                    name to
+                        buckets.sumOf { bucket ->
+                            app.mizan.domain.money.MoneyMath.baseMinor(
+                                bucket.openingMinor + bucket.entryMinor,
+                                bucket.decimals,
+                                BigDecimal(bucket.egpPerUnit),
+                            )
+                        }
+                }
+            val opening =
+                balanceRows.sumOf {
+                    app.mizan.domain.money.MoneyMath
+                        .baseMinor(it.openingMinor, it.decimals, BigDecimal(it.openingEgpPerUnit))
+                }
+            var balance = opening + records.filter { it.date < period.start }.sumOf { it.baseMinor }
+            val balanceTrend =
+                generateSequence(period.start) { it.plusDays(1).takeIf { next -> next <= period.end } }.associateWith { date ->
+                    balance += records.filter { it.date == date }.sumOf { it.baseMinor }
+                    balance
+                }
+            return StatsUiData(
+                current,
+                compare(current.netMinor, StatsEngine.cashFlow(records, comparisonPeriod).netMinor, cashFlow = true),
+                comparisonLabel,
+                balanceTrend,
+                accountTotals.sortedByDescending { it.second },
+                StatsEngine.dailyCashFlow(records, period).mapValues { it.value.netMinor },
+                StatsEngine.byCategory(records, period).toList().sortedByDescending { it.second },
+                StatsEngine.byLabel(records, period).toList().sortedByDescending { it.second },
+                StatsEngine.topPayees(records, period),
+                StatsEngine.largestExpenses(records, period),
+                StatsEngine.report(records, period),
+            )
+        }
+    }
 }
 
 private enum class StatsTab(

@@ -108,26 +108,39 @@ object StatsEngine {
         records: Iterable<StatRecord>,
         period: Period,
     ): CashFlow {
-        val valid = records.filter { !it.deleted && it.date in period.start..period.end }
-        return CashFlow(
-            valid.filter { it.kind == StatKind.INCOME || it.kind == StatKind.ASSET_INCOME }.sumOf { it.baseMinor },
-            valid
-                .filter {
-                    it.kind ==
-                        StatKind.EXPENSE
-                }.sumOf { abs(it.baseMinor) },
-        )
+        var income = 0L
+        var expense = 0L
+        records.forEach { record ->
+            if (!record.deleted && record.date in period.start..period.end) {
+                when (record.kind) {
+                    StatKind.INCOME, StatKind.ASSET_INCOME -> income += record.baseMinor
+                    StatKind.EXPENSE -> expense += abs(record.baseMinor)
+                    else -> Unit
+                }
+            }
+        }
+        return CashFlow(income, expense)
     }
 
     fun dailyCashFlow(
         records: Iterable<StatRecord>,
         period: Period,
-    ): Map<LocalDate, CashFlow> =
-        generateSequence(period.start) {
-            it.plusDays(1).takeIf { next ->
-                next <= period.end
+    ): Map<LocalDate, CashFlow> {
+        val totals = mutableMapOf<LocalDate, CashFlow>()
+        records.forEach { record ->
+            if (!record.deleted && record.date in period.start..period.end) {
+                val previous = totals[record.date] ?: CashFlow(0L, 0L)
+                totals[record.date] =
+                    when (record.kind) {
+                        StatKind.INCOME, StatKind.ASSET_INCOME -> previous.copy(incomeMinor = previous.incomeMinor + record.baseMinor)
+                        StatKind.EXPENSE -> previous.copy(expenseMinor = previous.expenseMinor + abs(record.baseMinor))
+                        else -> previous
+                    }
             }
-        }.associateWith { cashFlow(records, Period(it, it)) }
+        }
+        return generateSequence(period.start) { it.plusDays(1).takeIf { next -> next <= period.end } }
+            .associateWith { totals[it] ?: CashFlow(0L, 0L) }
+    }
 
     fun byCategory(
         records: Iterable<StatRecord>,

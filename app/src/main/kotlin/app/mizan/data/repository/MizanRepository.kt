@@ -14,6 +14,7 @@ import androidx.paging.PagingSource
 import androidx.room.withTransaction
 import app.mizan.data.backup.BackupArchive
 import app.mizan.data.backup.BackupPassphraseVault
+import app.mizan.data.db.AccountBalanceRow
 import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountDao
 import app.mizan.data.db.AccountEntity
@@ -409,6 +410,8 @@ class MizanRepository
         fun observeLatestFx(currency: String) = fxRates.observeLatest(currency)
 
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
+
+        fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()
 
         fun records(query: RecordQuery): PagingSource<Int, RecordRow> =
             ledger.records(

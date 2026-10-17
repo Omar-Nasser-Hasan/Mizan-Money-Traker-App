@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
@@ -89,8 +91,31 @@ fun spendingDonut(
 ) {
     val colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.secondary)
     val total = values.sumOf { it.second }
+    var selected by remember(values) { mutableIntStateOf(0) }
     Column(modifier) {
-        Canvas(Modifier.fillMaxWidth().height(180.dp)) {
+        if (values.isNotEmpty()) Text("${values[selected].first} · ${values[selected].second}")
+        Canvas(
+            Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .semantics { contentDescription = "Spending breakdown. Tap a segment to hear its amount." }
+                .pointerInput(values) {
+                    detectTapGestures { tap ->
+                        if (total == 0L) return@detectTapGestures
+                        val centerX = size.width / 2f
+                        val centerY = size.height / 2f
+                        val angle =
+                            (Math.toDegrees(kotlin.math.atan2((tap.y - centerY).toDouble(), (tap.x - centerX).toDouble())) + 450.0) % 360.0
+                        var end = 0.0
+                        selected =
+                            values
+                                .indexOfFirst { (_, amount) ->
+                                    end += amount.toDouble() / total * 360.0
+                                    angle <= end
+                                }.coerceAtLeast(0)
+                    }
+                },
+        ) {
             if (total == 0L) return@Canvas
             var angle = -90f
             values.forEachIndexed { index, (_, amount) ->

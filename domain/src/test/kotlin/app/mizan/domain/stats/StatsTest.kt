@@ -3,8 +3,10 @@ package app.mizan.domain.stats
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import kotlin.system.measureTimeMillis
 
 class StatsTest {
     private val april = Period(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30))
@@ -56,5 +58,28 @@ class StatsTest {
         val previous = StatsEngine.cashFlow(rows, StatPeriods.previous(april)).netMinor
 
         assertEquals(compare(current, previous, cashFlow = true), compare(current, previous, cashFlow = true))
+    }
+
+    @Test fun fifty_thousand_records_aggregate_within_the_stats_budget() {
+        val records =
+            List(50_000) { index ->
+                StatRecord(
+                    "$index",
+                    LocalDate.of(2026, 4, 1).plusDays((index % 30).toLong()),
+                    if (index % 3 == 0) StatKind.INCOME else StatKind.EXPENSE,
+                    if (index % 3 == 0) 1_000L else -100L,
+                    "account-${index % 3}",
+                    "category-${index % 8}",
+                )
+            }
+        val elapsed =
+            measureTimeMillis {
+                StatsEngine.cashFlow(records, april)
+                StatsEngine.dailyCashFlow(records, april)
+                StatsEngine.byCategory(records, april)
+                StatsEngine.report(records, april)
+            }
+
+        assertTrue("50k stats aggregation took ${elapsed}ms", elapsed < 500L)
     }
 }

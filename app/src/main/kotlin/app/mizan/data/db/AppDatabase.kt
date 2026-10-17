@@ -325,6 +325,18 @@ data class StatsRecordRow(
     val labels: String,
 )
 
+/** A current bucket total evaluated with the most recently cached EGP rate. */
+data class AccountBalanceRow(
+    val accountId: String,
+    val accountName: String,
+    val currency: String,
+    val decimals: Int,
+    val openingMinor: Long,
+    val entryMinor: Long,
+    val egpPerUnit: String,
+    val openingEgpPerUnit: String,
+)
+
 data class TrashRow(
     val id: String,
     val kind: String,
@@ -665,6 +677,22 @@ interface LedgerDao {
         "SELECT t.id AS id, t.bookedDate AS bookedDate, t.kind AS kind, SUM(e.baseMinor) AS baseMinor, MIN(e.accountId) AS accountId, t.categoryId AS categoryId, t.payeeId AS payeeId, COALESCE((SELECT GROUP_CONCAT(labelId, '|') FROM record_labels rl WHERE rl.txnId = t.id), '') AS labels FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL GROUP BY t.id",
     )
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
+
+    @Query(
+        """
+        SELECT a.id AS accountId, a.name AS accountName, b.currency AS currency, c.decimals AS decimals,
+               b.openingMinor AS openingMinor,
+               COALESCE((SELECT SUM(e.amountMinor) FROM entries e JOIN transactions t ON t.id = e.txnId
+                         WHERE e.accountId = a.id AND e.currency = b.currency AND t.deletedAt IS NULL), 0) AS entryMinor,
+               COALESCE((SELECT f.egpPerUnit FROM fx_rates f WHERE f.currency = b.currency ORDER BY f.date DESC LIMIT 1), '1') AS egpPerUnit,
+               COALESCE((SELECT f.egpPerUnit FROM fx_rates f WHERE f.currency = b.currency AND f.date <= a.openingDate
+                         ORDER BY f.date DESC LIMIT 1), '1') AS openingEgpPerUnit
+        FROM accounts a JOIN account_buckets b ON b.accountId = a.id JOIN currencies c ON c.code = b.currency
+        WHERE a.archived = 0 AND a.includeInTotals = 1
+        ORDER BY a.sortOrder, a.name, b.currency
+        """,
+    )
+    fun observeAccountBalances(): Flow<List<AccountBalanceRow>>
 
     @Query("DELETE FROM transactions WHERE note LIKE '[DEV-SEED]%'")
     suspend fun clearDevSeed(): Int
