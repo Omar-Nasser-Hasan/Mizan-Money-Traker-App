@@ -85,4 +85,11 @@ class AppDatabaseMigrationTest {
         helper.createDatabase(databaseName, 8).close()
         helper.runMigrationsAndValidate(databaseName, 9, true, AppDatabase.MIGRATION_8_9).close()
     }
+
+    @Test
+    fun migratesInboxSchemaToParsedInboxSchema() {
+        val databaseName = "migration-v9-test"
+        helper.createDatabase(databaseName, 9).close()
+        helper.runMigrationsAndValidate(databaseName, 10, true, AppDatabase.MIGRATION_9_10).close()
+    }
 }

@@ -58,6 +58,7 @@ import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetType
 import app.mizan.domain.assets.GoldRatios
 import app.mizan.domain.entry.SmsDraft
+import app.mizan.domain.entry.SmsDraftKind
 import app.mizan.domain.ledger.AssetCashRequest
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
@@ -146,22 +147,45 @@ class MizanRepository
             val id =
                 UUID
                     .nameUUIDFromBytes(
-                        "$source|${draft.sender}|${draft.occurredAt.toEpochMilli()}|${draft.rawMessage}".toByteArray(),
+                        "$source|${draft.sender}|${draft.occurredAt.toEpochMilli()}|${draft.amountMinor}|${draft.balanceMinor}|${draft.rawMessage}"
+                            .toByteArray(),
                     ).toString()
-            return saveInboxDraft(
+            val entity =
                 InboxDraftEntity(
-                    id,
-                    source,
-                    draft.sender,
-                    draft.amountMinor,
-                    draft.currency,
-                    draft.merchant,
-                    draft.cardLastFour,
-                    draft.occurredAt.toEpochMilli(),
-                    clock.millis(),
-                    draft.rawMessage,
-                ),
-            )
+                    id = id,
+                    source = source,
+                    sender = draft.sender,
+                    amountMinor = draft.amountMinor,
+                    currency = draft.currency,
+                    merchant = draft.merchant,
+                    cardLastFour = draft.cardLastFour,
+                    kind = draft.kind.name,
+                    reference = draft.reference,
+                    balanceMinor = draft.balanceMinor,
+                    occurredAt = draft.occurredAt.toEpochMilli(),
+                    receivedAt = clock.millis(),
+                    rawMessage = draft.rawMessage,
+                )
+            return database.withTransaction {
+                if (draft.kind != SmsDraftKind.REVERSAL) return@withTransaction saveInboxDraft(entity)
+                val original =
+                    draft.reference?.let { inbox.findByReference(it, id) }
+                        ?: inbox.findReversalFallback(
+                            draft.amountMinor,
+                            draft.currency,
+                            draft.merchant,
+                            draft.cardLastFour,
+                            draft.occurredAt.minusSeconds(3 * 86_400).toEpochMilli(),
+                            draft.occurredAt.plusSeconds(3 * 86_400).toEpochMilli(),
+                            id,
+                        )
+                val inserted = saveInboxDraft(entity.copy(linkedDraftId = original?.id))
+                if (inserted && original?.status == "PENDING") {
+                    inbox.setStatus(original.id, "DISMISSED")
+                    inbox.setStatus(id, "DISMISSED")
+                }
+                inserted
+            }
         }
 
         fun observeIncomeSources() = incomeSetup.observeSources()

@@ -110,6 +110,10 @@ data class InboxDraftEntity(
     val currency: String,
     val merchant: String?,
     val cardLastFour: String?,
+    val kind: String = "EXPENSE",
+    val reference: String? = null,
+    val balanceMinor: Long? = null,
+    val linkedDraftId: String? = null,
     val occurredAt: Long,
     val receivedAt: Long,
     val rawMessage: String,
@@ -573,6 +577,25 @@ interface InboxDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(value: InboxDraftEntity): Long
 
+    @Query("SELECT * FROM inbox_drafts WHERE reference = :reference AND id != :excludingId ORDER BY receivedAt DESC LIMIT 1")
+    suspend fun findByReference(
+        reference: String,
+        excludingId: String,
+    ): InboxDraftEntity?
+
+    @Query(
+        "SELECT * FROM inbox_drafts WHERE amountMinor = :amountMinor AND currency = :currency AND merchant = :merchant AND cardLastFour = :cardLastFour AND occurredAt BETWEEN :from AND :to AND id != :excludingId ORDER BY receivedAt DESC LIMIT 1",
+    )
+    suspend fun findReversalFallback(
+        amountMinor: Long,
+        currency: String,
+        merchant: String?,
+        cardLastFour: String?,
+        from: Long,
+        to: Long,
+        excludingId: String,
+    ): InboxDraftEntity?
+
     @Query("UPDATE inbox_drafts SET status = :status WHERE id = :id")
     suspend fun setStatus(
         id: String,
@@ -942,7 +965,7 @@ interface AssetDao {
 
 @Database(
     entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, InboxDraftEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, GoalEntity::class, GoalLinkEntity::class, GoalContributionEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -1124,6 +1147,17 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_status ON inbox_drafts(status)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_receivedAt ON inbox_drafts(receivedAt)")
+                }
+            }
+
+        val MIGRATION_9_10 =
+            object : Migration(9, 10) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN kind TEXT NOT NULL DEFAULT 'EXPENSE'")
+                    db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN reference TEXT")
+                    db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN balanceMinor INTEGER")
+                    db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN linkedDraftId TEXT")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_reference ON inbox_drafts(reference)")
                 }
             }
     }
