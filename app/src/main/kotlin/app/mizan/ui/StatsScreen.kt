@@ -31,6 +31,7 @@ import app.mizan.data.io.StatsImageExport
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
+import app.mizan.domain.assets.AssetValuation
 import app.mizan.domain.assets.AverageCost
 import app.mizan.domain.assets.Xirr
 import app.mizan.domain.assets.XirrCashFlow
@@ -181,17 +182,7 @@ private fun LazyListScope.assetsTab(
             val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
             val price = prices.firstOrNull { it.key == key } ?: return@mapNotNull null
             if (price.currency != "EGP") return@mapNotNull null
-            val gross =
-                position.quantity
-                    .multiply(BigDecimal(price.price))
-                    .movePointRight(2)
-                    .setScale(0, RoundingMode.HALF_UP)
-                    .longValueExact()
-            val deduction =
-                BigDecimal(
-                    gross,
-                ).multiply(BigDecimal(asset.resaleDeductionPct)).divide(BigDecimal(100), 0, RoundingMode.HALF_UP).longValueExact()
-            val value = gross - deduction
+            val value = AssetValuation.valueMinor(position.quantity, BigDecimal(price.price), 2, BigDecimal(asset.resaleDeductionPct))
             val xirr =
                 Xirr.calculate(
                     assetTrades.map {

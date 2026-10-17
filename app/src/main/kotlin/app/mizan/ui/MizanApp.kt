@@ -201,6 +201,10 @@ fun mizanApp(repository: MizanRepository) {
                     assetEditorScreen(repository, modifier, onDone = { route = null })
                 }
 
+                "prices" -> {
+                    priceUpdateScreen(repository, modifier)
+                }
+
                 else -> {
                     val currentRoute = route
                     if (currentRoute?.startsWith("account:") ==
@@ -213,7 +217,12 @@ fun mizanApp(repository: MizanRepository) {
                         tabScreen(repository, tab, modifier, onAccount = {
                             route =
                                 "account:$it"
-                        }, onEntry = { route = "entry" }, onAsset = { route = "asset:$it" }, onCreateAsset = { route = "asset-create" })
+                        }, onEntry = {
+                            route = "entry"
+                        }, onAsset = { route = "asset:$it" }, onCreateAsset = { route = "asset-create" }, onPrices = {
+                            route =
+                                "prices"
+                        })
                     }
                 }
             }
@@ -230,13 +239,14 @@ private fun tabScreen(
     onEntry: () -> Unit,
     onAsset: (String) -> Unit,
     onCreateAsset: () -> Unit,
+    onPrices: () -> Unit,
 ) {
     when (tab) {
         "Home" -> homeScreen(repository, modifier, onAccount, onEntry)
         "Records" -> recordsScreen(repository, modifier)
         "Plan" -> planScreen(repository, modifier)
         "Stats" -> statsScreen(repository, modifier)
-        "Wealth" -> wealthScreen(repository, modifier, onAsset, onCreateAsset)
+        "Wealth" -> wealthScreen(repository, modifier, onAsset, onCreateAsset, onPrices)
         else -> emptyScreen(tab, modifier)
     }
 }

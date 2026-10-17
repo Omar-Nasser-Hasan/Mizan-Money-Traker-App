@@ -43,6 +43,7 @@ fun wealthScreen(
     modifier: Modifier,
     onAsset: (String) -> Unit,
     onCreate: () -> Unit,
+    onPrices: () -> Unit,
 ) {
     val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
@@ -53,6 +54,7 @@ fun wealthScreen(
             Text("Wealth")
             Text("Holdings are valued from their last known price. Stale values remain visible when offline.")
             TextButton(onClick = { scope.launch { repository.refreshGoldPrices() } }) { Text("Update gold prices") }
+            TextButton(onClick = onPrices) { Text("Update all prices") }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FilterChip(selectedType == null, { selectedType = null }, { Text("All") })
                 AssetType.entries.forEach { type ->
@@ -144,7 +146,7 @@ fun assetDetailScreen(
 ) {
     val asset by repository.observeAsset(assetId).collectAsStateWithLifecycle(null)
     val trades by repository.observeAssetTransactions(assetId).collectAsStateWithLifecycle(emptyList())
-    val price by repository.observeLatestAssetPrice(assetId).collectAsStateWithLifecycle(null)
+    val latestPrices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
@@ -155,6 +157,8 @@ fun assetDetailScreen(
     var manualPrice by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     val current = asset ?: return
+    val priceKey = if (current.type == "GOLD") "GOLD_${current.symbolOrKarats.uppercase()}" else "MANUAL:${current.id}"
+    val price = latestPrices.firstOrNull { it.key == priceKey }
     val position =
         remember(trades) {
             AverageCost.position(
@@ -275,5 +279,54 @@ fun assetDetailScreen(
             }) { Text(if (sale) "Post sale" else "Post purchase") }
         }
         items(trades, key = { it.id }) { trade -> Text("${trade.date} · ${trade.kind} · ${trade.quantity} at ${trade.unitPrice}") }
+    }
+}
+
+@Composable
+fun priceUpdateScreen(
+    repository: MizanRepository,
+    modifier: Modifier,
+) {
+    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
+    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
+    val scope = rememberCoroutineScope()
+    var status by remember { mutableStateOf("") }
+    LazyColumn(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            Text("Update prices")
+            Text("Gold uses the best-effort Daleelak dealer feed. EGX and fund prices remain manual because SPIKE-S1 failed.")
+            Button(onClick = { scope.launch { status = repository.refreshGoldPrices().fold({ "Gold prices updated." }, { "Gold update failed; last-known values were kept." }) } }) { Text("Update all") }
+            if (status.isNotBlank()) Text(status)
+        }
+        items(assets, key = { it.id }) { asset ->
+            ManualPriceRow(asset, prices, repository)
+        }
+    }
+}
+
+@Composable
+private fun ManualPriceRow(
+    asset: AssetEntity,
+    prices: List<app.mizan.data.db.PriceSnapshotEntity>,
+    repository: MizanRepository,
+) {
+    var value by remember(asset.id) { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+    val last = prices.firstOrNull { it.key == key }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(asset.name)
+            Text(last?.let { "${it.price} ${it.currency} · ${it.source}" } ?: "No saved price")
+            OutlinedTextField(value, { value = it }, label = { Text("Manual price") }, modifier = Modifier.fillMaxWidth())
+            Button(onClick = {
+                val price = runCatching { BigDecimal(value) }.getOrNull()
+                if (price != null && price > BigDecimal.ZERO) scope.launch {
+                    if (asset.type == "GOLD" && asset.symbolOrKarats.equals("21K", true)) repository.saveManualGold21Price(price)
+                    else repository.saveManualPrice(asset.id, price, asset.quoteCurrency)
+                    value = ""
+                }
+            }) { Text("Save") }
+        }
     }
 }

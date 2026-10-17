@@ -57,6 +57,24 @@ class AssetsTest {
         assertEquals(true, resolved.fallback)
     }
 
+    @Test fun `price source order is dealer then spot then manual`() {
+        val day = LocalDate.parse("2026-02-02")
+        val manual = PriceCandidate(BigDecimal("100"), day, "Manual", true)
+        val spot = PriceCandidate(BigDecimal("110"), day, "Spot-derived", false)
+        val dealer = PriceCandidate(BigDecimal("120"), day, "Dealer", false)
+        assertEquals(BigDecimal("120"), PriceResolver.resolve(dealer, spot, manual, day, 1)?.price)
+        assertEquals(BigDecimal("110"), PriceResolver.resolve(null, spot, manual, day, 1)?.price)
+        assertEquals(BigDecimal("100"), PriceResolver.resolve(null, null, manual, day, 1)?.price)
+    }
+
+    @Test fun `ten grams of 21k changes net worth by value minus cost and is not an expense`() {
+        val cost = 50_000_00L
+        val value = AssetValuation.valueMinor(BigDecimal("10"), BigDecimal("5100"), 2, BigDecimal.ZERO)
+        assertEquals(51_000_00L, value)
+        assertEquals(101_000_00L, AssetValuation.netWorthMinor(100_000_00L - cost, listOf(value)))
+        assertEquals(1_000_00L, AssetValuation.netWorthMinor(100_000_00L - cost, listOf(value)) - 100_000_00L)
+    }
+
     private fun trade(
         id: String,
         kind: AssetTransactionKind,

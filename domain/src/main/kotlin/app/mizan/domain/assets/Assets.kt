@@ -43,6 +43,27 @@ data class AverageCostPosition(
     val realizedProfitMinor: Long = 0,
 )
 
+object AssetValuation {
+    /** Valuation is dealer buy price less the asset-specific resale deduction. */
+    fun valueMinor(
+        quantity: BigDecimal,
+        dealerBuyPrice: BigDecimal,
+        currencyDecimals: Int,
+        resaleDeductionPct: BigDecimal,
+    ): Long {
+        require(quantity >= BigDecimal.ZERO && dealerBuyPrice >= BigDecimal.ZERO)
+        require(resaleDeductionPct >= BigDecimal.ZERO && resaleDeductionPct <= BigDecimal(100))
+        val gross = quantity.multiply(dealerBuyPrice).movePointRight(currencyDecimals).setScale(0, RoundingMode.HALF_UP)
+        val deduction = gross.multiply(resaleDeductionPct).divide(BigDecimal(100), 0, RoundingMode.HALF_UP)
+        return gross.subtract(deduction).longValueExact()
+    }
+
+    fun netWorthMinor(
+        cashBaseMinor: Long,
+        holdingBaseMinors: Iterable<Long>,
+    ): Long = holdingBaseMinors.fold(cashBaseMinor, Math::addExact)
+}
+
 /** Moving average cost; sells release cost at the average cost immediately before the sale. */
 object AverageCost {
     fun position(transactions: List<AssetTransaction>): AverageCostPosition =
@@ -95,24 +116,24 @@ data class PriceCandidate(
     val manual: Boolean,
 )
 
-/** Prefers fresh automatic prices, then manual prices, then any last known price without inventing a zero. */
+/** Gold fallback order from the spec: dealer, spot-derived, then a manual dealer price. */
 object PriceResolver {
     fun resolve(
-        automatic: PriceCandidate?,
+        dealer: PriceCandidate?,
+        spotDerived: PriceCandidate?,
         manual: PriceCandidate?,
-        fallback: PriceCandidate?,
         today: LocalDate,
         staleAfterDays: Long,
     ): ResolvedPrice? {
         require(staleAfterDays >= 0)
-        val chosen = automatic ?: manual ?: fallback ?: return null
+        val chosen = dealer ?: spotDerived ?: manual ?: return null
         return ResolvedPrice(
             price = chosen.price,
             asOf = chosen.asOf,
             source = chosen.source,
             manual = chosen.manual,
             stale = !chosen.manual && ChronoUnit.DAYS.between(chosen.asOf, today) > staleAfterDays,
-            fallback = chosen === fallback,
+            fallback = chosen !== dealer,
         )
     }
 }
