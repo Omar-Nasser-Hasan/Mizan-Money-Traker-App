@@ -434,6 +434,24 @@ class MizanRepository
 
         fun observeHideAmounts(): Flow<Boolean> = context.dataStore.data.map { it[HIDE_AMOUNTS] ?: false }
 
+        /**
+         * The V2 interface is deliberately opt-in until its screens replace their legacy equivalents.
+         * Keeping this preference here makes the choice survive activity recreation and app restarts.
+         */
+        fun observeNewInterface(): Flow<Boolean> = context.dataStore.data.map { it[NEW_INTERFACE] ?: false }
+
+        fun observeV2PeriodKind(): Flow<String> = context.dataStore.data.map { it[V2_PERIOD_KIND] ?: "MONTH" }
+
+        fun observeV2PeriodStart(): Flow<String?> = context.dataStore.data.map { it[V2_PERIOD_START] }
+
+        fun observeV2PeriodEnd(): Flow<String?> = context.dataStore.data.map { it[V2_PERIOD_END] }
+
+        fun observeV2AccountFilter(): Flow<String?> = context.dataStore.data.map { it[V2_ACCOUNT_FILTER] }
+
+        fun observeV2BaseCurrency(): Flow<String> = context.dataStore.data.map { it[V2_BASE_CURRENCY] ?: "EGP" }
+
+        fun observeLastUsedAccountId(): Flow<String?> = context.dataStore.data.map { it[LAST_USED_ACCOUNT_ID] }
+
         fun observeLearnedPayeeCategories(): Flow<Map<String, String>> =
             context.dataStore.data.map { preferences ->
                 preferences
@@ -484,6 +502,33 @@ class MizanRepository
         fun observeQuietHoursEnd(): Flow<String> = context.dataStore.data.map { it[QUIET_HOURS_END] ?: "07:00" }
 
         suspend fun setHideAmounts(enabled: Boolean) = context.dataStore.edit { it[HIDE_AMOUNTS] = enabled }
+
+        suspend fun setNewInterface(enabled: Boolean) = context.dataStore.edit { it[NEW_INTERFACE] = enabled }
+
+        suspend fun setV2Period(
+            kind: String,
+            start: String?,
+            end: String?,
+        ) = context.dataStore.edit { preferences ->
+            preferences[V2_PERIOD_KIND] = kind
+            if (start == null) preferences.remove(V2_PERIOD_START) else preferences[V2_PERIOD_START] = start
+            if (end == null) preferences.remove(V2_PERIOD_END) else preferences[V2_PERIOD_END] = end
+        }
+
+        suspend fun setV2AccountFilter(accountId: String?) =
+            context.dataStore.edit { preferences ->
+                if (accountId == null) preferences.remove(V2_ACCOUNT_FILTER) else preferences[V2_ACCOUNT_FILTER] = accountId
+            }
+
+        suspend fun setV2BaseCurrency(currency: String) {
+            require(currency.length == 3) { "Base currency must be an ISO-4217 code" }
+            context.dataStore.edit { it[V2_BASE_CURRENCY] = currency.uppercase() }
+        }
+
+        suspend fun setLastUsedAccountId(accountId: String?) =
+            context.dataStore.edit { preferences ->
+                if (accountId == null) preferences.remove(LAST_USED_ACCOUNT_ID) else preferences[LAST_USED_ACCOUNT_ID] = accountId
+            }
 
         suspend fun setSecureScreens(enabled: Boolean) = context.dataStore.edit { it[SECURE_SCREENS] = enabled }
 
@@ -1115,6 +1160,13 @@ class MizanRepository
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
             private const val TWO_HOURS_MILLIS = 2L * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
+            private val NEW_INTERFACE = booleanPreferencesKey("new_interface")
+            private val V2_PERIOD_KIND = stringPreferencesKey("v2_period_kind")
+            private val V2_PERIOD_START = stringPreferencesKey("v2_period_start")
+            private val V2_PERIOD_END = stringPreferencesKey("v2_period_end")
+            private val V2_ACCOUNT_FILTER = stringPreferencesKey("v2_account_filter")
+            private val V2_BASE_CURRENCY = stringPreferencesKey("v2_base_currency")
+            private val LAST_USED_ACCOUNT_ID = stringPreferencesKey("last_used_account_id")
             private val SECURE_SCREENS = booleanPreferencesKey("secure_screens")
             private val LOCK_TIMEOUT_SECONDS = intPreferencesKey("lock_timeout_seconds")
             private val PLANNED_REMINDERS_ENABLED = booleanPreferencesKey("planned_reminders_enabled")
