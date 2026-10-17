@@ -58,7 +58,12 @@ fun voiceEntryScreen(
     val parserContext =
         ParserContext(
             accounts.map { ParserAccount(it.id, setOf(it.name)) },
-            (expenses + incomes).map { ParserCategory(it.id, setOf(it.name)) },
+            (expenses + incomes).map { category ->
+                ParserCategory(
+                    category.id,
+                    setOf(category.name) + parserAliases(category.name),
+                )
+            },
             learnedPayees = learnedPayees,
             defaultAccountId = accounts.firstOrNull()?.id,
             today = LocalDate.now(ZoneId.of("Africa/Cairo")),
@@ -125,5 +130,17 @@ fun voiceEntryScreen(
             },
             dismissButton = { Button(onClick = { confirmSave = false }) { Text("Cancel") } },
         )
+    }
+}
+
+private fun parserAliases(categoryName: String): Set<String> {
+    val name = categoryName.lowercase()
+    return when {
+        listOf("grocer", "restaurant", "cafe", "drinks", "delivery", "snack").any(name::contains) -> setOf("food")
+        listOf("taxi", "transport", "metro", "ride").any(name::contains) -> setOf("transport")
+        name.contains("fuel") -> setOf("fuel")
+        listOf("electricity", "water", "gas").any(name::contains) -> setOf("utilities")
+        listOf("zakat", "charity", "sadaq").any(name::contains) -> setOf("charity")
+        else -> emptySet()
     }
 }
