@@ -430,6 +430,8 @@ class MizanRepository
 
         fun observeAssetTransactions(id: String): Flow<List<AssetTransactionEntity>> = assetDao.observeTransactions(id)
 
+        fun observeAllAssetTransactions(): Flow<List<AssetTransactionEntity>> = assetDao.observeAllTransactions()
+
         fun observeLatestAssetPrice(id: String): Flow<PriceSnapshotEntity?> = assetDao.observeLatestPrice(id)
 
         fun observeLatestPrices(): Flow<List<PriceSnapshotEntity>> = assetDao.observeLatestPrices()

@@ -29,6 +29,12 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.io.StatsImageExport
 import app.mizan.data.repository.MizanRepository
+import app.mizan.domain.assets.AssetTransaction
+import app.mizan.domain.assets.AssetTransactionKind
+import app.mizan.domain.assets.AverageCost
+import app.mizan.domain.assets.Xirr
+import app.mizan.domain.assets.XirrCashFlow
+import app.mizan.domain.money.MoneyMath
 import app.mizan.domain.stats.Period
 import app.mizan.domain.stats.StatKind
 import app.mizan.domain.stats.StatPeriods
@@ -42,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -55,6 +62,9 @@ fun statsScreen(
     var comparison by remember { mutableStateOf(Comparison.PREVIOUS) }
     val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
     val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
+    val assetTrades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
+    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val period = range.period(today)
     val comparisonPeriod = if (comparison == Comparison.PREVIOUS) StatPeriods.previous(period) else StatPeriods.lastYear(period)
@@ -133,9 +143,100 @@ fun statsScreen(
             StatsTab.REPORTS -> {
                 reportsTab(data)
             }
+
+            StatsTab.ASSETS -> {
+                assetsTab(assets, assetTrades, prices, balances)
+            }
         }
     }
 }
+
+private fun LazyListScope.assetsTab(
+    assets: List<app.mizan.data.db.AssetEntity>,
+    trades: List<app.mizan.data.db.AssetTransactionEntity>,
+    prices: List<app.mizan.data.db.PriceSnapshotEntity>,
+    balances: List<app.mizan.data.db.AccountBalanceRow>,
+) {
+    val cash = balances.sumOf { MoneyMath.baseMinor(it.openingMinor + it.entryMinor, it.decimals, BigDecimal(it.egpPerUnit)) }
+    val rows =
+        assets.mapNotNull { asset ->
+            val assetTrades = trades.filter { it.assetId == asset.id }
+            val position =
+                AverageCost.position(
+                    assetTrades.map {
+                        AssetTransaction(
+                            it.id,
+                            it.assetId,
+                            AssetTransactionKind.valueOf(it.kind),
+                            LocalDate.parse(it.date),
+                            BigDecimal(it.quantity),
+                            BigDecimal(it.unitPrice),
+                            it.feeMinor,
+                            it.totalMinor,
+                            it.txnId,
+                            it.note,
+                        )
+                    },
+                )
+            val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+            val price = prices.firstOrNull { it.key == key } ?: return@mapNotNull null
+            if (price.currency != "EGP") return@mapNotNull null
+            val gross =
+                position.quantity
+                    .multiply(BigDecimal(price.price))
+                    .movePointRight(2)
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValueExact()
+            val deduction =
+                BigDecimal(
+                    gross,
+                ).multiply(BigDecimal(asset.resaleDeductionPct)).divide(BigDecimal(100), 0, RoundingMode.HALF_UP).longValueExact()
+            val value = gross - deduction
+            val xirr =
+                Xirr.calculate(
+                    assetTrades.map {
+                        XirrCashFlow(
+                            LocalDate.parse(it.date),
+                            if (it.kind ==
+                                "BUY"
+                            ) {
+                                BigDecimal.valueOf(-it.totalMinor)
+                            } else {
+                                BigDecimal.valueOf(it.totalMinor)
+                            },
+                        )
+                    } +
+                        XirrCashFlow(LocalDate.now(ZoneId.of("Africa/Cairo")), BigDecimal.valueOf(value)),
+                )
+            AssetStatsRow(asset, position, value, xirr)
+        }
+    val holdings = rows.sumOf { it.valueMinor }
+    item { Text("Assets", style = MaterialTheme.typography.titleLarge) }
+    item { Text("Net worth: ${cash + holdings} EGP minor · cash $cash · holdings $holdings") }
+    item { Text("Allocation uses current EGP prices; foreign-currency holdings need an EGP price snapshot before they contribute.") }
+    items(rows, key = { it.asset.id }) { row ->
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp)) {
+                Text(row.asset.name)
+                Text("Cost ${row.position.costMinor} · value ${row.valueMinor} · unrealized ${row.valueMinor - row.position.costMinor}")
+                Text(
+                    "Realized P/L ${row.position.realizedProfitMinor} · XIRR ${row.xirr?.let {
+                        "${it.movePointRight(
+                            2,
+                        ).setScale(1, RoundingMode.HALF_UP)}%"
+                    } ?: "—"}",
+                )
+            }
+        }
+    }
+}
+
+private data class AssetStatsRow(
+    val asset: app.mizan.data.db.AssetEntity,
+    val position: app.mizan.domain.assets.AverageCostPosition,
+    val valueMinor: Long,
+    val xirr: BigDecimal?,
+)
 
 private fun LazyListScope.balanceTab(data: StatsUiData) {
     item { Text("Balance trend", style = MaterialTheme.typography.titleLarge) }
@@ -310,6 +411,7 @@ private enum class StatsTab(
     CASH_FLOW("Cash-flow"),
     SPENDING("Spending"),
     REPORTS("Reports"),
+    ASSETS("Assets"),
 }
 
 private enum class StatsRange(
