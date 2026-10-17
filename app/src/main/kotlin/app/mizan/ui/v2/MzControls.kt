@@ -185,7 +185,7 @@ fun MzInput(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth().height(56.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
         label = { Text(label, style = MzTypography.bodySmall) },
         textStyle = MzTypography.body,
         singleLine = singleLine,

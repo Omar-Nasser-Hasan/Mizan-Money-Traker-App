@@ -112,19 +112,22 @@ fun mizanApp(
             }
     }
     val scope = rememberCoroutineScope()
+    val isDesignGallery = route == "design-gallery"
     CompositionLocalProvider(LocalHideAmounts provides hideAmounts) {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            route?.replaceFirstChar { it.uppercase() } ?: tab,
-                            modifier = Modifier.combinedClickable(onClick = {}, onLongClick = { if (tab == "Wealth") route = "dev" }),
-                        )
-                    },
-                    navigationIcon = { if (route != null) TextButton(onClick = { route = null }) { Text("Back") } },
-                    actions = { if (route == null) TextButton(onClick = { route = "settings" }) { Text("Settings") } },
-                )
+                if (!isDesignGallery) {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                route?.replaceFirstChar { it.uppercase() } ?: tab,
+                                modifier = Modifier.combinedClickable(onClick = {}, onLongClick = { if (tab == "Wealth") route = "dev" }),
+                            )
+                        },
+                        navigationIcon = { if (route != null) TextButton(onClick = { route = null }) { Text("Back") } },
+                        actions = { if (route == null) TextButton(onClick = { route = "settings" }) { Text("Settings") } },
+                    )
+                }
             },
             bottomBar = {
                 if (route == null) {

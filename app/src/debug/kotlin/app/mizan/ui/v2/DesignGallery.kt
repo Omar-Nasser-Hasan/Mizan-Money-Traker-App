@@ -74,10 +74,10 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item {
                         MzCard(Modifier.fillMaxWidth()) {
                             MzListRow("shopping_bag", "Groceries", "Groceries", "Today · Cash") {
-                                AmountText(-12_580, "EGP", AmountStyle.EXPENSE, false)
+                                AmountText(-1_258, "EGP", AmountStyle.EXPENSE, false)
                             }
                             MzListRow("payments", "Income", "Salary", "Yesterday · Bank") {
-                                AmountText(125_800, "EGP", AmountStyle.INCOME, false)
+                                AmountText(1_258, "EGP", AmountStyle.INCOME, false)
                             }
                         }
                     }
