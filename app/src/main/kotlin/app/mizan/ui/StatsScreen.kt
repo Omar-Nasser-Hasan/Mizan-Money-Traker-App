@@ -150,6 +150,14 @@ fun statsScreen(
             StatsTab.ASSETS -> {
                 assetsTab(assets, assetTrades, prices, balances, currencies, fxRates)
             }
+
+            StatsTab.OUTLOOK -> {
+                item { outlookScreen(repository, Modifier.fillMaxWidth()) }
+            }
+
+            StatsTab.CREDIT -> {
+                item { creditAndSavingsScreen(repository, Modifier.fillMaxWidth()) }
+            }
         }
     }
 }
@@ -427,6 +435,8 @@ private enum class StatsTab(
     SPENDING("Spending"),
     REPORTS("Reports"),
     ASSETS("Assets"),
+    OUTLOOK("Outlook"),
+    CREDIT("Credit"),
 }
 
 private enum class StatsRange(

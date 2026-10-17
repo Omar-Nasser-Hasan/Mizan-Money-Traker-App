@@ -31,6 +31,9 @@ import app.mizan.data.db.DebtEntity
 import app.mizan.data.db.EntryEntity
 import app.mizan.data.db.FxRateDao
 import app.mizan.data.db.FxRateEntity
+import app.mizan.data.db.GoalContributionEntity
+import app.mizan.data.db.GoalEntity
+import app.mizan.data.db.GoalLinkEntity
 import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
@@ -126,6 +129,12 @@ class MizanRepository
 
         fun observeBudgets() = planning.observeBudgets()
 
+        fun observeGoals() = planning.observeGoals()
+
+        fun observeGoalLinks(goalId: String) = planning.observeGoalLinks(goalId)
+
+        fun observeGoalContributions(goalId: String) = planning.observeGoalContributions(goalId)
+
         fun observePlannedPayments() = planning.observePlanned()
 
         suspend fun activePlannedPayments() = planning.activePlanned()
@@ -133,6 +142,17 @@ class MizanRepository
         suspend fun activePlannedPayment(id: String) = planning.activePlanned(id)
 
         suspend fun activeBudgets() = planning.activeBudgets()
+
+        suspend fun saveGoal(value: GoalEntity) = planning.upsertGoal(value)
+
+        suspend fun saveGoalLink(value: GoalLinkEntity) = planning.upsertGoalLink(value)
+
+        suspend fun saveGoalContribution(value: GoalContributionEntity) = planning.upsertGoalContribution(value)
+
+        suspend fun setGoalStatus(
+            id: String,
+            status: String,
+        ) = planning.setGoalStatus(id, status)
 
         suspend fun plannedOccurrence(
             plannedId: String,

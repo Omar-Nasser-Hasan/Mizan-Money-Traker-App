@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.GoalContributionEntity
+import app.mizan.data.db.GoalEntity
+import app.mizan.data.db.GoalLinkEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.plan.BudgetMath
@@ -33,6 +36,7 @@ import app.mizan.domain.plan.BudgetMathInput
 import app.mizan.domain.plan.BudgetPeriod
 import app.mizan.domain.plan.DebtBalance
 import app.mizan.domain.plan.Frequency
+import app.mizan.domain.plan.GoalProgress
 import app.mizan.domain.plan.Recurrence
 import app.mizan.domain.plan.RecurrenceEngine
 import app.mizan.domain.plan.Rollover
@@ -59,10 +63,14 @@ fun planScreen(
     var debtDirection by remember { mutableStateOf("LENT") }
     var dueDate by remember { mutableStateOf("") }
     var repaymentAmount by remember { mutableStateOf("") }
+    var allocationPct by remember { mutableStateOf("100") }
+    var goalDate by remember { mutableStateOf("") }
+    var manualContribution by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
     val planned by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
     val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
+    val goals by repository.observeGoals().collectAsStateWithLifecycle(emptyList())
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
     val selectedScopeId = if (budgetScope == "ACCOUNT") accounts.firstOrNull()?.id.orEmpty() else categories.firstOrNull()?.id.orEmpty()
@@ -147,6 +155,28 @@ fun planScreen(
                     )
                 }
             }
+
+            PlanSection.GOALS -> {
+                item { Text("The first account can be linked now; add more allocations from the goal details.") }
+                item {
+                    OutlinedTextField(allocationPct, {
+                        allocationPct = it
+                    }, label = { Text("First-account allocation %") }, modifier = Modifier.fillMaxWidth())
+                }
+                item {
+                    OutlinedTextField(
+                        goalDate,
+                        { goalDate = it },
+                        label = { Text("Target date (optional, YYYY-MM-DD)") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                item {
+                    OutlinedTextField(manualContribution, {
+                        manualContribution = it
+                    }, label = { Text("Initial manual contribution (optional, EGP)") }, modifier = Modifier.fillMaxWidth())
+                }
+            }
         }
         item {
             Button(
@@ -208,10 +238,46 @@ fun planScreen(
                                     ),
                                 )
                             }
+
+                            PlanSection.GOALS -> {
+                                val goal =
+                                    GoalEntity(
+                                        UUID.randomUUID().toString(),
+                                        name,
+                                        minor,
+                                        goalDate.takeIf {
+                                            runCatching { LocalDate.parse(it) }.isSuccess
+                                        },
+                                        "flag",
+                                        "#F2B84B",
+                                        "ACTIVE",
+                                        System.currentTimeMillis(),
+                                    )
+                                repository.saveGoal(goal)
+                                allocationPct.toLongOrNull()?.takeIf { it in 0..100 }?.let { percent ->
+                                    account?.let {
+                                        repository.saveGoalLink(
+                                            GoalLinkEntity(goal.id, accountId = it.id, allocationPct = percent),
+                                        )
+                                    }
+                                }
+                                amountToMinor(manualContribution, 2).takeIf { it > 0 }?.let { contribution ->
+                                    repository.saveGoalContribution(
+                                        GoalContributionEntity(
+                                            UUID.randomUUID().toString(),
+                                            goal.id,
+                                            LocalDate.now().toString(),
+                                            contribution,
+                                        ),
+                                    )
+                                }
+                            }
                         }
                         name = ""
                         amount = ""
                         dueDate = ""
+                        goalDate = ""
+                        manualContribution = ""
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -241,6 +307,12 @@ fun planScreen(
                             repaymentAmount = ""
                         }
                     })
+                }
+            }
+
+            PlanSection.GOALS -> {
+                items(goals, key = { it.id }) { goal ->
+                    goalSummary(repository, goal)
                 }
             }
         }
@@ -382,6 +454,54 @@ private fun debtSummary(
 }
 
 @Composable
+private fun goalSummary(
+    repository: MizanRepository,
+    goal: GoalEntity,
+) {
+    val links by repository.observeGoalLinks(goal.id).collectAsStateWithLifecycle(emptyList())
+    val contributions by repository.observeGoalContributions(goal.id).collectAsStateWithLifecycle(emptyList())
+    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val scope = rememberCoroutineScope()
+    val linked =
+        links.sumOf { link ->
+            val accountValue =
+                balances.filter { it.accountId == link.accountId }.sumOf { row ->
+                    app.mizan.domain.money.MoneyMath.baseMinor(
+                        row.openingMinor + row.entryMinor,
+                        row.decimals,
+                        java.math.BigDecimal(row.egpPerUnit),
+                    )
+                }
+            accountValue * link.allocationPct / 100
+        }
+    val progress =
+        GoalProgress(
+            goal.targetMinor,
+            linked,
+            contributions.sumOf {
+                it.amountMinor
+            },
+            goal.targetDate?.let(LocalDate::parse),
+            app.mizan.domain.plan.GoalStatus
+                .valueOf(goal.status),
+        )
+    val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
+    Column(Modifier.padding(8.dp)) {
+        Text(goal.name)
+        Text("Progress ${progress.progressMinor} / ${goal.targetMinor} EGP minor")
+        Text("Monthly needed: ${progress.monthlyNeeded(today)} EGP minor")
+        val recent = contributions.takeLast(3)
+        val averageGain = if (recent.isEmpty()) 0L else recent.sumOf { it.amountMinor } / recent.size
+        Text(progress.eta(today, averageGain)?.let { "ETA $it" } ?: "ETA —")
+        if (progress.needsReachedPrompt) {
+            Button(onClick = {
+                scope.launch { repository.setGoalStatus(goal.id, "REACHED") }
+            }) { Text("Mark as reached") }
+        }
+    }
+}
+
+@Composable
 private fun optionChips(
     title: String,
     options: List<String>,
@@ -409,4 +529,5 @@ private enum class PlanSection(
     BUDGETS("Budgets", "budget"),
     PLANNED("Planned", "planned payment"),
     DEBTS("Debts", "debt"),
+    GOALS("Goals", "goal"),
 }
