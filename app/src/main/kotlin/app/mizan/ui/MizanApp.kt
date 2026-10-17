@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.compose.collectAsLazyPagingItems
+import app.mizan.BuildConfig
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.LabelEntity
@@ -71,6 +72,7 @@ import app.mizan.domain.stats.StatsEngine
 import app.mizan.quick.ACTION_EXPENSE
 import app.mizan.quick.ACTION_INCOME
 import app.mizan.quick.ACTION_VOICE
+import app.mizan.ui.v2.designGalleryEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -230,7 +232,11 @@ fun mizanApp(
                 }
 
                 "dev" -> {
-                    devScreen(repository, modifier)
+                    devScreen(repository, modifier, onDesignGallery = { route = "design-gallery" })
+                }
+
+                "design-gallery" -> {
+                    if (BuildConfig.DEBUG) designGalleryEntry(modifier)
                 }
 
                 "asset-create" -> {
@@ -918,6 +924,7 @@ private fun accountDetail(
 private fun devScreen(
     repository: MizanRepository,
     modifier: Modifier,
+    onDesignGallery: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf("Dev-only: no product data is stored by probes.") }
@@ -938,6 +945,9 @@ private fun devScreen(
         Button(
             onClick = { scope.launch { status = "Removed ${repository.clearDevSeed()} seeded records" } },
         ) { Text("Clear seeded records") }
+        if (BuildConfig.DEBUG) {
+            Button(onClick = onDesignGallery) { Text("Open V2 Design Gallery") }
+        }
         Text(status)
     }
 }
