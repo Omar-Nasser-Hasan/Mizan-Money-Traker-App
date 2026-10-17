@@ -298,20 +298,24 @@ fun priceUpdateScreen(
             Button(
                 onClick = {
                     scope.launch {
-                        status = repository.refreshGoldPrices().fold({ "Gold prices updated." }, { "Gold update failed; last-known values were kept." })
+                        status =
+                            repository.refreshGoldPrices().fold(
+                                { "Gold prices updated." },
+                                { "Gold update failed; last-known values were kept." },
+                            )
                     }
                 },
             ) { Text("Update all") }
             if (status.isNotBlank()) Text(status)
         }
         items(assets, key = { it.id }) { asset ->
-            ManualPriceRow(asset, prices, repository)
+            manualPriceRow(asset, prices, repository)
         }
     }
 }
 
 @Composable
-private fun ManualPriceRow(
+private fun manualPriceRow(
     asset: AssetEntity,
     prices: List<app.mizan.data.db.PriceSnapshotEntity>,
     repository: MizanRepository,
@@ -327,10 +331,15 @@ private fun ManualPriceRow(
             OutlinedTextField(value, { value = it }, label = { Text("Manual price") }, modifier = Modifier.fillMaxWidth())
             Button(onClick = {
                 val price = runCatching { BigDecimal(value) }.getOrNull()
-                if (price != null && price > BigDecimal.ZERO) scope.launch {
-                    if (asset.type == "GOLD" && asset.symbolOrKarats.equals("21K", true)) repository.saveManualGold21Price(price)
-                    else repository.saveManualPrice(asset.id, price, asset.quoteCurrency)
-                    value = ""
+                if (price != null && price > BigDecimal.ZERO) {
+                    scope.launch {
+                        if (asset.type == "GOLD" && asset.symbolOrKarats.equals("21K", true)) {
+                            repository.saveManualGold21Price(price)
+                        } else {
+                            repository.saveManualPrice(asset.id, price, asset.quoteCurrency)
+                        }
+                        value = ""
+                    }
                 }
             }) { Text("Save") }
         }
