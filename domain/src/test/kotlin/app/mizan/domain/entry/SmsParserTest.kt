@@ -70,6 +70,13 @@ class SmsParserTest {
         assertTrue(SmsParser.isPossibleDuplicate(draft, "cash", listOf(existing.copy(balanceMinor = draft.balanceMinor))))
     }
 
+    @Test
+    fun `unverified sender templates are disabled`() {
+        SmsParser.disabledUnverifiedSenders.forEach { sender ->
+            assertEquals(null, SmsParser.parse(sender, "Payment EGP 50 at Merchant", Instant.now()))
+        }
+    }
+
     private fun loadSamples(): List<Sample> {
         val directory =
             listOf(Paths.get("docs/sms-samples"), Paths.get("../docs/sms-samples")).firstOrNull(Files::isDirectory)

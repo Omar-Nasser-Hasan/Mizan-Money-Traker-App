@@ -25,18 +25,39 @@ data class SmsDraft(
 
 /** Only templates backed by a redacted sample are eligible for automatic Inbox drafts. */
 object SmsParser {
-    val disabledUnverifiedSenders = setOf("CIB", "NBE", "QNB", "INSTAPAY", "VODAFONE CASH")
+    private data class SenderTemplate(
+        val aliases: Set<String>,
+        val enabled: Boolean,
+    )
+
+    private val senderTemplates =
+        listOf(
+            SenderTemplate(setOf("BANQUE MISR", "BM"), enabled = true),
+            SenderTemplate(setOf("HSBC"), enabled = true),
+            SenderTemplate(setOf("CIB", "CIB BANK"), enabled = false),
+            SenderTemplate(setOf("NBE", "NATIONAL BANK OF EGYPT"), enabled = false),
+            SenderTemplate(setOf("QNB"), enabled = false),
+            SenderTemplate(setOf("INSTAPAY"), enabled = false),
+            SenderTemplate(setOf("VODAFONE CASH", "VODAFONE"), enabled = false),
+        )
+
+    val disabledUnverifiedSenders: Set<String> =
+        senderTemplates.filterNot(SenderTemplate::enabled).flatMap(SenderTemplate::aliases).toSet()
 
     fun parse(
         sender: String,
         message: String,
         receivedAt: Instant,
-    ): SmsDraft? =
-        when (sender.trim().uppercase(Locale.ROOT)) {
+    ): SmsDraft? {
+        val template =
+            senderTemplates.firstOrNull { candidate -> candidate.aliases.any { it.equals(sender, ignoreCase = true) } } ?: return null
+        if (!template.enabled) return null
+        return when (sender.trim().uppercase(Locale.ROOT)) {
             "BANQUE MISR", "BM" -> banqueMisr(sender, message, receivedAt)
             "HSBC" -> hsbc(sender, message, receivedAt)
             else -> null
         }
+    }
 
     /** Same account, amount, payee and time is suspicious unless distinct balances prove separate events. */
     fun isPossibleDuplicate(
