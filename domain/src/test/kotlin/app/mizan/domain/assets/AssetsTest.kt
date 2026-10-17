@@ -1,6 +1,9 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.assets
 
+import app.mizan.domain.ledger.AssetCashRequest
+import app.mizan.domain.ledger.LedgerService
+import app.mizan.domain.ledger.TxnKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -73,6 +76,25 @@ class AssetsTest {
         assertEquals(51_000_00L, value)
         assertEquals(101_000_00L, AssetValuation.netWorthMinor(100_000_00L - cost, listOf(value)))
         assertEquals(1_000_00L, AssetValuation.netWorthMinor(100_000_00L - cost, listOf(value)) - 100_000_00L)
+        val posting =
+            LedgerService { "asset-buy" }.postAssetCash(
+                AssetCashRequest(
+                    "investment",
+                    "EGP",
+                    cost,
+                    2,
+                    BigDecimal.ONE,
+                    TxnKind.ASSET_BUY,
+                    java.time.Instant.EPOCH,
+                    LocalDate.parse("2026-10-17"),
+                ),
+            )
+        assertEquals(TxnKind.ASSET_BUY, posting.transaction.kind)
+        assertEquals(-cost, posting.entries.single().amountMinor)
+    }
+
+    @Test fun `resale deduction reduces valuation without changing cost`() {
+        assertEquals(9_000L, AssetValuation.valueMinor(BigDecimal("10"), BigDecimal("10"), 2, BigDecimal("10")))
     }
 
     private fun trade(
