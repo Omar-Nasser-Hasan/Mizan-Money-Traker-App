@@ -101,7 +101,7 @@ data class PayeeEntity(
     val archived: Boolean = false,
 )
 
-@Entity(tableName = "inbox_drafts", indices = [Index("status"), Index("receivedAt")])
+@Entity(tableName = "inbox_drafts", indices = [Index("status"), Index("receivedAt"), Index("reference")])
 data class InboxDraftEntity(
     @PrimaryKey val id: String,
     val source: String,
@@ -965,7 +965,7 @@ interface AssetDao {
 
 @Database(
     entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, InboxDraftEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, GoalEntity::class, GoalLinkEntity::class, GoalContributionEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -1157,6 +1157,14 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN reference TEXT")
                     db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN balanceMinor INTEGER")
                     db.execSQL("ALTER TABLE inbox_drafts ADD COLUMN linkedDraftId TEXT")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_reference ON inbox_drafts(reference)")
+                }
+            }
+
+        /** Repairs the exported 10 schema's missing declaration for an index added by 9 → 10. */
+        val MIGRATION_10_11 =
+            object : Migration(10, 11) {
+                override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_reference ON inbox_drafts(reference)")
                 }
             }

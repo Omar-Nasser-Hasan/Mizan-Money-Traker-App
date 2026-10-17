@@ -90,6 +90,15 @@ class AppDatabaseMigrationTest {
     fun migratesInboxSchemaToParsedInboxSchema() {
         val databaseName = "migration-v9-test"
         helper.createDatabase(databaseName, 9).close()
-        helper.runMigrationsAndValidate(databaseName, 10, true, AppDatabase.MIGRATION_9_10).close()
+        helper
+            .runMigrationsAndValidate(databaseName, 11, true, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
+            .close()
+    }
+
+    @Test
+    fun repairsParsedInboxIndexForExistingVersionTenDatabases() {
+        val databaseName = "migration-v10-test"
+        helper.createDatabase(databaseName, 10).close()
+        helper.runMigrationsAndValidate(databaseName, 11, true, AppDatabase.MIGRATION_10_11).close()
     }
 }
