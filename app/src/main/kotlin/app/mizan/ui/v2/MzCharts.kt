@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -216,68 +214,69 @@ fun MzDonut(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            modifier = Modifier.widthIn(max = 200.dp).fillMaxWidth(0.88f).aspectRatio(1f),
-            contentAlignment = Alignment.Center,
-        ) {
-            Canvas(
-                modifier =
-                    Modifier.fillMaxSize().pointerInput(slices) {
-                        detectTapGestures { offset ->
-                            val center = Offset(size.width / 2f, size.height / 2f)
-                            val angle =
-                                (
+        BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            val diameter = minOf((maxWidth - 24.dp).coerceAtLeast(0.dp), 200.dp)
+            Box(Modifier.size(diameter), contentAlignment = Alignment.Center) {
+                Canvas(
+                    modifier =
+                        Modifier.fillMaxSize().pointerInput(slices) {
+                            detectTapGestures { offset ->
+                                val center = Offset(size.width / 2f, size.height / 2f)
+                                val angle =
                                     (
-                                        Math.toDegrees(
-                                            kotlin.math.atan2((offset.y - center.y).toDouble(), (offset.x - center.x).toDouble()),
-                                        ) +
-                                            450
-                                    ) %
-                                        360
-                                ).toFloat()
-                            var running = 0f
-                            slices.forEachIndexed { index, slice ->
-                                val segmentStart = running
-                                running += slice.value.coerceAtLeast(0L).toFloat() / total * 360f
-                                if (angle >= segmentStart && (angle < running || index == slices.lastIndex)) {
-                                    return@forEachIndexed onSliceSelected(index)
+                                        (
+                                            Math.toDegrees(
+                                                kotlin.math.atan2((offset.y - center.y).toDouble(), (offset.x - center.x).toDouble()),
+                                            ) +
+                                                450
+                                        ) %
+                                            360
+                                    ).toFloat()
+                                var running = 0f
+                                slices.forEachIndexed { index, slice ->
+                                    val segmentStart = running
+                                    running += slice.value.coerceAtLeast(0L).toFloat() / total * 360f
+                                    if (angle >= segmentStart && (angle < running || index == slices.lastIndex)) {
+                                        return@forEachIndexed onSliceSelected(index)
+                                    }
                                 }
                             }
-                        }
-                    },
-            ) {
-                val diameter = size.minDimension
-                val stroke = diameter * 0.22f
-                val arcDiameter = diameter - stroke
-                val inset = (diameter - arcDiameter) / 2f
-                val arcTopLeft = Offset(inset, inset)
-                val arcSize = Size(arcDiameter, arcDiameter)
-                drawCircle(tokens.surface, radius = diameter * 0.28f)
-                val gapDegrees = 2.dp.toPx() / (diameter * 0.39f) * (180f / Math.PI.toFloat())
-                var start = -90f
-                slices.forEachIndexed { index, slice ->
-                    val sweep = slice.value.coerceAtLeast(0L).toFloat() / total * 360f
-                    val hasGaps = slices.size > 1
-                    drawArc(
-                        color = if (selectedIndex != null && selectedIndex != index) slice.color.copy(alpha = 0.28f) else slice.color,
-                        startAngle = start + if (hasGaps) gapDegrees / 2f else 0f,
-                        sweepAngle = (sweep - if (hasGaps) gapDegrees else 0f).coerceAtLeast(0f),
-                        useCenter = false,
-                        topLeft = arcTopLeft,
-                        size = arcSize,
-                        style = Stroke(stroke, cap = StrokeCap.Butt),
-                    )
-                    start += sweep
+                        },
+                ) {
+                    val diameter = size.minDimension
+                    // The resulting inner diameter is 56% of the ring diameter.
+                    val stroke = diameter * 0.22f
+                    val arcDiameter = diameter - stroke
+                    val inset = (diameter - arcDiameter) / 2f
+                    val arcTopLeft = Offset(inset, inset)
+                    val arcSize = Size(arcDiameter, arcDiameter)
+                    drawCircle(tokens.surface, radius = diameter * 0.28f)
+                    val gapDegrees = 2.dp.toPx() / (diameter * 0.39f) * (180f / Math.PI.toFloat())
+                    var start = -90f
+                    slices.forEachIndexed { index, slice ->
+                        val sweep = slice.value.coerceAtLeast(0L).toFloat() / total * 360f
+                        val hasGaps = slices.size > 1
+                        drawArc(
+                            color = if (selectedIndex != null && selectedIndex != index) slice.color.copy(alpha = 0.28f) else slice.color,
+                            startAngle = start + if (hasGaps) gapDegrees / 2f else 0f,
+                            sweepAngle = (sweep - if (hasGaps) gapDegrees else 0f).coerceAtLeast(0f),
+                            useCenter = false,
+                            topLeft = arcTopLeft,
+                            size = arcSize,
+                            style = Stroke(stroke, cap = StrokeCap.Butt),
+                        )
+                        start += sweep
+                    }
                 }
-            }
-            Column(
-                modifier = Modifier.fillMaxSize(0.55f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                chartCenterText(centerText, MzTypography.amountSmall)
-                changeText?.let {
-                    chartCenterText(it, MzTypography.bodySmall, LocalMzTokens.current.income)
+                Column(
+                    modifier = Modifier.fillMaxSize(0.55f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    chartCenterText(centerText, MzTypography.amountSmall)
+                    changeText?.let {
+                        chartCenterText(it, MzTypography.bodySmall, LocalMzTokens.current.income)
+                    }
                 }
             }
         }
@@ -405,7 +404,11 @@ fun MzCompositionBar(
 }
 
 private fun legendAmount(value: Long): String =
-    java.text.DecimalFormat("#,##0.00", java.text.DecimalFormatSymbols(java.util.Locale.US)).format(value / 100.0)
+    java.text.DecimalFormat("#,##0.00", java.text.DecimalFormatSymbols(java.util.Locale.US)).format(
+        java.math.BigDecimal
+            .valueOf(value)
+            .movePointLeft(2),
+    )
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
