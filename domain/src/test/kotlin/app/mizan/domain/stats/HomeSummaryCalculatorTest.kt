@@ -34,7 +34,7 @@ class HomeSummaryCalculatorTest {
         assertEquals(9_580_00, home.cashFlow.netMinor)
         assertEquals(1_000_00, home.investedMinor)
         assertEquals(2, home.uncategorizedExpenseCount)
-        assertEquals(listOf(20_000_00, 5_000_00), home.accountTotals.map { it.egpMinor })
+        assertEquals(listOf(20_000_00L, 5_000_00L), home.accountTotals.map { it.egpMinor })
         assertEquals(30, home.sparkline.size)
     }
 }
