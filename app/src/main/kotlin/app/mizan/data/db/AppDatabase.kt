@@ -574,6 +574,9 @@ interface InboxDao {
     @Query("SELECT * FROM inbox_drafts WHERE status = 'PENDING' ORDER BY receivedAt DESC")
     fun observePending(): Flow<List<InboxDraftEntity>>
 
+    @Query("SELECT * FROM inbox_drafts WHERE id = :id")
+    fun observe(id: String): Flow<InboxDraftEntity?>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(value: InboxDraftEntity): Long
 

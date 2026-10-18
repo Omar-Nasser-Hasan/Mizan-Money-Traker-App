@@ -134,6 +134,8 @@ class MizanRepository
 
         fun observeInboxDrafts() = inbox.observePending()
 
+        fun observeInboxDraft(id: String) = inbox.observe(id)
+
         fun observeSmsInboxEnabled(): Flow<Boolean> = context.dataStore.data.map { it[SMS_INBOX_ENABLED] ?: false }
 
         fun observeNotificationInboxEnabled(): Flow<Boolean> = context.dataStore.data.map { it[NOTIFICATION_INBOX_ENABLED] ?: false }

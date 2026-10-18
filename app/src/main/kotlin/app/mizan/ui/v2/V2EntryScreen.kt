@@ -72,6 +72,7 @@ fun V2EntryScreen(
     lastAccountId: String?,
     hideAmounts: Boolean,
     editTransactionId: String? = null,
+    inboxDraftId: String? = null,
     onDone: () -> Unit,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
@@ -160,6 +161,7 @@ fun V2EntryScreen(
         }
     var receivedExpression by remember(currency, targetCurrency) { mutableStateOf("") }
     val editRows by repository.observeRecordRows(editTransactionId.orEmpty()).collectAsStateWithLifecycle(emptyList())
+    val inboxDraft by repository.observeInboxDraft(inboxDraftId.orEmpty()).collectAsStateWithLifecycle(null)
     val receivedAmount =
         runCatching { EntryCalculator.minorUnits(receivedExpression, targetDecimals) }.getOrNull() ?: suggestedReceived ?: 0L
     val activeSplitLines =
@@ -216,6 +218,32 @@ fun V2EntryScreen(
             val destinationDecimals = currencies.firstOrNull { it.code == destinationRow.currency }?.decimals ?: 2
             receivedExpression = BigDecimal.valueOf(destinationRow.amountMinor).movePointLeft(destinationDecimals).toPlainString()
             targetBookingRateOverride = BigDecimal(destinationRow.rateToBase)
+        }
+        editLoaded = true
+    }
+    androidx.compose.runtime.LaunchedEffect(inboxDraftId, inboxDraft, currencies, accounts) {
+        val draft = inboxDraft ?: return@LaunchedEffect
+        if (editTransactionId != null || editLoaded) return@LaunchedEffect
+        val draftDecimals = currencies.firstOrNull { it.code == draft.currency }?.decimals ?: 2
+        kind = if (draft.kind == "INCOME" || draft.kind == "REVERSAL") "INCOME" else draft.kind
+        currency = draft.currency
+        expression = BigDecimal.valueOf(draft.amountMinor).movePointLeft(draftDecimals).toPlainString()
+        payeeQuery = draft.merchant.orEmpty()
+        bookedDate = Instant.ofEpochMilli(draft.occurredAt).atZone(ZoneId.of("Africa/Cairo")).toLocalDate()
+        timeText =
+            Instant
+                .ofEpochMilli(draft.occurredAt)
+                .atZone(ZoneId.of("Africa/Cairo"))
+                .toLocalTime()
+                .withSecond(0)
+                .withNano(0)
+                .toString()
+        if (draft.kind == "TRANSFER") {
+            targetId =
+                accounts
+                    .firstOrNull { it.name.equals(if (draft.merchant == "ATM") "Cash" else "Investment", true) }
+                    ?.id
+                    .orEmpty()
         }
         editLoaded = true
     }
@@ -391,6 +419,7 @@ fun V2EntryScreen(
             }
         if (editTransactionId == null) {
             repository.post(posting, selectedLabelIds, receiptUris)
+            if (inboxDraftId != null) repository.confirmInboxDraft(inboxDraftId)
         } else {
             repository.replaceRecord(editTransactionId, posting, selectedLabelIds, receiptUris)
         }
