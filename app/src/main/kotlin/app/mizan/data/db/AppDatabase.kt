@@ -714,20 +714,32 @@ interface PlanningDao {
     @Query("SELECT * FROM goals ORDER BY status, targetDate, name")
     fun observeGoals(): Flow<List<GoalEntity>>
 
+    @Query("SELECT * FROM goals WHERE id = :id")
+    suspend fun goal(id: String): GoalEntity?
+
     @Query("SELECT * FROM goal_links WHERE goalId = :goalId")
     fun observeGoalLinks(goalId: String): Flow<List<GoalLinkEntity>>
 
     @Query("SELECT * FROM goal_links")
     fun observeAllGoalLinks(): Flow<List<GoalLinkEntity>>
 
+    @Query("DELETE FROM goal_links WHERE goalId = :goalId")
+    suspend fun deleteGoalLinks(goalId: String)
+
     @Query("SELECT * FROM goal_contributions WHERE goalId = :goalId ORDER BY date")
     fun observeGoalContributions(goalId: String): Flow<List<GoalContributionEntity>>
+
+    @Query("SELECT * FROM goal_contributions ORDER BY date")
+    fun observeAllGoalContributions(): Flow<List<GoalContributionEntity>>
 
     @Query("SELECT * FROM debts WHERE status = 'ACTIVE' ORDER BY dueDate")
     suspend fun activeDebts(): List<DebtEntity>
 
     @Query("SELECT * FROM debts WHERE id = :id")
     suspend fun debt(id: String): DebtEntity?
+
+    @Query("SELECT * FROM debts ORDER BY openedAt DESC")
+    suspend fun allDebts(): List<DebtEntity>
 
     @Query(
         "SELECT COALESCE(SUM(ABS(e.amountMinor)), 0) FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.debtId = :debtId AND t.deletedAt IS NULL AND t.kind IN ('DEBT_REPAY_IN', 'DEBT_REPAY_OUT')",
@@ -812,6 +824,11 @@ interface PlanningDao {
 interface LedgerDao {
     @Query("SELECT * FROM transactions WHERE id = :id AND deletedAt IS NULL")
     suspend fun findTransaction(id: String): TxnEntity?
+
+    @Query(
+        "SELECT * FROM transactions WHERE debtId = :debtId AND deletedAt IS NULL AND kind IN ('DEBT_LEND', 'DEBT_BORROW') ORDER BY createdAt LIMIT 1",
+    )
+    suspend fun findDebtOrigin(debtId: String): TxnEntity?
 
     @Query("SELECT * FROM entries WHERE txnId = :transactionId")
     suspend fun entriesForTransaction(transactionId: String): List<EntryEntity>
@@ -898,6 +915,30 @@ interface LedgerDao {
     @Insert suspend fun insertTransaction(value: TxnEntity)
 
     @Insert suspend fun insertEntries(values: List<EntryEntity>)
+
+    @Query(
+        "UPDATE transactions SET kind = :kind, bookedAt = :bookedAt, bookedDate = :bookedDate, note = :note, updatedAt = :updatedAt WHERE id = :id",
+    )
+    suspend fun updateDebtOrigin(
+        id: String,
+        kind: String,
+        bookedAt: Long,
+        bookedDate: String,
+        note: String,
+        updatedAt: Long,
+    )
+
+    @Query(
+        "UPDATE entries SET accountId = :accountId, currency = :currency, amountMinor = :amountMinor, rateToBase = :rateToBase, baseMinor = :baseMinor WHERE id = :id",
+    )
+    suspend fun updateDebtOriginEntry(
+        id: String,
+        accountId: String,
+        currency: String,
+        amountMinor: Long,
+        rateToBase: String,
+        baseMinor: Long,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLabels(values: List<RecordLabelEntity>)

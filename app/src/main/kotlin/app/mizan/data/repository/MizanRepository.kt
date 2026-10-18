@@ -219,6 +219,8 @@ class MizanRepository
 
         fun observeGoalContributions(goalId: String) = planning.observeGoalContributions(goalId)
 
+        fun observeAllGoalContributions() = planning.observeAllGoalContributions()
+
         fun observePlannedPayments() = planning.observePlanned()
 
         fun observePlannedOccurrences() = planning.observeOccurrences()
@@ -233,7 +235,21 @@ class MizanRepository
 
         suspend fun saveGoalLink(value: GoalLinkEntity) = planning.upsertGoalLink(value)
 
+        suspend fun replaceGoalLinks(
+            goalId: String,
+            links: List<GoalLinkEntity>,
+        ) = database.withTransaction {
+            planning.deleteGoalLinks(goalId)
+            for (link in links) planning.upsertGoalLink(link)
+        }
+
         suspend fun saveGoalContribution(value: GoalContributionEntity) = planning.upsertGoalContribution(value)
+
+        suspend fun goal(id: String): GoalEntity? = planning.goal(id)
+
+        suspend fun debt(id: String): DebtEntity? = planning.debt(id)
+
+        suspend fun allDebts(): List<DebtEntity> = planning.allDebts()
 
         suspend fun setGoalStatus(
             id: String,
@@ -999,6 +1015,14 @@ class MizanRepository
             val decimals = requireNotNull(currencies.find(value.currency)) { "Unknown currency" }.decimals
             val rate = requireNotNull(effectiveRate(value.currency, date)) { "No booking rate for ${value.currency}" }
             val kind = if (value.direction == "LENT") TxnKind.DEBT_LEND else TxnKind.DEBT_BORROW
+            val existing = planning.debt(value.id)
+            if (existing !=
+                null
+            ) {
+                require(
+                    value.principalMinor >= planning.repayments(value.id),
+                ) { "Principal cannot be below repayments already recorded" }
+            }
             val posting =
                 LedgerService().postDebt(
                     DebtRequest(
@@ -1016,42 +1040,79 @@ class MizanRepository
             val now = clock.millis()
             database.withTransaction {
                 planning.upsertDebt(value)
-                ledger.persistBatch(
-                    listOf(
-                        TxnEntity(
-                            posting.transaction.id,
-                            posting.transaction.kind.name,
-                            posting.transaction.bookedAt.toEpochMilli(),
-                            posting.transaction.bookedDate.toString(),
-                            note = posting.transaction.note,
-                            status = posting.transaction.status.name,
-                            paymentType = posting.transaction.paymentType.name,
-                            debtId = value.id,
-                            createdAt = now,
-                            updatedAt = now,
+                val origin = if (existing == null) null else ledger.findDebtOrigin(value.id)
+                if (origin == null) {
+                    ledger.persistBatch(
+                        listOf(
+                            TxnEntity(
+                                posting.transaction.id,
+                                posting.transaction.kind.name,
+                                posting.transaction.bookedAt.toEpochMilli(),
+                                posting.transaction.bookedDate.toString(),
+                                note = posting.transaction.note,
+                                status = posting.transaction.status.name,
+                                paymentType = posting.transaction.paymentType.name,
+                                debtId = value.id,
+                                createdAt = now,
+                                updatedAt = now,
+                            ),
                         ),
-                    ),
-                    posting.entries.map {
-                        EntryEntity(it.id, it.txnId, it.accountId, it.currency, it.amountMinor, it.rateToBase.toPlainString(), it.baseMinor)
-                    },
-                )
+                        posting.entries.map {
+                            EntryEntity(
+                                it.id,
+                                it.txnId,
+                                it.accountId,
+                                it.currency,
+                                it.amountMinor,
+                                it.rateToBase.toPlainString(),
+                                it.baseMinor,
+                            )
+                        },
+                    )
+                } else {
+                    val oldEntry = ledger.entriesForTransaction(origin.id).single()
+                    val entry = posting.entries.single()
+                    ledger.updateDebtOrigin(
+                        origin.id,
+                        posting.transaction.kind.name,
+                        posting.transaction.bookedAt.toEpochMilli(),
+                        date.toString(),
+                        posting.transaction.note,
+                        now,
+                    )
+                    ledger.updateDebtOriginEntry(
+                        oldEntry.id,
+                        entry.accountId,
+                        entry.currency,
+                        entry.amountMinor,
+                        entry.rateToBase.toPlainString(),
+                        entry.baseMinor,
+                    )
+                }
             }
         }
 
         suspend fun repayDebt(
             debtId: String,
             amountMinor: Long,
+            accountId: String? = null,
+            date: LocalDate = LocalDate.now(clock.withZone(cairo)),
         ) {
             require(amountMinor > 0) { "Repayment amount must be positive" }
             val debt = requireNotNull(planning.debt(debtId)) { "Debt is unavailable" }
-            val date = LocalDate.now(clock.withZone(cairo))
+            require(debt.status == "ACTIVE") { "Debt is already closed" }
+            require(
+                amountMinor <= (debt.principalMinor - planning.repayments(debtId)).coerceAtLeast(0),
+            ) { "Repayment exceeds amount outstanding" }
             val decimals = requireNotNull(currencies.find(debt.currency)) { "Unknown currency" }.decimals
             val rate = requireNotNull(effectiveRate(debt.currency, date)) { "No booking rate for ${debt.currency}" }
             val kind = if (debt.direction == "LENT") TxnKind.DEBT_REPAY_IN else TxnKind.DEBT_REPAY_OUT
+            val settlementAccount = accountId ?: debt.accountId
+            requireNotNull(accounts.find(settlementAccount)) { "Settlement account is unavailable" }
             val posting =
                 LedgerService().postDebt(
                     DebtRequest(
-                        debt.accountId,
+                        settlementAccount,
                         debt.currency,
                         amountMinor,
                         decimals,

@@ -98,9 +98,17 @@ sealed interface V2Route {
 
     data object NewDebt : V2Route by form("plan:debt:new", "New debt")
 
+    data class EditDebt(
+        val id: String,
+    ) : V2Route by form("plan:debt:edit:$id", "Edit debt")
+
     data object Goals : V2Route by screen("plan:goals", "Goals")
 
     data object NewGoal : V2Route by form("plan:goal:new", "New goal")
+
+    data class EditGoal(
+        val id: String,
+    ) : V2Route by form("plan:goal:edit:$id", "Edit goal")
 
     data object BalanceStats : V2Route by screen("stats:balance", "Balance")
 
@@ -200,8 +208,10 @@ sealed interface V2Route {
                 NewPlannedPayment,
                 Debts,
                 NewDebt,
+                EditDebt("sample"),
                 Goals,
                 NewGoal,
+                EditGoal("sample"),
                 BalanceStats,
                 CashFlowStats,
                 SpendingStats,
@@ -265,6 +275,14 @@ sealed interface V2Route {
 
                 path.startsWith("plan:planned:edit:") && path.removePrefix("plan:planned:edit:").isNotBlank() -> {
                     EditPlannedPayment(path.removePrefix("plan:planned:edit:"))
+                }
+
+                path.startsWith("plan:debt:edit:") && path.removePrefix("plan:debt:edit:").isNotBlank() -> {
+                    EditDebt(path.removePrefix("plan:debt:edit:"))
+                }
+
+                path.startsWith("plan:goal:edit:") && path.removePrefix("plan:goal:edit:").isNotBlank() -> {
+                    EditGoal(path.removePrefix("plan:goal:edit:"))
                 }
 
                 path.startsWith("plan:planned-entry:") -> {

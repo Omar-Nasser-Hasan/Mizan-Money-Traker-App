@@ -4,6 +4,10 @@
 
 - Refreshed the live design-gallery captures for dark, light, and OLED themes after checking chart spacing, legends, ring typography, empty/error states, skeleton visibility, list amount signs, and the net-worth amount hierarchy on the API 37 Pixel_7_Pro emulator.
 
+## P10 — Goals
+
+- Added goal progress from allocated account and asset values, monthly funding projections, allocation-cap validation, manual contributions, pause/reach states, edit flows, and undoable deletion.
+
 ## M10 — SMS and notification Inbox
 
 - Added opt-in SMS and notification-listener capture, a versioned persistent Inbox, sender-template parsing, and pending-draft confirmation/rejection controls.
