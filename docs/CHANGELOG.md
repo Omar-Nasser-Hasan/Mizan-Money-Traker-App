@@ -28,6 +28,7 @@
 
 ## Unreleased
 
+- Added the V2 Home screen: live ledger-backed net worth, account carousel, cash-flow card, budget status, upcoming plan/debt items, recent records, conditional Inbox/gold banners, amount masking, and worker-backed pull-to-refresh.
 - Added the opt-in V2 shell runtime flag, DataStore-backed global period/account/currency state, typed route registry for every designed and backend screen, first-run gate, and V2 shortcut/deep-link routing. The legacy interface remains the default.
 - Started the V2 Obsidian & Champagne component layer with bundled Manrope and Material Symbols Rounded fonts, tokenized dark/light/OLED themes, and verified AmountText formatting and contrast.
 - Added the V2 controls, navigation, canvas chart set, and debug-only Design Gallery without replacing the existing interface.

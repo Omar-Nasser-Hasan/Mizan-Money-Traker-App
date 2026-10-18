@@ -1,5 +1,10 @@
 # Assumptions
 
+## P3 Home
+
+- Home uses the current cached asset prices and FX rates for the net-worth headline. Its 30-day line retains current holdings and current debt outstanding while applying the ledger's daily cash history; full historical market-price replay remains in the dedicated Balance/Assets statistics screens.
+- A gold-price banner is actionable after 24 hours, matching the existing Daleelak cache-staleness policy. A short downward pull on Home enqueues both the network-constrained FX and dealer-price workers.
+
 ## M12 import, export, and performance
 
 - `docs/wallet-sample.csv` is absent from this checkout. The Wallet importer maps common export headers and provides a no-write preview, but the required per-account total reconciliation remains unverified until the supplied redacted sample is added.
