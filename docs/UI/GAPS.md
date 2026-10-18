@@ -6,7 +6,8 @@
 | Templates management | observation exists, CRUD route absent | build template CRUD (allowed) | M |
 | More hub | features exist as separate routes | build navigation-only hub | S |
 | Custom/all-time period selector | Records sheet supports day, week, month, year, custom and all-time; day/week default anchors are set to today | implemented for Records; stats screens must use the same shared period state | S |
-| Account “fix balance” | no ADJUSTMENT posting flow | build later under allowed additions | M |
+| Account detail and card detail | live buckets, current EGP valuation, trend, recent records, card utilization/billing, Fix balance ADJUSTMENT and prefilled Pay card transfer are implemented; see P6 screenshots and tests | implemented; physical-phone visual pass remains a manual check | S |
+| New/Edit account | multi-currency opening balances, enabled-currency picker, palette, type, opening date, totals toggle, card terms and archive Undo are implemented | implemented; physical-phone visual pass remains a manual check | S |
 | Budget spending breakdown | budget total exists; breakdown query absent | add SQL projection later | M |
 | Goal detail | aggregate exists but no route | build detail sheet | M |
 | Credit auto-debit | explicitly forbidden by RULES | hide | S |
