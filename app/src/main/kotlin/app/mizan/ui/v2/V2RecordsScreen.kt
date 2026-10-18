@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -123,7 +125,7 @@ fun V2RecordsScreen(
                 .flow
                 .map { page ->
                     page
-                        .map<PagedRecordRow, RecordPagingItem> { RecordPagingItem.Entry(it) }
+                        .map<PagedRecordRow, RecordPagingItem> { RecordPagingItem.Entry(it, it.incomeAllocations()) }
                         .insertSeparators { before, after ->
                             val beforeDate = (before as? RecordPagingItem.Entry)?.row?.bookedDate
                             val afterDate = (after as? RecordPagingItem.Entry)?.row?.bookedDate
@@ -211,79 +213,103 @@ fun V2RecordsScreen(
         val netByDate = remember(dailyNet) { dailyNet.associate { it.date to it.baseMinor } }
         val accountColors = remember(accounts) { accounts.associate { it.id to it.color } }
         val accountNames = remember(accounts) { accounts.associate { it.id to it.name } }
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding =
-                androidx.compose.foundation.layout
-                    .PaddingValues(horizontal = MzSpacing.sideMargin, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            items(
-                count = records.itemCount,
-                key =
-                    records.itemKey {
-                        when (it) {
-                            is RecordPagingItem.Day -> "day-${it.date}"
-                            is RecordPagingItem.Entry -> it.row.id
+        val listState = rememberLazyListState()
+        val stickyDate by remember(records, listState) {
+            derivedStateOf {
+                val firstVisibleIndex =
+                    listState.layoutInfo.visibleItemsInfo
+                        .firstOrNull()
+                        ?.index ?: return@derivedStateOf null
+                if (firstVisibleIndex !in 0 until records.itemCount) return@derivedStateOf null
+                when (val item = records.peek(firstVisibleIndex)) {
+                    is RecordPagingItem.Day -> item.date
+                    is RecordPagingItem.Entry -> item.row.bookedDate
+                    null -> null
+                }
+            }
+        }
+        Column(Modifier.weight(1f)) {
+            stickyDate?.let { date ->
+                RecordDayHeader(date, netByDate[date] ?: 0L, hideAmounts)
+            }
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f),
+                contentPadding =
+                    androidx.compose.foundation.layout
+                        .PaddingValues(horizontal = MzSpacing.sideMargin, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                items(
+                    count = records.itemCount,
+                    key =
+                        records.itemKey {
+                            when (it) {
+                                is RecordPagingItem.Day -> "day-${it.date}"
+                                is RecordPagingItem.Entry -> it.row.id
+                            }
+                        },
+                ) { index ->
+                    val row = records[index]
+                    when (row) {
+                        null -> {
+                            MzCard(Modifier.fillMaxWidth()) { MzSkeleton(Modifier.fillMaxWidth().padding(18.dp), 52.dp) }
                         }
-                    },
-            ) { index ->
-                val row = records[index]
-                when (row) {
-                    null -> {
-                        MzCard(Modifier.fillMaxWidth()) { MzSkeleton(Modifier.fillMaxWidth().padding(18.dp), 52.dp) }
-                    }
 
-                    is RecordPagingItem.Day -> {
-                        RecordDayHeader(row.date, netByDate[row.date] ?: 0L, hideAmounts)
-                    }
+                        is RecordPagingItem.Day -> {
+                            if (row.date != stickyDate) {
+                                RecordDayHeader(row.date, netByDate[row.date] ?: 0L, hideAmounts)
+                            }
+                        }
 
-                    is RecordPagingItem.Entry -> {
-                        val entry = row.row
-                        SwipeRecordRow(
-                            row = entry,
-                            accountColors = accountColors,
-                            accountNames = accountNames,
-                            hideAmounts = hideAmounts,
-                            onOpen = { onOpenDetail(entry.id) },
-                            onEdit = { onEdit(entry.id) },
-                            onDelete = {
-                                scope.launch {
-                                    repository.deleteRecord(entry.id)
-                                    val result = snackbar.showSnackbar("Record deleted", actionLabel = "Undo")
-                                    if (result ==
-                                        androidx.compose.material3.SnackbarResult.ActionPerformed
-                                    ) {
-                                        repository.restoreRecord(entry.id)
+                        is RecordPagingItem.Entry -> {
+                            val entry = row.row
+                            SwipeRecordRow(
+                                row = entry,
+                                allocations = row.allocations,
+                                accountColors = accountColors,
+                                accountNames = accountNames,
+                                hideAmounts = hideAmounts,
+                                onOpen = { onOpenDetail(entry.id) },
+                                onEdit = { onEdit(entry.id) },
+                                onDelete = {
+                                    scope.launch {
+                                        repository.deleteRecord(entry.id)
+                                        val result = snackbar.showSnackbar("Record deleted", actionLabel = "Undo")
+                                        if (result ==
+                                            androidx.compose.material3.SnackbarResult.ActionPerformed
+                                        ) {
+                                            repository.restoreRecord(entry.id)
+                                        }
                                     }
-                                }
-                            },
+                                },
+                            )
+                        }
+                    }
+                }
+                if (records.loadState.refresh is androidx.paging.LoadState.Loading && records.itemCount == 0) {
+                    items(5) { MzCard(Modifier.fillMaxWidth()) { MzSkeleton(Modifier.fillMaxWidth().padding(18.dp), 52.dp) } }
+                }
+                if (records.loadState.refresh is androidx.paging.LoadState.Error) {
+                    item { MzEmptyState("Couldn't load records", "Check your data and try again.", "Retry", records::retry) }
+                }
+                if (records.loadState.append.endOfPaginationReached && records.itemCount > 0) {
+                    item {
+                        Text(
+                            "🔒  END OF SETTLED ENTRIES",
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                            color = LocalMzTokens.current.textDim,
+                            style = MzTypography.labelCaps,
                         )
                     }
                 }
-            }
-            if (records.loadState.refresh is androidx.paging.LoadState.Loading && records.itemCount == 0) {
-                items(5) { MzCard(Modifier.fillMaxWidth()) { MzSkeleton(Modifier.fillMaxWidth().padding(18.dp), 52.dp) } }
-            }
-            if (records.loadState.refresh is androidx.paging.LoadState.Error) {
-                item { MzEmptyState("Couldn't load records", "Check your data and try again.", "Retry", records::retry) }
-            }
-            if (records.loadState.append.endOfPaginationReached && records.itemCount > 0) {
-                item {
-                    Text(
-                        "🔒  END OF SETTLED ENTRIES",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                        color = LocalMzTokens.current.textDim,
-                        style = MzTypography.labelCaps,
-                    )
+                if (
+                    records.itemCount == 0 &&
+                    records.loadState.refresh !is androidx.paging.LoadState.Loading &&
+                    records.loadState.refresh !is androidx.paging.LoadState.Error
+                ) {
+                    item { MzEmptyState("No records yet", "Records for this period will appear here.", "Add expense", onAddExpense) }
                 }
-            }
-            if (
-                records.itemCount == 0 &&
-                records.loadState.refresh !is androidx.paging.LoadState.Loading &&
-                records.loadState.refresh !is androidx.paging.LoadState.Error
-            ) {
-                item { MzEmptyState("No records yet", "Records for this period will appear here.", "Add expense", onAddExpense) }
             }
         }
         SnackbarHost(snackbar, Modifier.fillMaxWidth())
@@ -309,6 +335,7 @@ private sealed interface RecordPagingItem {
 
     data class Entry(
         val row: PagedRecordRow,
+        val allocations: List<IncomeAllocation>,
     ) : RecordPagingItem
 }
 
@@ -347,6 +374,7 @@ private fun RecordDayHeader(
 @Composable
 private fun SwipeRecordRow(
     row: PagedRecordRow,
+    allocations: List<IncomeAllocation>,
     accountColors: Map<String, String>,
     accountNames: Map<String, String>,
     hideAmounts: Boolean,
@@ -355,7 +383,6 @@ private fun SwipeRecordRow(
     onDelete: () -> Unit,
 ) {
     var drag by remember(row.entryId) { mutableFloatStateOf(0f) }
-    val allocations = remember(row.allocationData) { row.incomeAllocations() }
     val tokens = LocalMzTokens.current
     val actionRevealWidth = 212.dp
     val style =
