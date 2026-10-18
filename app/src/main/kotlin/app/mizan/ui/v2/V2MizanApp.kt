@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.repository.MizanRepository
+import app.mizan.ui.onboardingScreen
 import kotlinx.coroutines.launch
 
 /**
@@ -58,20 +59,8 @@ fun v2MizanApp(
 
     // The legacy lock is an Activity gate, so it completes before either shell is composed. Empty
     // accounts retain the existing first-run gate before root navigation is exposed.
-    val startupRoute = V2StartupGate.destination(accounts.isNotEmpty(), quickAction)
     if (V2StartupGate.next(accounts.isNotEmpty()) != null) {
-        V2RouteHost(
-            route = startupRoute ?: V2Route.OnboardingAccounts,
-            padding = PaddingValues(),
-            onBack = {},
-            onNavigate = {},
-            onDisableNewInterface = {},
-            entryAccountId = lastAccountId,
-            globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
-            onSelectPeriod = { persisted ->
-                scope.launch { repository.setV2Period(persisted.kind, persisted.start, persisted.end) }
-            },
-        )
+        onboardingScreen(repository, Modifier.fillMaxSize(), onDone = {})
         return
     }
 
