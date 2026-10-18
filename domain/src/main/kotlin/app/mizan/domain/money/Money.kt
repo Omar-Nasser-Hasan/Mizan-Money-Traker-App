@@ -53,4 +53,25 @@ object MoneyMath {
                 RoundingMode.HALF_UP,
             )
     }
+
+    /** Converts through EGP booking values and rounds only at the destination minor-unit scale. */
+    fun convertMinor(
+        amountMinor: Long,
+        sourceDecimals: Int,
+        sourceEgpPerUnit: BigDecimal,
+        destinationDecimals: Int,
+        destinationEgpPerUnit: BigDecimal,
+    ): Long {
+        require(amountMinor > 0) { "Amount must be positive" }
+        require(sourceDecimals >= 0 && destinationDecimals >= 0) { "Currency decimals must be non-negative" }
+        require(sourceEgpPerUnit > BigDecimal.ZERO && destinationEgpPerUnit > BigDecimal.ZERO) { "Rates must be positive" }
+        return BigDecimal
+            .valueOf(amountMinor)
+            .movePointLeft(sourceDecimals)
+            .multiply(sourceEgpPerUnit)
+            .divide(destinationEgpPerUnit, destinationDecimals, RoundingMode.HALF_UP)
+            .movePointRight(destinationDecimals)
+            .setScale(0, RoundingMode.HALF_UP)
+            .longValueExact()
+    }
 }
