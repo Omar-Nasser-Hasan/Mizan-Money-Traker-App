@@ -126,6 +126,7 @@ fun v2MizanApp(
                         else -> "EXPENSE"
                     },
                 lastAccountId = lastAccountId,
+                hideAmounts = hideAmounts,
                 onDone = { navigation = navigation.back() },
             )
         } else {

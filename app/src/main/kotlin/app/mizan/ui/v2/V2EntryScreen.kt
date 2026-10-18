@@ -33,9 +33,7 @@ import app.mizan.domain.ledger.SplitIncomeRequest
 import app.mizan.domain.ledger.SplitLine
 import app.mizan.domain.ledger.SplitMode
 import app.mizan.domain.ledger.TransferRequest
-import app.mizan.domain.money.MoneyMath
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -45,24 +43,18 @@ fun V2EntryScreen(
     repository: MizanRepository,
     initialKind: String,
     lastAccountId: String?,
+    hideAmounts: Boolean,
     onDone: () -> Unit,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val categories by repository
-        .observeCategories(
-            if (initialKind ==
-                "INCOME"
-            ) {
-                "INCOME"
-            } else {
-                "EXPENSE"
-            },
-        ).collectAsStateWithLifecycle(emptyList())
     val sources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
     val templates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var kind by remember(initialKind) { mutableStateOf(initialKind) }
+    val categories by repository
+        .observeCategories(if (kind == "INCOME") "INCOME" else "EXPENSE")
+        .collectAsStateWithLifecycle(emptyList())
     var accountId by remember(accounts, lastAccountId) { mutableStateOf(lastAccountId ?: accounts.firstOrNull()?.id.orEmpty()) }
     var targetId by remember(accounts) { mutableStateOf(accounts.firstOrNull { it.id != accountId }?.id.orEmpty()) }
     var categoryId by remember(categories) { mutableStateOf(categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID) }
@@ -73,7 +65,10 @@ fun V2EntryScreen(
     var message by remember { mutableStateOf("") }
     val account = accounts.firstOrNull { it.id == accountId }
     val target = accounts.firstOrNull { it.id == targetId }
-    val currency = account?.defaultCurrency ?: "EGP"
+    val buckets by repository.observeBuckets(accountId).collectAsStateWithLifecycle(emptyList())
+    val targetBuckets by repository.observeBuckets(targetId).collectAsStateWithLifecycle(emptyList())
+    var currency by remember(accountId, account?.defaultCurrency) { mutableStateOf(account?.defaultCurrency ?: "EGP") }
+    var targetCurrency by remember(targetId, target?.defaultCurrency) { mutableStateOf(target?.defaultCurrency ?: "EGP") }
     val decimals = currencies.firstOrNull { it.code == currency }?.decimals ?: 2
     val amount = runCatching { EntryCalculator.minorUnits(expression, decimals) }.getOrDefault(0L)
     val allocations = splitAllocations(amount, lines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
@@ -100,13 +95,18 @@ fun V2EntryScreen(
                 } else {
                     AmountStyle.NEUTRAL
                 },
-                false,
+                hideAmounts,
                 textStyle = MzTypography.hero,
             )
         }
         item { MzKeypad(onKey = { key -> expression = if (key == "⌫") expression.dropLast(1) else expression + key }) }
         item { Text("Account", style = MzTypography.labelCaps) }
         item { AccountChips(accounts, accountId) { accountId = it } }
+        if (buckets.size > 1) {
+            item {
+                CurrencyChips(buckets.map { it.currency }, currency) { currency = it }
+            }
+        }
         if (kind == "EXPENSE") {
             item { Text("Category", style = MzTypography.labelCaps) }
             item {
@@ -159,6 +159,11 @@ fun V2EntryScreen(
         if (kind == "TRANSFER") {
             item { Text("To account", style = MzTypography.labelCaps) }
             item { AccountChips(accounts.filter { it.id != accountId }, targetId) { targetId = it } }
+            if (targetBuckets.size > 1) {
+                item {
+                    CurrencyChips(targetBuckets.map { it.currency }, targetCurrency) { targetCurrency = it }
+                }
+            }
             item { Text("Not income or expense", color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
         }
         item {
@@ -170,7 +175,11 @@ fun V2EntryScreen(
                 }
                 scope.launch {
                     val date = LocalDate.now(ZoneId.of("Africa/Cairo"))
-                    val rate = repository.effectiveRate(currency, date) ?: BigDecimal.ONE
+                    val rate = repository.effectiveRate(currency, date)
+                    if (rate == null) {
+                        message = "No booking rate is available for $currency"
+                        return@launch
+                    }
                     val posting =
                         when (kind) {
                             "EXPENSE" -> {
@@ -197,8 +206,12 @@ fun V2EntryScreen(
                                         message = "Choose another account"
                                         return@launch
                                     }
-                                val targetDecimals = currencies.firstOrNull { it.code == destination.defaultCurrency }?.decimals ?: 2
-                                val targetRate = repository.effectiveRate(destination.defaultCurrency, date) ?: BigDecimal.ONE
+                                val targetDecimals = currencies.firstOrNull { it.code == targetCurrency }?.decimals ?: 2
+                                val targetRate = repository.effectiveRate(targetCurrency, date)
+                                if (targetRate == null) {
+                                    message = "No booking rate is available for $targetCurrency"
+                                    return@launch
+                                }
                                 LedgerService().postTransfer(
                                     TransferRequest(
                                         current.id,
@@ -207,7 +220,7 @@ fun V2EntryScreen(
                                         decimals,
                                         rate,
                                         destination.id,
-                                        destination.defaultCurrency,
+                                        targetCurrency,
                                         amount,
                                         targetDecimals,
                                         targetRate,
@@ -236,6 +249,19 @@ private fun AccountChips(
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         accounts.forEach { account ->
             MzChip(account.name, account.id == selectedId, { onSelected(account.id) })
+        }
+    }
+}
+
+@Composable
+private fun CurrencyChips(
+    currencies: List<String>,
+    selected: String,
+    onSelected: (String) -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        currencies.forEach { currency ->
+            MzChip(currency, currency == selected, { onSelected(currency) })
         }
     }
 }
