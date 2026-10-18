@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,6 +60,7 @@ fun v2MizanApp(
     var navigation by rememberSaveable(stateSaver = V2NavigationState.Saver) { mutableStateOf(V2NavigationState()) }
     var selectedStatsPage by rememberSaveable { mutableStateOf("Balance") }
     var selectedStatsCategory by rememberSaveable { mutableStateOf<String?>(null) }
+    var wealthActionsExpanded by rememberSaveable { mutableStateOf(false) }
     val period = PeriodState.fromPersisted(periodKind, periodStart, periodEnd)
 
     LaunchedEffect(quickAction) {
@@ -134,10 +137,32 @@ fun v2MizanApp(
             if (activeRoute ==
                 null
             ) {
-                MzFab(onClick = {
-                    navigation =
-                        navigation.navigate(if (selectedTab == V2Route.Budgets) V2Route.NewBudget else V2Route.ExpenseEntry)
-                })
+                if (selectedTab == V2Route.Wealth) {
+                    Box {
+                        MzFab(onClick = { wealthActionsExpanded = true }, contentDescription = "Wealth actions")
+                        DropdownMenu(expanded = wealthActionsExpanded, onDismissRequest = { wealthActionsExpanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Buy or sell") },
+                                onClick = {
+                                    wealthActionsExpanded = false
+                                    navigation = navigation.navigate(V2Route.BuyAsset)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Add holding") },
+                                onClick = {
+                                    wealthActionsExpanded = false
+                                    navigation = navigation.navigate(V2Route.AddHolding)
+                                },
+                            )
+                        }
+                    }
+                } else {
+                    MzFab(onClick = {
+                        navigation =
+                            navigation.navigate(if (selectedTab == V2Route.Budgets) V2Route.NewBudget else V2Route.ExpenseEntry)
+                    })
+                }
             }
         },
     ) { padding ->
@@ -245,6 +270,16 @@ fun v2MizanApp(
                         selectedStatsCategory = category
                         navigation = navigation.selectTab(V2Route.Records)
                     },
+                )
+            }
+        } else if (activeRoute == null && selectedTab == V2Route.Wealth) {
+            Box(Modifier.padding(padding)) {
+                V2WealthScreen(
+                    repository = repository,
+                    hideAmounts = hideAmounts,
+                    onOpenAccount = { id -> navigation = navigation.navigate(V2Route.AccountDetail(id)) },
+                    onOpenHolding = { id -> navigation = navigation.navigate(V2Route.AssetDetail(id)) },
+                    onUpdatePrices = { navigation = navigation.navigate(V2Route.Prices) },
                 )
             }
         } else if (activeRoute == V2Route.PeriodSelector) {

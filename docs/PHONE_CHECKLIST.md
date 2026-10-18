@@ -27,3 +27,4 @@
 - Open Plan, create and edit one budget and one planned payment, then verify Mark paid opens a prefilled Entry and confirms once, Skip/Snooze work, and 80%/100% alerts each fire once per period; expect amounts to match Records/Stats and planned payments never to post automatically.
 - Capture Plan Budgets, Planned, New budget, and New planned payment screens under docs/ui/shots/p9/; expect real account data and the planned-payment no-auto-post note.
 - Open Plan Goals and Debts, exercise goal allocations/contributions and a partial repayment, and capture populated and form screens in docs/ui/shots/p10/; expect linked values and remaining debt to match their source balances.
+- Open Wealth with gold, a stock, and EGP/USD cash, then go offline and capture Wealth in docs/ui/shots/p11/; expect unchanged last-known values with source ages and stale tags.

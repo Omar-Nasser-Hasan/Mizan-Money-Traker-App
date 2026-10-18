@@ -9,6 +9,10 @@
 - Added goal progress from allocated account and asset values, monthly funding projections, allocation-cap validation, manual contributions, pause/reach states, edit flows, and undoable deletion.
 - Added debt creation and editing with ledger-backed lending/borrowing, partial repayments that close at zero, due reminders, and debt timeline entries in Planned and Outlook.
 
+## P11 — Wealth
+
+- Added the Wealth overview with live cash and holding values, allocation, month change, stale price ages, and account totals.
+
 ## M10 — SMS and notification Inbox
 
 - Added opt-in SMS and notification-listener capture, a versioned persistent Inbox, sender-template parsing, and pending-draft confirmation/rejection controls.

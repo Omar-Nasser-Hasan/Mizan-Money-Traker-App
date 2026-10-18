@@ -97,6 +97,49 @@ class AssetsTest {
         assertEquals(9_000L, AssetValuation.valueMinor(BigDecimal("10"), BigDecimal("10"), 2, BigDecimal("10")))
     }
 
+    @Test fun `wealth net worth is cash plus market-valued holdings with EGP conversion`() {
+        val summary =
+            WealthCalculator.calculate(
+                cash = listOf(WealthCashBucket(100_000, 2, BigDecimal.ONE), WealthCashBucket(1_000, 2, BigDecimal("50"))),
+                holdings =
+                    listOf(
+                        WealthHoldingInput(
+                            assetId = "gold",
+                            type = AssetType.GOLD,
+                            name = "Gold 21K",
+                            quantity = BigDecimal("10"),
+                            pricePerUnit = BigDecimal("5100"),
+                            currency = "EGP",
+                            currencyDecimals = 2,
+                            egpPerUnit = BigDecimal.ONE,
+                            resaleDeductionPct = BigDecimal.ZERO,
+                            costMinor = 50_000_00,
+                            realizedProfitMinor = 0,
+                            source = "Daleelak",
+                            staleHours = 26,
+                        ),
+                    ),
+            )
+
+        assertEquals(150_000L, summary.cashEgpMinor)
+        assertEquals(5_100_000L, summary.holdingsEgpMinor)
+        assertEquals(5_250_000L, summary.netWorthEgpMinor)
+        assertEquals(100_000L, summary.holdings.single().unrealizedProfitEgpMinor)
+        assertEquals(9_714L, summary.investedBasisPoints)
+        assertEquals(10_000L, summary.holdings.single().weightBasisPoints)
+        assertEquals(AssetType.GOLD, summary.typeValuesEgpMinor.keys.single())
+    }
+
+    @Test fun `wealth month change uses shared compare calculator`() {
+        val summary =
+            WealthCalculator.calculate(
+                cash = listOf(WealthCashBucket(110_000, 2, BigDecimal.ONE)),
+                holdings = emptyList(),
+                previousNetWorthEgpMinor = 100_000,
+            )
+        assertEquals(1_000L, summary.monthChange?.percentBasisPoints)
+    }
+
     @Test fun `spot formula applies karat and local premium without floating point`() {
         val base24 = GoldSpotFormula.dealerEquivalentPerGram(BigDecimal("2400"), BigDecimal("50"), 24, BigDecimal.ZERO)
         val premium21 = GoldSpotFormula.dealerEquivalentPerGram(BigDecimal("2400"), BigDecimal("50"), 21, BigDecimal("10"))

@@ -534,6 +534,9 @@ interface FxRateDao {
     )
     fun observeLatestPerCurrency(): Flow<List<FxRateEntity>>
 
+    @Query("SELECT * FROM fx_rates ORDER BY currency, date")
+    fun observeHistory(): Flow<List<FxRateEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(values: List<FxRateEntity>)
 }
@@ -1207,6 +1210,9 @@ interface AssetDao {
         "SELECT p.* FROM price_snapshots p INNER JOIN (SELECT key, MAX(asOf) AS latestAsOf FROM price_snapshots GROUP BY key) recent ON p.key = recent.key AND p.asOf = recent.latestAsOf",
     )
     fun observeLatestPrices(): Flow<List<PriceSnapshotEntity>>
+
+    @Query("SELECT * FROM price_snapshots ORDER BY key, asOf")
+    fun observePriceHistory(): Flow<List<PriceSnapshotEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAsset(value: AssetEntity)

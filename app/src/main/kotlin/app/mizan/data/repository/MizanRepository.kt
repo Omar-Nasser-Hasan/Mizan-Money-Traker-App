@@ -653,6 +653,8 @@ class MizanRepository
 
         fun observeLatestFxRates(): Flow<List<FxRateEntity>> = fxRates.observeLatestPerCurrency()
 
+        fun observeFxHistory(): Flow<List<FxRateEntity>> = fxRates.observeHistory()
+
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
         fun observeRecentRecords(limit: Int): Flow<List<RecordRow>> = ledger.observeRecent(limit)
@@ -706,6 +708,8 @@ class MizanRepository
         fun observeLatestAssetPrice(id: String): Flow<PriceSnapshotEntity?> = assetDao.observeLatestPrice(id)
 
         fun observeLatestPrices(): Flow<List<PriceSnapshotEntity>> = assetDao.observeLatestPrices()
+
+        fun observePriceHistory(): Flow<List<PriceSnapshotEntity>> = assetDao.observePriceHistory()
 
         suspend fun saveAsset(asset: Asset) {
             require(asset.resaleDeductionPct >= BigDecimal.ZERO && asset.resaleDeductionPct <= BigDecimal(100)) {
