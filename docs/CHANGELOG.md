@@ -12,6 +12,7 @@
 ## P11 — Wealth
 
 - Added the Wealth overview with live cash and holding values, allocation, month change, stale price ages, and account totals.
+- Added holding detail with saved price history, dealer/source age, average and realized/unrealized P/L, holdings weight, XIRR, lots, and Buy/Sell shortcuts.
 
 ## M10 — SMS and notification Inbox
 

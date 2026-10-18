@@ -407,6 +407,15 @@ fun v2MizanApp(
                     }
                 }, onBack = { navigation = navigation.back() })
             }
+        } else if (activeRoute is V2Route.AssetDetail) {
+            Box(Modifier.padding(padding)) {
+                V2AssetDetailScreen(
+                    repository = repository,
+                    assetId = activeRoute.id,
+                    hideAmounts = hideAmounts,
+                    onTrade = { id, selling -> navigation = navigation.navigate(V2Route.AssetTrade(id, selling)) },
+                )
+            }
         } else if (activeRoute == V2Route.Wealth) {
             Box(Modifier.padding(padding)) {
                 V2WealthAccountsScreen(repository, hideAmounts) { id -> navigation = navigation.navigate(V2Route.AccountDetail(id)) }

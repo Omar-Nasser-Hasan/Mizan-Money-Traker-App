@@ -130,6 +130,11 @@ sealed interface V2Route {
         val id: String,
     ) : V2Route by screen("asset:$id", "Asset details")
 
+    data class AssetTrade(
+        val id: String,
+        val selling: Boolean,
+    ) : V2Route by form("asset:trade:$id:${if (selling) "SELL" else "BUY"}", if (selling) "Sell asset" else "Buy asset")
+
     data object Prices : V2Route by screen("prices", "Update prices")
 
     // Destinations the existing backend requires but that did not have a supplied Stitch mockup.
@@ -221,6 +226,7 @@ sealed interface V2Route {
                 Wealth,
                 BuyAsset,
                 AssetDetail("sample"),
+                AssetTrade("sample", false),
                 Prices,
                 Welcome,
                 BackupPassphrase,
@@ -245,6 +251,23 @@ sealed interface V2Route {
 
         fun fromPath(path: String): V2Route? =
             when {
+                path == BuyAsset.path -> {
+                    BuyAsset
+                }
+
+                path == AddHolding.path -> {
+                    AddHolding
+                }
+
+                path.startsWith("asset:trade:") -> {
+                    val parts = path.removePrefix("asset:trade:").split(':', limit = 2)
+                    if (parts.size == 2 && parts[0].isNotBlank()) {
+                        AssetTrade(parts[0], parts[1] == "SELL")
+                    } else {
+                        null
+                    }
+                }
+
                 path.startsWith(
                     "entry:edit:",
                 ) && path.removePrefix("entry:edit:").isNotBlank() -> {
