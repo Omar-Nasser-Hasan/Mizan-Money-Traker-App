@@ -116,6 +116,7 @@ fun V2EntryScreen(
     val account = accounts.firstOrNull { it.id == accountId }
     val target = accounts.firstOrNull { it.id == targetId }
     val buckets by repository.observeBuckets(accountId).collectAsStateWithLifecycle(emptyList())
+    val bucketDeltas by repository.observeBucketDeltas(accountId).collectAsStateWithLifecycle(emptyList())
     val targetBuckets by repository.observeBuckets(targetId).collectAsStateWithLifecycle(emptyList())
     var currency by remember(accountId, account?.defaultCurrency) { mutableStateOf(account?.defaultCurrency ?: "EGP") }
     var targetCurrency by remember(targetId, target?.defaultCurrency) { mutableStateOf(target?.defaultCurrency ?: "EGP") }
@@ -146,6 +147,10 @@ fun V2EntryScreen(
         customSplitLines
             ?: persistedLines.map { SplitLine(it.id, it.templateId, it.accountId, SplitMode.valueOf(it.mode), it.value) }
     val allocations = splitAllocations(amount, activeSplitLines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
+    val selectedBucketBalance =
+        (buckets.firstOrNull { it.currency == currency }?.openingMinor ?: 0L) +
+            (bucketDeltas.firstOrNull { it.currency == currency }?.amountMinor ?: 0L)
+    val wouldOverdraw = kind == "EXPENSE" && amount > 0L && selectedBucketBalance - amount < 0L
 
     fun applyPreset(preset: RecordTemplateEntity) {
         preset.accountId?.takeIf { candidate -> accounts.any { it.id == candidate } }?.let { accountId = it }
@@ -156,6 +161,169 @@ fun V2EntryScreen(
             val presetDecimals = currencies.firstOrNull { it.code == (preset.currency ?: currency) }?.decimals ?: decimals
             expression = BigDecimal.valueOf(minor).movePointLeft(presetDecimals).toPlainString()
         }
+    }
+
+    fun clearForAnother() {
+        expression = ""
+        feeExpression = ""
+        receivedExpression = ""
+        note = ""
+        payeeQuery = ""
+        selectedLabelIds = emptySet()
+        receiptUris = emptyList()
+        paymentType = PaymentType.CASH
+        status = TxnStatus.CLEARED
+        duplicateConfirmed = false
+        message = "Ready for another ${kind.lowercase()}."
+    }
+
+    suspend fun saveEntry(keepOpen: Boolean) {
+        val current = account ?: return
+        if (amount <= 0L) {
+            message = "Enter an amount"
+            return
+        }
+        if (kind == "TRANSFER" && receivedAmount <= 0L) {
+            message = "Enter an amount received"
+            return
+        }
+        val rate = repository.effectiveRate(currency, bookedDate)
+        if (rate == null) {
+            message = "No booking rate is available for $currency on $bookedDate"
+            return
+        }
+        val bookedAt =
+            runCatching {
+                LocalDateTime.of(bookedDate, LocalTime.parse(timeText)).atZone(ZoneId.of("Africa/Cairo")).toInstant()
+            }.getOrElse {
+                message = "Enter time as HH:mm"
+                return
+            }
+        val payeeId = payees.firstOrNull { it.name.equals(payeeQuery.trim(), ignoreCase = true) }?.id
+        if (kind != "TRANSFER" && !duplicateConfirmed &&
+            repository.isPossibleDuplicate(current.id, amount, payeeId, bookedAt)
+        ) {
+            duplicateConfirmed = true
+            message = "Possible duplicate. Tap Save again to post it."
+            return
+        }
+        duplicateConfirmed = false
+        val posting =
+            when (kind) {
+                "EXPENSE" -> {
+                    LedgerService().postExpense(
+                        ExpenseRequest(
+                            current.id,
+                            currency,
+                            amount,
+                            decimals,
+                            rate,
+                            categoryId,
+                            bookedAt,
+                            bookedDate,
+                            payeeId,
+                            note,
+                            status,
+                            paymentType,
+                        ),
+                    )
+                }
+
+                "INCOME" -> {
+                    if (allocations.isEmpty()) {
+                        LedgerService().postIncome(
+                            IncomeRequest(
+                                current.id,
+                                currency,
+                                amount,
+                                decimals,
+                                rate,
+                                bookedAt,
+                                bookedDate,
+                                categoryId,
+                                payeeId,
+                                note,
+                                status,
+                                paymentType,
+                            ),
+                        )
+                    } else {
+                        LedgerService().postSplitIncome(
+                            SplitIncomeRequest(
+                                allocations,
+                                currency,
+                                decimals,
+                                rate,
+                                bookedAt,
+                                bookedDate,
+                                categoryId,
+                                payeeId,
+                                note,
+                                status,
+                                paymentType,
+                            ),
+                        )
+                    }
+                }
+
+                else -> {
+                    val destination =
+                        target ?: run {
+                            message = "Choose another account"
+                            return
+                        }
+                    if (current.id == destination.id && currency == targetCurrency) {
+                        message = "Choose a different account or currency"
+                        return
+                    }
+                    val targetRate =
+                        repository.effectiveRate(targetCurrency, bookedDate) ?: run {
+                            message = "No booking rate is available for $targetCurrency"
+                            return
+                        }
+                    LedgerService().postTransfer(
+                        TransferRequest(
+                            current.id,
+                            currency,
+                            amount,
+                            decimals,
+                            rate,
+                            destination.id,
+                            targetCurrency,
+                            receivedAmount,
+                            targetDecimals,
+                            targetRate,
+                            bookedAt,
+                            bookedDate,
+                            note,
+                            status,
+                            paymentType,
+                            fee =
+                                if (feeAmount > 0L) {
+                                    ExpenseRequest(
+                                        current.id,
+                                        currency,
+                                        feeAmount,
+                                        decimals,
+                                        rate,
+                                        categoryId,
+                                        bookedAt,
+                                        bookedDate,
+                                        payeeId,
+                                        "Transfer fee${if (note.isBlank()) "" else ": $note"}",
+                                        status,
+                                        paymentType,
+                                    )
+                                } else {
+                                    null
+                                },
+                        ),
+                    )
+                }
+            }
+        repository.post(posting, selectedLabelIds, receiptUris)
+        repository.setLastUsedAccountId(current.id)
+        if (keepOpen) clearForAnother() else onDone()
     }
 
     LazyColumn(
@@ -207,10 +375,10 @@ fun V2EntryScreen(
                     MzChip("Choose", false, { showCategoryPicker = true })
                 }
             }
-            if (account?.name == "Fun" && amount > 0) {
+            if (wouldOverdraw) {
                 item {
                     Text(
-                        "Fun will go below zero. Allowed",
+                        "${account?.name ?: "This account"} will go below zero. Allowed",
                         color = LocalMzTokens.current.warning,
                         style = MzTypography.bodySmall,
                     )
@@ -318,162 +486,11 @@ fun V2EntryScreen(
             }
             item { Text("Not income or expense", color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
         }
+        item { MzButton("Save", { scope.launch { saveEntry(keepOpen = false) } }, modifier = Modifier.fillMaxWidth()) }
         item {
-            MzButton("Save", {
-                val current = account ?: return@MzButton
-                if (amount <= 0L) {
-                    message = "Enter an amount"
-                    return@MzButton
-                }
-                if (kind == "TRANSFER" && receivedAmount <= 0L) {
-                    message = "Enter an amount received"
-                    return@MzButton
-                }
-                scope.launch {
-                    val rate = repository.effectiveRate(currency, bookedDate)
-                    if (rate == null) {
-                        message = "No booking rate is available for $currency on $bookedDate"
-                        return@launch
-                    }
-                    val bookedAt =
-                        runCatching {
-                            LocalDateTime
-                                .of(
-                                    bookedDate,
-                                    LocalTime.parse(timeText),
-                                ).atZone(ZoneId.of("Africa/Cairo"))
-                                .toInstant()
-                        }.getOrElse {
-                            message = "Enter time as HH:mm"
-                            return@launch
-                        }
-                    val payeeId = payees.firstOrNull { it.name.equals(payeeQuery.trim(), ignoreCase = true) }?.id
-                    if (kind != "TRANSFER" && !duplicateConfirmed &&
-                        repository.isPossibleDuplicate(current.id, amount, payeeId, bookedAt)
-                    ) {
-                        duplicateConfirmed = true
-                        message = "Possible duplicate. Tap Save again to post it."
-                        return@launch
-                    }
-                    duplicateConfirmed = false
-                    val posting =
-                        when (kind) {
-                            "EXPENSE" -> {
-                                LedgerService().postExpense(
-                                    ExpenseRequest(
-                                        current.id,
-                                        currency,
-                                        amount,
-                                        decimals,
-                                        rate,
-                                        categoryId,
-                                        bookedAt,
-                                        bookedDate,
-                                        payeeId,
-                                        note,
-                                        status,
-                                        paymentType,
-                                    ),
-                                )
-                            }
-
-                            "INCOME" -> {
-                                if (allocations.isEmpty()) {
-                                    LedgerService().postIncome(
-                                        IncomeRequest(
-                                            current.id,
-                                            currency,
-                                            amount,
-                                            decimals,
-                                            rate,
-                                            bookedAt,
-                                            bookedDate,
-                                            categoryId,
-                                            payeeId,
-                                            note,
-                                            status,
-                                            paymentType,
-                                        ),
-                                    )
-                                } else {
-                                    LedgerService().postSplitIncome(
-                                        SplitIncomeRequest(
-                                            allocations,
-                                            currency,
-                                            decimals,
-                                            rate,
-                                            bookedAt,
-                                            bookedDate,
-                                            categoryId,
-                                            payeeId,
-                                            note,
-                                            status,
-                                            paymentType,
-                                        ),
-                                    )
-                                }
-                            }
-
-                            else -> {
-                                val destination =
-                                    target ?: run {
-                                        message = "Choose another account"
-                                        return@launch
-                                    }
-                                if (current.id == destination.id && currency == targetCurrency) {
-                                    message = "Choose a different account or currency"
-                                    return@launch
-                                }
-                                val targetRate = repository.effectiveRate(targetCurrency, bookedDate)
-                                if (targetRate == null) {
-                                    message = "No booking rate is available for $targetCurrency"
-                                    return@launch
-                                }
-                                LedgerService().postTransfer(
-                                    TransferRequest(
-                                        current.id,
-                                        currency,
-                                        amount,
-                                        decimals,
-                                        rate,
-                                        destination.id,
-                                        targetCurrency,
-                                        receivedAmount,
-                                        targetDecimals,
-                                        targetRate,
-                                        bookedAt,
-                                        bookedDate,
-                                        note,
-                                        status,
-                                        paymentType,
-                                        fee =
-                                            if (feeAmount > 0L) {
-                                                ExpenseRequest(
-                                                    current.id,
-                                                    currency,
-                                                    feeAmount,
-                                                    decimals,
-                                                    rate,
-                                                    categoryId,
-                                                    bookedAt,
-                                                    bookedDate,
-                                                    payeeId,
-                                                    "Transfer fee${if (note.isBlank()) "" else ": $note"}",
-                                                    status,
-                                                    paymentType,
-                                                )
-                                            } else {
-                                                null
-                                            },
-                                    ),
-                                )
-                            }
-                        }
-                    repository.post(posting, selectedLabelIds, receiptUris)
-                    repository.setLastUsedAccountId(current.id)
-                    onDone()
-                }
-            }, modifier = Modifier.fillMaxWidth())
+            MzButton("Save and add another", {
+                scope.launch { saveEntry(keepOpen = true) }
+            }, style = MzButtonStyle.SECONDARY, modifier = Modifier.fillMaxWidth())
         }
         if (message.isNotBlank()) item { Text(message, color = LocalMzTokens.current.warning) }
     }
