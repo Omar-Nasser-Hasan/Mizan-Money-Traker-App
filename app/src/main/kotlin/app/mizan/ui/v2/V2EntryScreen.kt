@@ -261,6 +261,16 @@ fun V2EntryScreen(
         if (kind == "TRANSFER") {
             item { Text("To account", style = MzTypography.labelCaps) }
             item { AccountChips(accounts, targetId) { targetId = it } }
+            item {
+                MzChip("Swap from and to", false, onClick = {
+                    val previousAccountId = accountId
+                    val previousCurrency = currency
+                    accountId = targetId
+                    targetId = previousAccountId
+                    currency = targetCurrency
+                    targetCurrency = previousCurrency
+                })
+            }
             if (targetBuckets.size > 1) {
                 item {
                     CurrencyChips(targetBuckets.map { it.currency }, targetCurrency) { targetCurrency = it }
