@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AccountEntity
+import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.RecordTemplateEntity
@@ -42,6 +43,8 @@ import app.mizan.domain.ledger.SplitMode
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.money.MoneyMath
+import app.mizan.domain.plan.BudgetPeriod
+import app.mizan.domain.plan.budgetWindow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Duration
@@ -64,6 +67,7 @@ fun V2EntryScreen(
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val sources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
     val templates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
+    val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
     val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
     val labels by repository.observeLabels().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
@@ -383,6 +387,15 @@ fun V2EntryScreen(
                         style = MzTypography.bodySmall,
                     )
                 }
+            }
+            item {
+                V2EntryBudgetLine(
+                    repository = repository,
+                    budgets = budgets,
+                    accountId = accountId,
+                    categoryId = categoryId,
+                    bookedDate = bookedDate,
+                )
             }
         }
         item {
@@ -759,3 +772,47 @@ private fun splitAllocations(
                 ).allocations
         }.getOrDefault(emptyList())
     }
+
+@Composable
+private fun V2EntryBudgetLine(
+    repository: MizanRepository,
+    budgets: List<BudgetEntity>,
+    accountId: String,
+    categoryId: String,
+    bookedDate: LocalDate,
+) {
+    val applicable =
+        budgets.filter { budget ->
+            when (budget.scope) {
+                "ALL" -> true
+                "ACCOUNT" -> accountId in budget.scopeIds.split(',')
+                "CATEGORY" -> categoryId in budget.scopeIds.split(',')
+                else -> false
+            }
+        }
+    var summary by remember(applicable, bookedDate) { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(applicable, bookedDate) {
+        summary =
+            applicable.firstOrNull()?.let { budget ->
+                val window =
+                    runCatching {
+                        budgetWindow(
+                            BudgetPeriod.valueOf(budget.period),
+                            bookedDate,
+                            budget.startDate?.let(LocalDate::parse),
+                            budget.endDate?.let(LocalDate::parse),
+                        )
+                    }.getOrNull() ?: return@let null
+                val spent =
+                    repository.budgetSpent(
+                        window.start.toString(),
+                        minOf(bookedDate, window.end).toString(),
+                        budget.scope,
+                        budget.scopeIds,
+                    )
+                val remaining = budget.limitMinor - spent
+                "${budget.name}: ${if (remaining >= 0L) "$remaining EGP minor left" else "${-remaining} EGP minor over"}"
+            }
+    }
+    summary?.let { Text(it, color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
+}
