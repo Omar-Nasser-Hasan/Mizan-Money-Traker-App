@@ -458,6 +458,8 @@ class MizanRepository
 
         fun observeAllDebts() = planning.observeAllDebts()
 
+        fun observeDebtRepaymentTotals() = planning.observeDebtRepaymentTotals()
+
         suspend fun debtRepayments(debtId: String): Long = planning.repayments(debtId)
 
         fun observeHideAmounts(): Flow<Boolean> = context.dataStore.data.map { it[HIDE_AMOUNTS] ?: false }
@@ -1019,9 +1021,12 @@ class MizanRepository
             if (existing !=
                 null
             ) {
-                require(
-                    value.principalMinor >= planning.repayments(value.id),
-                ) { "Principal cannot be below repayments already recorded" }
+                val repaid = planning.repayments(value.id)
+                require(value.principalMinor >= repaid) { "Principal cannot be below repayments already recorded" }
+                if (repaid > 0L) {
+                    require(value.currency == existing.currency) { "Debt currency cannot change after repayments" }
+                    require(value.direction == existing.direction) { "Debt direction cannot change after repayments" }
+                }
             }
             val posting =
                 LedgerService().postDebt(

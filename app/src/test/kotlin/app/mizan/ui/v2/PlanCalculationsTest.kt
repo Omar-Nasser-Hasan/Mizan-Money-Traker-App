@@ -4,6 +4,8 @@ package app.mizan.ui.v2
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyEntity
+import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.DebtRepaymentTotal
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.domain.plan.BudgetPeriod
@@ -13,6 +15,37 @@ import org.junit.Test
 import java.time.LocalDate
 
 class PlanCalculationsTest {
+    @Test
+    fun partially_repaid_debt_appears_in_planned_with_only_the_outstanding_balance() {
+        val today = LocalDate.parse("2026-10-15")
+        val page =
+            PlanCalculations.planned(
+                payments = emptyList(),
+                occurrences = emptyList(),
+                debts = listOf(DebtEntity("loan", "Nadia", "LENT", "EGP", "cash", 10_000, "2026-09-01", "2026-10-17")),
+                balances = emptyList(),
+                accounts = emptyList(),
+                rows = emptyList(),
+                entries = emptyList(),
+                categories = emptyList(),
+                currencies = listOf(CurrencyEntity("EGP", "Egyptian pound", "E£", 2, true)),
+                rates = emptyList(),
+                today = today,
+                debtRepayments = listOf(DebtRepaymentTotal("loan", 4_000)),
+            )
+
+        assertEquals(6_000L, page.next7InMinor)
+        assertEquals(6_000L, page.next7.single().amountMinor)
+        assertEquals(true, page.next7.single().isReadOnly)
+        assertEquals(
+            "Nadia",
+            page.next7
+                .single()
+                .debt
+                ?.person,
+        )
+    }
+
     @Test
     fun budget_card_and_summary_match_expense_rows_and_domain_forecast() {
         val budget = BudgetEntity("b1", "Food", "CATEGORY", "food", "MONTHLY", limitMinor = 10_000, rollover = "NONE")

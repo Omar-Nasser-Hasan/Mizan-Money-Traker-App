@@ -163,7 +163,7 @@ fun v2MizanApp(
                 )
             }
         } else if ((activeRoute == null && selectedTab == V2Route.Budgets) ||
-            activeRoute in setOf(V2Route.Budgets, V2Route.PlannedPayments, V2Route.Debts)
+            activeRoute in setOf(V2Route.Budgets, V2Route.PlannedPayments)
         ) {
             val section = activeRoute ?: selectedTab
             Box(Modifier.padding(padding)) {
@@ -189,6 +189,15 @@ fun v2MizanApp(
         } else if (activeRoute == V2Route.NewGoal || activeRoute is V2Route.EditGoal) {
             Box(Modifier.padding(padding)) {
                 V2GoalForm(repository, (activeRoute as? V2Route.EditGoal)?.id, hideAmounts, onSaved = {
+                    navigation =
+                        navigation.back()
+                }, onBack = { navigation = navigation.back() })
+            }
+        } else if (activeRoute == V2Route.Debts) {
+            Box(Modifier.padding(padding)) { V2DebtsScreen(repository, hideAmounts) { navigation = navigation.navigate(it) } }
+        } else if (activeRoute == V2Route.NewDebt || activeRoute is V2Route.EditDebt) {
+            Box(Modifier.padding(padding)) {
+                V2DebtForm(repository, (activeRoute as? V2Route.EditDebt)?.id, onSaved = {
                     navigation =
                         navigation.back()
                 }, onBack = { navigation = navigation.back() })

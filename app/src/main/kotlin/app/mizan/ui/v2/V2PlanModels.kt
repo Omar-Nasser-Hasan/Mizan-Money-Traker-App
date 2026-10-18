@@ -7,6 +7,7 @@ import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyEntity
 import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.DebtRepaymentTotal
 import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.PlannedOccurrenceEntity
@@ -243,6 +244,7 @@ internal object PlanCalculations {
         currencies: List<CurrencyEntity>,
         rates: List<FxRateEntity>,
         today: LocalDate,
+        debtRepayments: List<DebtRepaymentTotal> = emptyList(),
     ): PlannedPageData {
         val to = today.plusDays(6)
         val known = occurrences.associateBy { it.plannedId to it.dueDate }
@@ -278,11 +280,16 @@ internal object PlanCalculations {
                 val date = runCatching { LocalDate.parse(debt.dueDate) }.getOrNull() ?: return@mapNotNull null
                 if (date < today.minusDays(30) || date > today.plusMonths(12)) return@mapNotNull null
                 val income = debt.direction == "LENT"
+                val remainingMinor =
+                    (debt.principalMinor - (debtRepayments.firstOrNull { it.debtId == debt.id }?.repaidMinor ?: 0L))
+                        .coerceAtLeast(
+                            0L,
+                        )
                 PlannedOccurrence(
                     debt = debt,
                     payment = null,
                     dueDate = date,
-                    amountMinor = convert(debt.principalMinor, debt.currency, currencies, rates),
+                    amountMinor = convert(remainingMinor, debt.currency, currencies, rates),
                     isIncome = income,
                     isOut = !income,
                     isReadOnly = true,

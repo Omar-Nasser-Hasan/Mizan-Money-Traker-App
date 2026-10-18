@@ -5,6 +5,7 @@ package app.mizan.ui.v2
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,6 +63,21 @@ private val goalTones =
         "#D6C169",
         "#E7C89A",
     )
+private val goalIcons =
+    listOf(
+        "flag",
+        "flight",
+        "shield",
+        "laptop",
+        "home",
+        "school",
+        "savings",
+        "directions_car",
+        "favorite",
+        "star",
+        "diamond",
+        "account_balance",
+    )
 
 @Composable
 fun V2GoalsScreen(
@@ -77,12 +94,26 @@ fun V2GoalsScreen(
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
+    val cashFlows by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
     val allContributions by repository.observeAllGoalContributions().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val cards =
-        remember(goals, links, balances, accounts, assets, trades, prices, currencies, rates, today) {
-            GoalDebtCalculations.goals(goals, links, allContributions, balances, accounts, assets, trades, prices, currencies, rates, today)
+        remember(goals, links, balances, accounts, assets, trades, prices, currencies, rates, cashFlows, today) {
+            GoalDebtCalculations.goals(
+                goals,
+                links,
+                allContributions,
+                balances,
+                accounts,
+                assets,
+                trades,
+                prices,
+                currencies,
+                rates,
+                today,
+                cashFlows,
+            )
         }
     var tab by rememberSaveable { mutableStateOf("ACTIVE") }
     var selected by remember { mutableStateOf<String?>(null) }
@@ -184,7 +215,11 @@ fun V2GoalsScreen(
                             AmountText(card.goal.targetMinor, "EGP", hideAmounts = hideAmounts)
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(card.goal.targetDate?.let { "Target $it" } ?: "No target date", style = MzTypography.bodySmall)
+                            Text(
+                                card.goal.targetDate?.let { target -> "Target $target · ETA ${card.estimatedFinish ?: "—"}" }
+                                    ?: "No target date",
+                                style = MzTypography.bodySmall,
+                            )
                             Text("Monthly needed", style = MzTypography.bodySmall)
                             AmountText(
                                 card.progress.monthlyNeeded(today),
@@ -199,7 +234,7 @@ fun V2GoalsScreen(
                                 { scope.launch { repository.setGoalStatus(card.goal.id, "REACHED") } },
                                 Modifier.fillMaxWidth(),
                             )
-                        } else if (card.progress.isOverdue(today)) {
+                        } else if (card.goal.status == "ACTIVE" && card.monthsBehind > 0L) {
                             Text(
                                 "Behind by ${card.monthsBehind} months",
                                 style = MzTypography.bodySmall,
@@ -326,6 +361,7 @@ fun V2GoalForm(
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
+    val cashFlows by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
     val allLinks by repository.observeAllGoalLinks().collectAsStateWithLifecycle(emptyList())
     val existingLinks by goalId?.let(repository::observeGoalLinks)?.collectAsStateWithLifecycle(emptyList())
         ?: remember { mutableStateOf(emptyList()) }
@@ -355,6 +391,7 @@ fun V2GoalForm(
         }
     }
     val targets = minorUnits(target)
+    val validTargetDate = targetDate.isBlank() || runCatching { LocalDate.parse(targetDate) }.isSuccess
     val amount = minorUnits(deposit)
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val linked =
@@ -383,6 +420,7 @@ fun V2GoalForm(
                 currencies,
                 rates,
                 today,
+                cashFlows,
             ).firstOrNull()
             ?.progress
             ?.linkedMinor
@@ -420,7 +458,39 @@ fun V2GoalForm(
     ) {
         item { MzInput(name, { name = it }, "Goal name") }
         item {
-            MzInput(icon, { icon = it }, "Emblem")
+            Text("Emblem", style = MzTypography.labelCaps)
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                goalIcons.forEach { candidate ->
+                    Box(
+                        Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (candidate ==
+                                    icon
+                                ) {
+                                    LocalMzTokens.current.champagne
+                                } else {
+                                    LocalMzTokens.current.raisedSurface
+                                },
+                            ).clickable { icon = candidate },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        MzIcon(
+                            candidate,
+                            "Choose $candidate emblem",
+                            tint =
+                                if (candidate ==
+                                    icon
+                                ) {
+                                    LocalMzTokens.current.onChampagne
+                                } else {
+                                    LocalMzTokens.current.textDim
+                                },
+                        )
+                    }
+                }
+            }
             Text("Palette tone", style = MzTypography.labelCaps)
             Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 goalTones.forEach { tone ->
@@ -496,7 +566,7 @@ fun V2GoalForm(
         }
         item {
             MzButton(if (goalId == null) "Create goal" else "Save changes", {
-                if (name.isBlank() || targets <= 0L || !validAllocations()) return@MzButton
+                if (name.isBlank() || targets <= 0L || !validTargetDate || !validAllocations()) return@MzButton
                 val id = goalId ?: UUID.randomUUID().toString()
                 val entity =
                     GoalEntity(
@@ -529,7 +599,7 @@ fun V2GoalForm(
                     }
                     onSaved()
                 }
-            }, Modifier.fillMaxWidth(), enabled = name.isNotBlank() && targets > 0L && validAllocations())
+            }, Modifier.fillMaxWidth(), enabled = name.isNotBlank() && targets > 0L && validTargetDate && validAllocations())
             MzButton("Cancel", onBack, Modifier.fillMaxWidth(), MzButtonStyle.GHOST)
         }
     }

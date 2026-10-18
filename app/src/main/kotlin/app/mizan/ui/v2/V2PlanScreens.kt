@@ -56,6 +56,7 @@ fun V2PlanScreen(
     val payments by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
     val occurrences by repository.observePlannedOccurrences().collectAsStateWithLifecycle(emptyList())
     val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
     val entries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
@@ -85,8 +86,21 @@ fun V2PlanScreen(
             )
         }
     val plannedPage =
-        remember(payments, occurrences, debts, balances, accounts, rows, entries, categories, currencies, rates, today) {
-            PlanCalculations.planned(payments, occurrences, debts, balances, accounts, rows, entries, categories, currencies, rates, today)
+        remember(payments, occurrences, debts, debtRepayments, balances, accounts, rows, entries, categories, currencies, rates, today) {
+            PlanCalculations.planned(
+                payments,
+                occurrences,
+                debts,
+                balances,
+                accounts,
+                rows,
+                entries,
+                categories,
+                currencies,
+                rates,
+                today,
+                debtRepayments,
+            )
         }
 
     Column(Modifier.fillMaxSize()) {

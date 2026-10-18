@@ -25,4 +25,12 @@ object PlanningReminderScheduler {
                 .build()
         WorkManager.getInstance(context).enqueueUniqueWork("snooze-$plannedId-$dueDate", ExistingWorkPolicy.REPLACE, request)
     }
+
+    fun remindDebt(
+        context: Context,
+        debtId: String,
+    ) {
+        val request = OneTimeWorkRequestBuilder<ReminderWorker>().setInputData(ReminderWorker.debtInput(debtId)).build()
+        WorkManager.getInstance(context).enqueueUniqueWork("debt-reminder-$debtId", ExistingWorkPolicy.REPLACE, request)
+    }
 }

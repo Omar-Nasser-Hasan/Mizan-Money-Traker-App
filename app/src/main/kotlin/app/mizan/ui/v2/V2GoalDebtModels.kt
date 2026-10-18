@@ -11,6 +11,7 @@ import app.mizan.data.db.GoalContributionEntity
 import app.mizan.data.db.GoalEntity
 import app.mizan.data.db.GoalLinkEntity
 import app.mizan.data.db.PriceSnapshotEntity
+import app.mizan.data.db.StatsEntryRow
 import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetValuation
@@ -34,6 +35,7 @@ internal data class GoalCardData(
     val progress: GoalProgress,
     val sources: List<GoalSourceValue>,
     val monthsBehind: Long,
+    val estimatedFinish: LocalDate?,
 )
 
 internal data class DebtCardData(
@@ -43,6 +45,17 @@ internal data class DebtCardData(
 )
 
 internal object GoalDebtCalculations {
+    fun convertEgp(
+        amountMinor: Long,
+        currency: String,
+        currencies: List<CurrencyEntity>,
+        rates: List<FxRateEntity>,
+    ): Long {
+        val decimals = currencies.firstOrNull { it.code == currency }?.decimals ?: 2
+        val rate = if (currency == "EGP") "1" else rates.filter { it.currency == currency }.maxByOrNull { it.date }?.egpPerUnit ?: return 0L
+        return convert(amountMinor, currency, decimals, rate)
+    }
+
     fun goals(
         goals: List<GoalEntity>,
         links: List<GoalLinkEntity>,
@@ -55,6 +68,7 @@ internal object GoalDebtCalculations {
         currencies: List<CurrencyEntity>,
         rates: List<FxRateEntity>,
         today: LocalDate,
+        cashFlows: List<StatsEntryRow> = emptyList(),
     ): List<GoalCardData> {
         val accountValues =
             accounts.associate {
@@ -131,19 +145,124 @@ internal object GoalDebtCalculations {
                     )
                 }
             val linked = sources.sumOf { it.valueMinor * it.allocationPct / 100L }
-            val manual = contributions.filter { it.goalId == goal.id }.sumOf { it.amountMinor }
+            val goalContributions = contributions.filter { it.goalId == goal.id }
+            val manual = goalContributions.sumOf { it.amountMinor }
             val progress =
-                GoalProgress(goal.targetMinor, linked, manual, goal.targetDate?.let(LocalDate::parse), GoalStatus.valueOf(goal.status))
-            val monthsBehind =
-                if (progress.isOverdue(today)) {
-                    val target = progress.targetDate!!
-                    java.time.temporal.ChronoUnit.MONTHS
-                        .between(target.withDayOfMonth(1), today.withDayOfMonth(1))
-                        .coerceAtLeast(1)
-                } else {
-                    0L
+                GoalProgress(
+                    goal.targetMinor,
+                    linked,
+                    manual,
+                    goal.targetDate?.let(LocalDate::parse),
+                    runCatching {
+                        GoalStatus.valueOf(goal.status)
+                    }.getOrDefault(GoalStatus.PAUSED),
+                )
+            val from = today.minusMonths(3)
+            val accountGain =
+                sources.filter { it.key.startsWith("account:") }.sumOf { source ->
+                    val accountId = source.key.removePrefix("account:")
+                    cashFlows
+                        .filter {
+                            it.accountId == accountId &&
+                                runCatching { LocalDate.parse(it.bookedDate) in from..today }.getOrDefault(false)
+                        }.sumOf { it.baseMinor * source.allocationPct / 100L }
                 }
-            GoalCardData(goal, progress, sources, monthsBehind)
+            val assetGain =
+                sources.filter { it.key.startsWith("asset:") }.sumOf { source ->
+                    val assetId = source.key.removePrefix("asset:")
+                    val recentQuantity =
+                        trades
+                            .filter {
+                                it.assetId == assetId &&
+                                    runCatching {
+                                        LocalDate.parse(
+                                            it.date,
+                                        ) in from..today
+                                    }.getOrDefault(false)
+                            }.fold(BigDecimal.ZERO) { total, trade ->
+                                val quantity = BigDecimal(trade.quantity)
+                                total +
+                                    if (trade.kind == "BUY") {
+                                        quantity
+                                    } else if (trade.kind == "SELL") {
+                                        quantity.negate()
+                                    } else {
+                                        BigDecimal.ZERO
+                                    }
+                            }
+                    val currentQuantity =
+                        AverageCost
+                            .position(
+                                trades.filter { it.assetId == assetId && it.deletedAt == null }.map { trade ->
+                                    AssetTransaction(
+                                        trade.id,
+                                        trade.assetId,
+                                        AssetTransactionKind.valueOf(trade.kind),
+                                        LocalDate.parse(trade.date),
+                                        BigDecimal(trade.quantity),
+                                        BigDecimal(trade.unitPrice),
+                                        trade.feeMinor,
+                                        trade.totalMinor,
+                                        trade.txnId,
+                                        trade.note,
+                                    )
+                                },
+                            ).quantity
+                    val currentValue = assetValues[assetId] ?: 0L
+                    val gain =
+                        if (currentQuantity.signum() ==
+                            0
+                        ) {
+                            0L
+                        } else {
+                            BigDecimal
+                                .valueOf(
+                                    currentValue,
+                                ).multiply(recentQuantity)
+                                .divide(currentQuantity, 0, java.math.RoundingMode.HALF_UP)
+                                .longValueExact()
+                        }
+                    gain * source.allocationPct / 100L
+                }
+            val recentGain =
+                (
+                    goalContributions
+                        .filter {
+                            runCatching {
+                                LocalDate.parse(
+                                    it.date,
+                                ) in from..today
+                            }.getOrDefault(false)
+                        }.sumOf { it.amountMinor } +
+                        accountGain +
+                        assetGain
+                ) /
+                    3
+            val eta = progress.eta(today, recentGain)
+            val target = progress.targetDate
+            val monthsBehind =
+                when {
+                    target != null && eta != null && eta > target -> {
+                        java.time.temporal.ChronoUnit.MONTHS
+                            .between(
+                                target.withDayOfMonth(1),
+                                eta.withDayOfMonth(1),
+                            ).coerceAtLeast(1)
+                    }
+
+                    progress.isOverdue(
+                        today,
+                    ) -> {
+                        java.time.temporal.ChronoUnit.MONTHS
+                            .between(target!!.withDayOfMonth(1), today.withDayOfMonth(1))
+                            .coerceAtLeast(1)
+                    }
+
+                    else -> {
+                        0L
+                    }
+                }
+            GoalCardData(goal, progress, sources, monthsBehind, eta)
         }
     }
 

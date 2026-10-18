@@ -79,6 +79,7 @@ class GoalDebtCalculationsTest {
         assertEquals(320_000L, result.progress.progressMinor)
         assertEquals(340_000L, result.progress.monthlyNeeded(LocalDate.parse("2026-10-01")))
         assertEquals(LocalDate.parse("2026-12-01"), result.progress.eta(LocalDate.parse("2026-10-01"), 340_000))
+        assertTrue(result.monthsBehind > 0L)
     }
 
     @Test

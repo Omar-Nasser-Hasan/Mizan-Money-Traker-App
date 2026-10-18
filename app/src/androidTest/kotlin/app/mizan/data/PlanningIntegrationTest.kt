@@ -12,6 +12,7 @@ import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyEntity
+import app.mizan.data.db.DebtEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ledger.ExpenseRequest
@@ -128,6 +129,52 @@ class PlanningIntegrationTest {
             val work = WorkManager.getInstance(context).getWorkInfosForUniqueWork("snooze-skip-plan-$due").get()
             assertEquals(1, work.size)
             assertTrue(work.single().state in setOf(androidx.work.WorkInfo.State.ENQUEUED, androidx.work.WorkInfo.State.RUNNING))
+        }
+
+    @Test fun debt_create_edit_partial_repay_and_close_stays_out_of_income_and_expense() =
+        runBlocking {
+            val due = LocalDate.now().plusDays(7).toString()
+            val debt =
+                DebtEntity("debt-roundtrip", "Nadia", "LENT", "EGP", "cash", 30_000, LocalDate.now().toString(), due, "Lent for travel")
+            repository.saveDebt(debt)
+            val originId = requireNotNull(database.ledgerDao().findDebtOrigin(debt.id)).id
+            repository.saveDebt(debt.copy(person = "Nadia A", principalMinor = 40_000, note = "Updated loan"))
+            assertEquals(originId, database.ledgerDao().findDebtOrigin(debt.id)?.id)
+            assertEquals(
+                40_000L,
+                kotlin.math.abs(
+                    database
+                        .ledgerDao()
+                        .entriesForTransaction(originId)
+                        .single()
+                        .amountMinor,
+                ),
+            )
+
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            PlanningReminderScheduler.remindDebt(context, debt.id)
+            val reminderWork = WorkManager.getInstance(context).getWorkInfosForUniqueWork("debt-reminder-${debt.id}").get()
+            assertTrue(reminderWork.isNotEmpty())
+
+            repository.repayDebt(debt.id, 10_000, "cash", LocalDate.now())
+            assertEquals(10_000L, repository.debtRepayments(debt.id))
+            assertEquals("ACTIVE", requireNotNull(repository.debt(debt.id)).status)
+            repository.repayDebt(debt.id, 30_000, "cash", LocalDate.now())
+            assertEquals("CLOSED", requireNotNull(repository.debt(debt.id)).status)
+            val borrowed = DebtEntity("debt-borrowed", "Omar", "BORROWED", "EGP", "cash", 5_000, LocalDate.now().toString(), due)
+            repository.saveDebt(borrowed)
+            repository.repayDebt(borrowed.id, 5_000, "cash", LocalDate.now())
+            assertEquals("CLOSED", requireNotNull(repository.debt(borrowed.id)).status)
+            val kinds =
+                repository
+                    .observeStatsRows()
+                    .first()
+                    .filter { it.debtId == debt.id || it.debtId == borrowed.id }
+                    .map { it.kind }
+            assertTrue(kinds.containsAll(listOf("DEBT_LEND", "DEBT_REPAY_IN", "DEBT_BORROW", "DEBT_REPAY_OUT")))
+            assertTrue(kinds.none { it == "INCOME" || it == "EXPENSE" })
+            val cash = repository.observeAccountBalances().first().single { it.accountId == "cash" && it.currency == "EGP" }
+            assertEquals(100_000L, cash.openingMinor + cash.entryMinor)
         }
 
     private fun payment(id: String) =

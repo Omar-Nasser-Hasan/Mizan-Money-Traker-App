@@ -118,6 +118,7 @@ fun V2StatsScreen(
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
     val plannedPayments by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
     val plannedOccurrences by repository.observePlannedOccurrences().collectAsStateWithLifecycle(emptyList())
     val incomeCategories by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
@@ -182,6 +183,8 @@ fun V2StatsScreen(
         categories,
         plannedPayments,
         plannedOccurrences,
+        debts,
+        debtRepayments,
         entries,
         currencies,
         rates,
@@ -208,6 +211,8 @@ fun V2StatsScreen(
                     today,
                     accountFilterId,
                     includeTypicalIncome,
+                    debts,
+                    debtRepayments,
                 )
             }
     }

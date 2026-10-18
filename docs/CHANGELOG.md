@@ -7,6 +7,7 @@
 ## P10 — Goals
 
 - Added goal progress from allocated account and asset values, monthly funding projections, allocation-cap validation, manual contributions, pause/reach states, edit flows, and undoable deletion.
+- Added debt creation and editing with ledger-backed lending/borrowing, partial repayments that close at zero, due reminders, and debt timeline entries in Planned and Outlook.
 
 ## M10 — SMS and notification Inbox
 

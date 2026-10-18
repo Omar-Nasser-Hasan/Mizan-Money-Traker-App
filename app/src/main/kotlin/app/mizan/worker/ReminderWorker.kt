@@ -40,6 +40,21 @@ class ReminderWorker(
             notifyDailyLogIfNeeded(today)
             return Result.success()
         }
+        val debtId = inputData.getString(KEY_DEBT_ID)
+        if (debtId != null) {
+            if (!repository().debtRemindersEnabled()) return Result.success()
+            val debt = repository().debt(debtId) ?: return Result.success()
+            if (debt.status != "ACTIVE" || !repository().claimNotification("debt-manual-${debt.id}-$today")) return Result.success()
+            notifySimple(
+                NotificationChannels.DEBTS,
+                "Debt: ${debt.person}",
+                debt.dueDate?.let {
+                    "Due $it"
+                } ?: "Reminder to follow up",
+                "debt-manual-${debt.id}-$today",
+            )
+            return Result.success()
+        }
         val snoozedId = inputData.getString(KEY_PLANNED_ID)
         if (snoozedId != null) {
             if (!repository().plannedRemindersEnabled()) return Result.success()
@@ -216,11 +231,14 @@ class ReminderWorker(
     companion object {
         const val KEY_PLANNED_ID = "planned_id"
         const val KEY_DUE_DATE = "due_date"
+        const val KEY_DEBT_ID = "debt_id"
         const val KEY_DAILY_ONLY = "daily_only"
 
         fun input(
             plannedId: String,
             dueDate: String,
         ) = workDataOf(KEY_PLANNED_ID to plannedId, KEY_DUE_DATE to dueDate)
+
+        fun debtInput(debtId: String) = workDataOf(KEY_DEBT_ID to debtId)
     }
 }

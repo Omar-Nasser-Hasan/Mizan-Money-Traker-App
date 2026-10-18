@@ -5,6 +5,8 @@ import app.mizan.data.db.AccountBalanceRow
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyEntity
+import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.DebtRepaymentTotal
 import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.PlannedOccurrenceEntity
 import app.mizan.data.db.PlannedPaymentEntity
@@ -69,6 +71,8 @@ internal data class OutlookStats(
             today: LocalDate,
             accountFilter: String?,
             includeTypicalIncome: Boolean,
+            debts: List<DebtEntity> = emptyList(),
+            debtRepayments: List<DebtRepaymentTotal> = emptyList(),
         ): OutlookStats {
             val selectedIds = accountFilter?.split('|')?.filter(String::isNotBlank)?.toSet()
             val scopedIds =
@@ -117,6 +121,24 @@ internal data class OutlookStats(
                 return MoneyMath.baseMinor(payment.amountMinor, currency.decimals, rate)
             }
 
+            fun baseAmount(
+                currencyCode: String,
+                minor: Long,
+            ): Long? {
+                val currency = currencies.firstOrNull { it.code == currencyCode } ?: return null
+                val rate =
+                    if (currencyCode == "EGP") {
+                        BigDecimal.ONE
+                    } else {
+                        rates
+                            .filter { it.currency == currencyCode }
+                            .maxByOrNull { it.date }
+                            ?.egpPerUnit
+                            ?.let(::BigDecimal) ?: return null
+                    }
+                return MoneyMath.baseMinor(minor, currency.decimals, rate)
+            }
+
             fun delta(payment: PlannedPaymentEntity): Long {
                 val amount = baseAmount(payment) ?: return 0L
                 val fromIncluded = payment.accountId in scopedIds
@@ -144,9 +166,22 @@ internal data class OutlookStats(
                 }
 
             val upcoming = applied.filter { it.second <= end && baseAmount(it.first) != null }
-            val plannedNet = upcoming.sumOf { (payment, _) -> delta(payment) }
-            val plannedIn = plannedNet.coerceAtLeast(0L)
-            val plannedOut = (-plannedNet).coerceAtLeast(0L)
+            val debtDue =
+                debts.filter { debt -> debt.status == "ACTIVE" && debt.dueDate != null }.mapNotNull { debt ->
+                    val due = runCatching { LocalDate.parse(debt.dueDate) }.getOrNull() ?: return@mapNotNull null
+                    if (due !in timelineStart..end) return@mapNotNull null
+                    val remaining =
+                        (debt.principalMinor - (debtRepayments.firstOrNull { it.debtId == debt.id }?.repaidMinor ?: 0L))
+                            .coerceAtLeast(
+                                0L,
+                            )
+                    val amount = baseAmount(debt.currency, remaining) ?: return@mapNotNull null
+                    Triple(debt, due, amount).takeIf { amount > 0L }
+                }
+            val debtIn = debtDue.filter { (debt, _, _) -> debt.accountId in scopedIds && debt.direction == "LENT" }.sumOf { it.third }
+            val debtOut = debtDue.filter { (debt, _, _) -> debt.accountId in scopedIds && debt.direction == "BORROWED" }.sumOf { it.third }
+            val plannedIn = upcoming.sumOf { (payment, _) -> inAmount(payment) } + debtIn
+            val plannedOut = upcoming.sumOf { (payment, _) -> outAmount(payment) } + debtOut
             val startBalance =
                 balances.filter { it.accountId in scopedIds }.sumOf { row ->
                     MoneyMath.baseMinor(
@@ -200,23 +235,57 @@ internal data class OutlookStats(
                 )
 
             var running = startBalance
-            val timelineItems =
-                applied.filter { it.second <= end && baseAmount(it.first) != null }.mapNotNull { (payment, date) ->
-                    running += delta(payment)
-                    if (date < timelineStart) {
-                        null
+            val timelineItems = mutableListOf<OutlookTimelineItem>()
+
+            data class ScheduledEvent(
+                val date: LocalDate,
+                val payment: PlannedPaymentEntity? = null,
+                val debt: DebtEntity? = null,
+                val amountMinor: Long = 0L,
+            )
+            val orderedEvents =
+                (
+                    upcoming.map { (payment, date) -> ScheduledEvent(date, payment = payment) } +
+                        debtDue.map { (debt, date, amount) -> ScheduledEvent(date, debt = debt, amountMinor = amount) }
+                ).sortedWith(
+                    compareBy<ScheduledEvent> { it.date }.thenBy {
+                        it.payment?.name
+                            ?: it.debt?.person.orEmpty()
+                    },
+                )
+            orderedEvents.forEach { event ->
+                val date = event.date
+                val payment = event.payment
+                val debt = event.debt
+                val signed = payment?.let(::delta) ?: if (debt?.direction == "LENT") event.amountMinor else -event.amountMinor
+                val incoming =
+                    if (payment != null) {
+                        inAmount(payment)
+                    } else if (signed > 0L) {
+                        signed
                     } else {
-                        OutlookTimelineItem(
-                            date,
-                            payment.name,
-                            payment.kind,
-                            delta(payment),
-                            running,
-                            outAmount(payment),
-                            inAmount(payment),
-                        )
+                        0L
                     }
-                }
+                val outgoing =
+                    if (payment != null) {
+                        outAmount(payment)
+                    } else if (signed < 0L) {
+                        -signed
+                    } else {
+                        0L
+                    }
+                running += signed
+                timelineItems +=
+                    OutlookTimelineItem(
+                        date,
+                        payment?.name ?: "Debt · ${debt?.person.orEmpty()}",
+                        payment?.kind ?: if (debt?.direction == "LENT") "DEBT_LEND" else "DEBT_BORROW",
+                        signed,
+                        running,
+                        outgoing,
+                        incoming,
+                    )
+            }
             val timeline =
                 timelineItems.groupBy { it.date }.toSortedMap().map { (date, items) ->
                     OutlookTimelineDay(
