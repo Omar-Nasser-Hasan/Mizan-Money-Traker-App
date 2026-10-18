@@ -149,7 +149,12 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                         }
                     }
                     item {
-                        MzChartCard("Monthly change", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                        MzChartCard(
+                            "Monthly change",
+                            axisLabels = listOf("Jan", "Apr", "Jun"),
+                            showGrid = false,
+                            showAxisLabels = false,
+                        ) { chartModifier ->
                             MzWaterfall(listOf(50, -18, -12, 32, -28), chartModifier)
                         }
                     }
