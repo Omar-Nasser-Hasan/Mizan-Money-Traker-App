@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.ui.v2
 
+import app.mizan.domain.money.Money
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -18,5 +19,10 @@ class AmountTextTest {
     @Test
     fun hidesButRetainsCurrencyWhenAmountsAreHidden() {
         assertEquals("EGP ••••••", formatMizanAmount(Long.MIN_VALUE, "EGP", AmountStyle.EXPENSE, true))
+    }
+
+    @Test
+    fun formatsDomainMoneyAtItsCurrencyMinorUnitScale() {
+        assertEquals("EGP 12,580.00", formatMizanAmount(Money(1_258_000, "EGP")))
     }
 }
