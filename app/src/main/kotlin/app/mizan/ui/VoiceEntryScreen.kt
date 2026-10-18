@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mizan.data.db.InboxDraftEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.entry.ParserAccount
 import app.mizan.domain.entry.ParserCategory
@@ -37,6 +38,7 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 
 /** Review-only voice entry. Posting remains deliberately outside this screen until Save is tapped in Entry. */
 @Composable
@@ -105,6 +107,36 @@ fun voiceEntryScreen(
         }
         if (drafts.isNotEmpty()) {
             Button(onClick = { confirmSave = true }, modifier = Modifier.fillMaxWidth()) { Text("Review complete — confirm Save all") }
+            Button(
+                onClick = {
+                    scope.launch {
+                        val receivedAt = Instant.now().toEpochMilli()
+                        var saved = 0
+                        drafts.forEachIndexed { index, draft ->
+                            val id = UUID.nameUUIDFromBytes("voice|$receivedAt|$index|${draft.sourceClause}".toByteArray()).toString()
+                            if (
+                                repository.saveInboxDraft(
+                                    InboxDraftEntity(
+                                        id = id,
+                                        source = "VOICE",
+                                        sender = "On-device voice",
+                                        amountMinor = draft.amountMinor,
+                                        currency = draft.currency,
+                                        merchant = draft.payee,
+                                        cardLastFour = null,
+                                        kind = draft.kind.name,
+                                        occurredAt = receivedAt,
+                                        receivedAt = receivedAt,
+                                        rawMessage = transcript,
+                                    ),
+                                )
+                            ) saved++
+                        }
+                        status = "$saved voice draft(s) saved to Inbox for Entry review."
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Save drafts to Inbox for Entry review") }
         }
         Button(onClick = onDone) { Text("Discard review") }
     }
