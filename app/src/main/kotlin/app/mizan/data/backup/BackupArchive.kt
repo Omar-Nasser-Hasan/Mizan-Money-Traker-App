@@ -22,6 +22,7 @@ data class BackupPreview(
 class BackupArchive(
     private val context: Context,
     private val database: RoomDatabase,
+    private val databaseName: String = "mizan.db",
 ) {
     fun create(passphrase: CharArray): File {
         val directory = File(context.filesDir, "backups").apply { mkdirs() }
@@ -81,7 +82,7 @@ class BackupArchive(
     ) {
         val payload = BackupCrypto.decrypt(file.readBytes(), passphrase)
         preview(file, passphrase)
-        val destination = context.getDatabasePath("mizan.db")
+        val destination = context.getDatabasePath(databaseName)
         val replacement = File(destination.parentFile, "mizan-restored.db")
         replacement.writeBytes(payload.database)
         require(replacement.length() == payload.database.size.toLong()) { "Restored database is incomplete" }

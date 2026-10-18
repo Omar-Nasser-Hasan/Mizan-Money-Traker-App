@@ -6,8 +6,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.mizan.data.backup.BackupArchive
 import app.mizan.data.db.AppDatabase
-import app.mizan.di.RepositoryEntryPoint
-import dagger.hilt.android.EntryPointAccessors
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -21,7 +19,6 @@ class BackupArchiveInstrumentedTest {
     @Test
     fun backup_wipe_restore_preserves_every_table_and_receipt() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        closeApplicationDatabase(context)
         context.deleteDatabase(DATABASE_NAME)
         File(context.filesDir, "attachments").deleteRecursively()
         val database = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).allowMainThreadQueries().build()
@@ -29,11 +26,11 @@ class BackupArchiveInstrumentedTest {
             seedEveryTable(database, context)
             val before = tableHashes(database)
             val receipt = File(context.filesDir, "attachments/attachment").readBytes()
-            val archive = BackupArchive(context, database).create(PASSPHRASE)
+            val archive = BackupArchive(context, database, DATABASE_NAME).create(PASSPHRASE)
             wipeEveryTable(database)
             assertEquals(0, rowCount(database, "transactions"))
 
-            BackupArchive(context, database).restore(archive, PASSPHRASE)
+            BackupArchive(context, database, DATABASE_NAME).restore(archive, PASSPHRASE)
             val restored = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).allowMainThreadQueries().build()
             try {
                 assertEquals(before, tableHashes(restored))
@@ -42,18 +39,8 @@ class BackupArchiveInstrumentedTest {
                 restored.close()
             }
         } finally {
-            closeApplicationDatabase(context)
             context.deleteDatabase(DATABASE_NAME)
             File(context.filesDir, "attachments").deleteRecursively()
-        }
-    }
-
-    private fun closeApplicationDatabase(context: android.content.Context) {
-        runCatching {
-            EntryPointAccessors
-                .fromApplication(context, RepositoryEntryPoint::class.java)
-                .database()
-                .close()
         }
     }
 
@@ -121,7 +108,7 @@ class BackupArchiveInstrumentedTest {
         }
 
     private companion object {
-        const val DATABASE_NAME = "mizan.db"
+        const val DATABASE_NAME = "mizan-backup-test.db"
         val PASSPHRASE = "test backup passphrase".toCharArray()
         val TABLES =
             listOf(
