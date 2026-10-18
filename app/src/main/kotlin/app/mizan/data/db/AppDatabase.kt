@@ -829,6 +829,21 @@ interface LedgerDao {
                p.name AS payeeName, t.note, t.status, t.paymentType, t.plannedId, t.debtId, t.assetTxnId, t.createdAt,
                t.updatedAt, e.accountId, a.name AS accountName, e.currency, e.amountMinor, e.rateToBase, e.baseMinor,
                COALESCE((SELECT GROUP_CONCAT(l.name, '|') FROM record_labels rl JOIN labels l ON l.id = rl.labelId WHERE rl.txnId = t.id), '') AS labels,
+               COALESCE((SELECT GROUP_CONCAT(uri, '|') FROM attachments at WHERE at.txnId = t.id), '') AS attachments
+        FROM transactions t JOIN entries e ON e.txnId = t.id
+        JOIN accounts a ON a.id = e.accountId LEFT JOIN categories c ON c.id = t.categoryId
+        LEFT JOIN payees p ON p.id = t.payeeId WHERE t.deletedAt IS NULL
+        ORDER BY t.bookedDate DESC, t.bookedAt DESC LIMIT :limit
+        """,
+    )
+    fun observeRecent(limit: Int): Flow<List<RecordRow>>
+
+    @Query(
+        """
+        SELECT t.id, e.id AS entryId, t.kind, t.bookedAt, t.bookedDate, t.categoryId, c.name AS categoryName, t.payeeId,
+               p.name AS payeeName, t.note, t.status, t.paymentType, t.plannedId, t.debtId, t.assetTxnId, t.createdAt,
+               t.updatedAt, e.accountId, a.name AS accountName, e.currency, e.amountMinor, e.rateToBase, e.baseMinor,
+               COALESCE((SELECT GROUP_CONCAT(l.name, '|') FROM record_labels rl JOIN labels l ON l.id = rl.labelId WHERE rl.txnId = t.id), '') AS labels,
                COALESCE((SELECT GROUP_CONCAT(uri, '|') FROM attachments at WHERE at.txnId = t.id), '') AS attachments FROM transactions t JOIN entries e ON e.txnId = t.id
         JOIN accounts a ON a.id = e.accountId LEFT JOIN categories c ON c.id = t.categoryId
         LEFT JOIN payees p ON p.id = t.payeeId WHERE t.deletedAt IS NULL

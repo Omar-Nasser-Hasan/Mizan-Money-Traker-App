@@ -616,6 +616,8 @@ class MizanRepository
 
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
+        fun observeRecentRecords(limit: Int): Flow<List<RecordRow>> = ledger.observeRecent(limit)
+
         fun observeStatsEntries() = ledger.observeStatsEntries()
 
         fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()
