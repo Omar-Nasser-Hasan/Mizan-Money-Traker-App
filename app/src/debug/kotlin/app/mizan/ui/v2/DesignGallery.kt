@@ -23,7 +23,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -162,7 +161,6 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                 }
                 MzBottomNav("Home", {})
             }
-            MzFab({}, Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 84.dp))
         }
         if (datePicker) {
             MzDatePickerSheet(LocalDate.now(), onDismissRequest = { datePicker = false }, onDateSelected = { datePicker = false })
