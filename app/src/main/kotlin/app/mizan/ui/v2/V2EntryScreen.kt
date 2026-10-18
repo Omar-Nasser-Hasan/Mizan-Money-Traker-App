@@ -207,10 +207,14 @@ fun V2EntryScreen(
                     MzChip("Choose", false, { showCategoryPicker = true })
                 }
             }
-            if (account != null &&
-                amount > 0
-            ) {
-                item { Text("Negative balances are allowed.", color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
+            if (account?.name == "Fun" && amount > 0) {
+                item {
+                    Text(
+                        "Fun will go below zero. Allowed",
+                        color = LocalMzTokens.current.warning,
+                        style = MzTypography.bodySmall,
+                    )
+                }
             }
         }
         item {
