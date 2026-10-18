@@ -28,6 +28,7 @@
 
 ## Unreleased
 
+- Re-captured and visually verified the P1 donut, composition bar, budget ring, and Empty/Loading/Error gallery states on the API 37 emulator in dark, light, and OLED modes.
 - P1 visual pass: the spending donut now fits the card inner width minus 24dp (capped at 200dp), keeps a 56% inner diameter and full-strength slice colors, and formats legend amounts without floating point. Re-captured dark, light, OLED, and state-gallery screens on the API 37 emulator.
 - Refined P1 chart primitives: spending donuts use full-strength account colors and a compact legend; composition bars show separated segments and legends; grid/axis decoration is limited to line, area, and bar charts; progress rings now have a legible two-line center.
 - Reworked the design-gallery States section into separate Empty, Loading skeleton, and Error cards, fixed empty-state title contrast, and added currency-optional list amounts with a grouped net-worth hero amount.
