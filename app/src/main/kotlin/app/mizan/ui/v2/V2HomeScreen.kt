@@ -278,6 +278,7 @@ private fun HomeContent(
                             },
                             hideAmounts,
                             textStyle = MzTypography.amountSmall,
+                            showCurrency = false,
                         )
                     },
                 )
@@ -439,7 +440,16 @@ private fun RecentRow(
         title = record.categoryName ?: record.payeeName ?: record.kind.replace('_', ' '),
         subtitle = "${record.accountName} · ${record.bookedDate}",
         modifier = Modifier.clickable(onClick = onClick),
-        trailing = { AmountText(record.amountMinor, record.currency, style, hideAmounts, textStyle = MzTypography.amountSmall) },
+        trailing = {
+            AmountText(
+                record.amountMinor,
+                record.currency,
+                style,
+                hideAmounts,
+                textStyle = MzTypography.amountSmall,
+                showCurrency = record.currency != "EGP",
+            )
+        },
     )
 }
 
