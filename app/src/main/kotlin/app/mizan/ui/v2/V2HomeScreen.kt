@@ -39,7 +39,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.mizan.data.db.AccountBalanceRow
@@ -147,8 +149,17 @@ fun V2HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val refresh = {
         val work = WorkManager.getInstance(context)
-        work.enqueueUniqueWork("home-fx-refresh", ExistingWorkPolicy.REPLACE, OneTimeWorkRequestBuilder<FxRefreshWorker>().build())
-        work.enqueueUniqueWork("home-price-refresh", ExistingWorkPolicy.REPLACE, OneTimeWorkRequestBuilder<PriceRefreshWorker>().build())
+        val network = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        work.enqueueUniqueWork(
+            "home-fx-refresh",
+            ExistingWorkPolicy.REPLACE,
+            OneTimeWorkRequestBuilder<FxRefreshWorker>().setConstraints(network).build(),
+        )
+        work.enqueueUniqueWork(
+            "home-price-refresh",
+            ExistingWorkPolicy.REPLACE,
+            OneTimeWorkRequestBuilder<PriceRefreshWorker>().setConstraints(network).build(),
+        )
     }
     val refreshConnection =
         remember(refresh) {
@@ -229,6 +240,16 @@ private fun HomeContent(
         }
         item { SectionTitle("Accounts", "Add account") { onNavigate(V2Route.NewAccount) } }
         item { AccountsCarousel(data.accounts, data.accountBuckets, hideAmounts, onNavigate) }
+        if (data.recent.isEmpty()) {
+            item {
+                MzEmptyState(
+                    title = "Ready for your first record?",
+                    description = "Your accounts are set up. Add an expense, income, or transfer when it happens.",
+                    actionLabel = "Add a record",
+                    onAction = { onNavigate(V2Route.ExpenseEntry) },
+                )
+            }
+        }
         item { ThisMonthCard(data.summary, hideAmounts) }
         if (data.budgets.isNotEmpty()) {
             item { SectionTitle("Budgets", "See all") { onNavigate(V2Route.Budgets) } }
@@ -409,7 +430,8 @@ private fun RecentRow(
             "EXPENSE" -> AmountStyle.EXPENSE
             "INCOME", "ASSET_INCOME" -> AmountStyle.INCOME
             "TRANSFER" -> AmountStyle.TRANSFER
-            else -> AmountStyle.INVESTMENT
+            "ASSET_BUY", "ASSET_SELL" -> AmountStyle.INVESTMENT
+            else -> AmountStyle.NEUTRAL
         }
     MzListRow(
         iconName = if (record.kind == "TRANSFER") "swap_horiz" else "receipt_long",
