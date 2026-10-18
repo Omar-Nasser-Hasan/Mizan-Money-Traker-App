@@ -495,7 +495,7 @@ fun V2EntryScreen(
             }
             Text("Payment type", style = MzTypography.labelCaps)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(PaymentType.CASH, PaymentType.DEBIT, PaymentType.CREDIT, PaymentType.BANK_TRANSFER).forEach { candidate ->
+                PaymentType.entries.forEach { candidate ->
                     MzChip(candidate.name.lowercase().replace('_', ' '), paymentType == candidate, { paymentType = candidate })
                 }
             }
