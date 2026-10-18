@@ -11,6 +11,8 @@ class AmountTextTest {
         assertEquals("+ EGP 12,580.00", formatMizanAmount(1_258_000, "EGP", AmountStyle.INCOME, false))
         assertEquals("→ USD 125.80", formatMizanAmount(12_580, "USD", AmountStyle.TRANSFER, false))
         assertEquals("Invested EGP 125.80", formatMizanAmount(12_580, "EGP", AmountStyle.INVESTMENT, false))
+        assertEquals("KWD 12.580", formatMizanAmount(12_580, "KWD", AmountStyle.NEUTRAL, false))
+        assertEquals("JPY 12,580", formatMizanAmount(12_580, "JPY", AmountStyle.NEUTRAL, false))
     }
 
     @Test

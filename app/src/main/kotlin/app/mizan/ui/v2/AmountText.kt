@@ -48,8 +48,15 @@ internal fun formatMizanAmount(
     hideAmounts: Boolean,
 ): String {
     if (hideAmounts) return "$currency ••••••"
-    val absolute = BigDecimal.valueOf(minor).abs().movePointLeft(2)
-    val number = DecimalFormat("#,##0.00", DecimalFormatSymbols(Locale.US)).format(absolute)
+    val decimals =
+        when (currency) {
+            "KWD" -> 3
+            "JPY" -> 0
+            else -> 2
+        }
+    val absolute = BigDecimal.valueOf(minor).abs().movePointLeft(decimals)
+    val pattern = if (decimals == 0) "#,##0" else "#,##0.${"0".repeat(decimals)}"
+    val number = DecimalFormat(pattern, DecimalFormatSymbols(Locale.US)).format(absolute)
     val sign =
         when (style) {
             AmountStyle.EXPENSE -> "− "
