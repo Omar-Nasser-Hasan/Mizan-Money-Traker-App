@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -28,8 +29,6 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -37,10 +36,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -69,10 +75,11 @@ fun MzButton(
         MzButtonStyle.GHOST -> {
             TextButton(
                 onClick = onClick,
-                modifier = modifier.defaultMinSize(minHeight = 52.dp),
+                modifier = modifier.height(52.dp),
                 enabled = enabled,
+                shape = MzShapes.exterior,
             ) {
-                Text(label, color = tokens.accentText, style = MzTypography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
+                Text(label, color = tokens.accentText, style = MzTypography.button)
             }
         }
 
@@ -80,7 +87,7 @@ fun MzButton(
             val primary = style == MzButtonStyle.PRIMARY
             Button(
                 onClick = onClick,
-                modifier = modifier.defaultMinSize(minHeight = 52.dp),
+                modifier = modifier.height(52.dp),
                 enabled = enabled,
                 shape = MzShapes.exterior,
                 border = if (primary) null else BorderStroke(1.dp, tokens.outline.copy(alpha = 0.4f)),
@@ -92,7 +99,7 @@ fun MzButton(
                         disabledContentColor = tokens.textDim,
                     ),
             ) {
-                Text(label, style = MzTypography.body.copy(fontWeight = FontWeight.SemiBold))
+                Text(label, style = MzTypography.button)
             }
         }
     }
@@ -152,7 +159,12 @@ fun MzListRow(
 ) {
     val tokens = LocalMzTokens.current
     Row(
-        modifier = modifier.fillMaxWidth().height(64.dp).semantics(mergeDescendants = true) {},
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 12.dp)
+                .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -182,27 +194,43 @@ fun MzInput(
     singleLine: Boolean = true,
 ) {
     val tokens = LocalMzTokens.current
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-        label = { Text(label, style = MzTypography.bodySmall) },
-        textStyle = MzTypography.body,
-        singleLine = singleLine,
-        enabled = enabled,
-        shape = MzShapes.inner,
-        colors =
-            OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = tokens.raisedSurface,
-                unfocusedContainerColor = tokens.raisedSurface,
-                focusedTextColor = tokens.text,
-                unfocusedTextColor = tokens.text,
-                focusedBorderColor = tokens.champagne,
-                unfocusedBorderColor = tokens.outline.copy(alpha = 0.4f),
-                focusedLabelColor = tokens.champagne,
-                unfocusedLabelColor = tokens.textDim,
-            ),
-    )
+    var focused by remember { mutableStateOf(false) }
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(label, color = tokens.textDim, style = MzTypography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 0.sp))
+        Spacer(Modifier.height(4.dp))
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = if (singleLine) 56.dp else 88.dp)
+                    .clip(MzShapes.inner)
+                    .background(tokens.raisedSurface)
+                    .drawBehind {
+                        drawLine(
+                            color = if (focused) tokens.champagne else tokens.outline.copy(alpha = 0.28f),
+                            start =
+                                androidx.compose.ui.geometry
+                                    .Offset(12.dp.toPx(), size.height - 0.5.dp.toPx()),
+                            end =
+                                androidx.compose.ui.geometry
+                                    .Offset(size.width - 12.dp.toPx(), size.height - 0.5.dp.toPx()),
+                            strokeWidth = if (focused) 1.5.dp.toPx() else 1.dp.toPx(),
+                        )
+                    }.onFocusChanged { focused = it.isFocused }
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+            enabled = enabled,
+            textStyle = MzTypography.body.copy(color = tokens.text),
+            cursorBrush = SolidColor(tokens.champagne),
+            singleLine = singleLine,
+            decorationBox = { innerTextField ->
+                Box(contentAlignment = Alignment.CenterStart) {
+                    innerTextField()
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -256,7 +284,7 @@ fun MzToggle(
         modifier = modifier.fillMaxWidth().heightIn(min = MzSpacing.touchTarget).clickable { onCheckedChange(!checked) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, modifier = Modifier.weight(1f), style = MzTypography.body)
+        Text(label, modifier = Modifier.weight(1f), color = tokens.text, style = MzTypography.body)
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
