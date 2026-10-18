@@ -2,18 +2,22 @@
 package app.mizan.ui.v2
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,8 +35,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 
@@ -50,6 +56,8 @@ fun MzChartCard(
     modifier: Modifier = Modifier,
     chartHeight: androidx.compose.ui.unit.Dp = 180.dp,
     squareChart: Boolean = false,
+    showGrid: Boolean = true,
+    showAxisLabels: Boolean = true,
     content: @Composable (Modifier) -> Unit,
 ) {
     val tokens = LocalMzTokens.current
@@ -65,31 +73,37 @@ fun MzChartCard(
             BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 val chartBoxModifier =
                     if (squareChart) {
-                        Modifier.size(minOf(maxWidth, 280.dp)).align(Alignment.Center)
+                        Modifier.size(minOf(maxWidth - 24.dp, 200.dp)).align(Alignment.Center)
                     } else {
                         Modifier.fillMaxWidth().height(chartHeight)
                     }
                 Box(
                     modifier =
-                        chartBoxModifier.drawBehind {
-                            repeat(3) { index ->
-                                val y = size.height * (index + 1) / 4f
-                                drawLine(
-                                    color = tokens.outline.copy(alpha = 0.25f),
-                                    start = Offset.Zero.copy(y = y),
-                                    end = Offset(size.width, y),
-                                    strokeWidth = 1.dp.toPx(),
-                                )
+                        if (showGrid) {
+                            chartBoxModifier.drawBehind {
+                                repeat(3) { index ->
+                                    val y = size.height * (index + 1) / 4f
+                                    drawLine(
+                                        color = tokens.outline.copy(alpha = 0.25f),
+                                        start = Offset.Zero.copy(y = y),
+                                        end = Offset(size.width, y),
+                                        strokeWidth = 1.dp.toPx(),
+                                    )
+                                }
                             }
+                        } else {
+                            chartBoxModifier
                         },
                     contentAlignment = Alignment.Center,
                 ) {
                     content(Modifier.fillMaxSize())
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                selectedAxisLabels.forEach { label ->
-                    Text(label, color = tokens.textDim, style = MzTypography.bodySmall)
+            if (showAxisLabels) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    selectedAxisLabels.forEach { label ->
+                        Text(label, color = tokens.textDim, style = MzTypography.bodySmall)
+                    }
                 }
             }
         }
@@ -197,58 +211,92 @@ fun MzDonut(
 ) {
     val tokens = LocalMzTokens.current
     val total = slices.sumOf { it.value.coerceAtLeast(0L) }.coerceAtLeast(1L)
-    Box(modifier = modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
-        Canvas(
-            modifier =
-                Modifier.fillMaxSize().pointerInput(slices) {
-                    detectTapGestures { offset ->
-                        val center = Offset(size.width / 2f, size.height / 2f)
-                        val angle =
-                            (
-                                (
-                                    Math.toDegrees(kotlin.math.atan2((offset.y - center.y).toDouble(), (offset.x - center.x).toDouble())) +
-                                        450
-                                ) %
-                                    360
-                            ).toFloat()
-                        var running = 0f
-                        slices.forEachIndexed { index, slice ->
-                            running += slice.value.coerceAtLeast(0L).toFloat() / total * 360f
-                            if (angle <= running) return@forEachIndexed onSliceSelected(index)
-                        }
-                    }
-                },
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier.widthIn(max = 200.dp).fillMaxWidth(0.88f).aspectRatio(1f),
+            contentAlignment = Alignment.Center,
         ) {
-            val diameter = size.minDimension
-            val stroke = diameter * 0.22f
-            val arcDiameter = diameter - stroke
-            val inset = (diameter - arcDiameter) / 2f
-            val arcTopLeft = Offset(inset, inset)
-            val arcSize = Size(arcDiameter, arcDiameter)
-            drawCircle(tokens.surface, radius = diameter * 0.28f)
-            var start = -90f
-            slices.forEachIndexed { index, slice ->
-                val sweep = slice.value.coerceAtLeast(0L).toFloat() / total * 360f
-                drawArc(
-                    color = if (selectedIndex == null || selectedIndex == index) slice.color else slice.color.copy(alpha = 0.28f),
-                    startAngle = start,
-                    sweepAngle = sweep,
-                    useCenter = false,
-                    topLeft = arcTopLeft,
-                    size = arcSize,
-                    style = Stroke(stroke, cap = StrokeCap.Butt),
-                )
-                start += sweep
+            Canvas(
+                modifier =
+                    Modifier.fillMaxSize().pointerInput(slices) {
+                        detectTapGestures { offset ->
+                            val center = Offset(size.width / 2f, size.height / 2f)
+                            val angle =
+                                (
+                                    (
+                                        Math.toDegrees(
+                                            kotlin.math.atan2((offset.y - center.y).toDouble(), (offset.x - center.x).toDouble()),
+                                        ) +
+                                            450
+                                    ) %
+                                        360
+                                ).toFloat()
+                            var running = 0f
+                            slices.forEachIndexed { index, slice ->
+                                val segmentStart = running
+                                running += slice.value.coerceAtLeast(0L).toFloat() / total * 360f
+                                if (angle >= segmentStart && (angle < running || index == slices.lastIndex)) {
+                                    return@forEachIndexed onSliceSelected(index)
+                                }
+                            }
+                        }
+                    },
+            ) {
+                val diameter = size.minDimension
+                val stroke = diameter * 0.22f
+                val arcDiameter = diameter - stroke
+                val inset = (diameter - arcDiameter) / 2f
+                val arcTopLeft = Offset(inset, inset)
+                val arcSize = Size(arcDiameter, arcDiameter)
+                drawCircle(tokens.surface, radius = diameter * 0.28f)
+                val gapDegrees = 2.dp.toPx() / (diameter * 0.39f) * (180f / Math.PI.toFloat())
+                var start = -90f
+                slices.forEachIndexed { index, slice ->
+                    val sweep = slice.value.coerceAtLeast(0L).toFloat() / total * 360f
+                    val hasGaps = slices.size > 1
+                    drawArc(
+                        color = if (selectedIndex != null && selectedIndex != index) slice.color.copy(alpha = 0.28f) else slice.color,
+                        startAngle = start + if (hasGaps) gapDegrees / 2f else 0f,
+                        sweepAngle = (sweep - if (hasGaps) gapDegrees else 0f).coerceAtLeast(0f),
+                        useCenter = false,
+                        topLeft = arcTopLeft,
+                        size = arcSize,
+                        style = Stroke(stroke, cap = StrokeCap.Butt),
+                    )
+                    start += sweep
+                }
+            }
+            Column(
+                modifier = Modifier.fillMaxSize(0.55f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                chartCenterText(centerText, MzTypography.amountSmall)
+                changeText?.let {
+                    chartCenterText(it, MzTypography.bodySmall, LocalMzTokens.current.income)
+                }
             }
         }
-        Column(
-            modifier = Modifier.fillMaxSize(0.55f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            chartCenterText(centerText, MzTypography.amountSmall)
-            changeText?.let {
-                chartCenterText(it, MzTypography.bodySmall, LocalMzTokens.current.income)
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            slices.forEach { slice ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(androidx.compose.foundation.shape.CircleShape).background(slice.color))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        slice.label,
+                        color = tokens.text,
+                        style = MzTypography.bodySmall,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                    )
+                    Text("${slice.value.coerceAtLeast(0L) * 100 / total}%", color = tokens.textDim, style = MzTypography.bodySmall)
+                    Spacer(Modifier.width(12.dp))
+                    Text(legendAmount(slice.value), color = tokens.text, style = MzTypography.amountSmall)
+                }
             }
         }
     }
@@ -287,7 +335,10 @@ fun MzWaterfall(
     val tokens = LocalMzTokens.current
     Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
         if (values.isEmpty()) return@Canvas
-        val maxValue = values.fold(0L) { total, value -> max(kotlin.math.abs(total), kotlin.math.abs(total + value)) }.coerceAtLeast(1L)
+        val maxValue =
+            values
+                .fold(0L) { total, value -> max(kotlin.math.abs(total), kotlin.math.abs(total + value)) }
+                .coerceAtLeast(1L)
         var cumulative = 0L
         val width = size.width / values.size
         values.forEachIndexed { index, value ->
@@ -318,15 +369,43 @@ fun MzCompositionBar(
     modifier: Modifier = Modifier,
 ) {
     val total = slices.sumOf { it.value.coerceAtLeast(0L) }.coerceAtLeast(1L)
-    Canvas(modifier = modifier.fillMaxWidth().height(12.dp).clip(MzShapes.utility)) {
-        var start = 0f
-        slices.forEach { slice ->
-            val width = size.width * slice.value.coerceAtLeast(0L).toFloat() / total
-            drawRect(slice.color, Offset(start, 0f), Size(width, size.height))
-            start += width
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Canvas(modifier = Modifier.fillMaxWidth().height(12.dp)) {
+            val gap = 2.dp.toPx()
+            val available = (size.width - gap * (slices.size - 1).coerceAtLeast(0)).coerceAtLeast(0f)
+            var start = 0f
+            slices.forEach { slice ->
+                val width = available * slice.value.coerceAtLeast(0L).toFloat() / total
+                drawRoundRect(
+                    slice.color,
+                    Offset(start, 0f),
+                    Size(width, size.height),
+                    androidx.compose.ui.geometry
+                        .CornerRadius(size.height / 2),
+                )
+                start += width + gap
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            slices.forEach { slice ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(androidx.compose.foundation.shape.CircleShape).background(slice.color))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        slice.label,
+                        color = LocalMzTokens.current.text,
+                        style = MzTypography.bodySmall,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(legendAmount(slice.value), color = LocalMzTokens.current.text, style = MzTypography.amountSmall)
+                }
+            }
         }
     }
 }
+
+private fun legendAmount(value: Long): String =
+    java.text.DecimalFormat("#,##0.00", java.text.DecimalFormatSymbols(java.util.Locale.US)).format(value / 100.0)
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
@@ -340,9 +419,28 @@ fun MzProgressRing(
         Canvas(modifier = Modifier.matchParentSize()) {
             val stroke = 8.dp.toPx()
             drawArc(tokens.raisedSurface, -90f, 360f, false, style = Stroke(stroke, cap = StrokeCap.Round))
-            drawArc(tokens.champagne, -90f, 360f * progress.coerceIn(0f, 1f), false, style = Stroke(stroke, cap = StrokeCap.Round))
+            drawArc(
+                tokens.champagne,
+                -90f,
+                360f * progress.coerceIn(0f, 1f),
+                false,
+                style = Stroke(stroke, cap = StrokeCap.Round),
+            )
         }
-        Text(label, style = MzTypography.bodySmall, textAlign = TextAlign.Center)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                label,
+                color = tokens.text,
+                style = MzTypography.title.copy(fontSize = 20.sp, fontWeight = FontWeight.SemiBold),
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                "of budget",
+                color = tokens.textDim,
+                style = MzTypography.bodySmall.copy(fontSize = 10.sp),
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
