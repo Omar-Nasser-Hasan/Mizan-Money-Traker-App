@@ -345,7 +345,11 @@ private fun AssetLotRow(
 }
 
 private fun assetPriceKey(asset: app.mizan.data.db.AssetEntity): String =
-    if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+    when {
+        asset.type != "GOLD" -> "MANUAL:${asset.id}"
+        asset.goldForm == "COIN" -> "GOLD_POUND"
+        else -> "GOLD_${asset.symbolOrKarats.uppercase()}"
+    }
 
 private fun toDomainTrade(trade: AssetTransactionEntity) =
     AssetTransaction(

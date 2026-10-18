@@ -6,6 +6,8 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.mizan.data.db.AppDatabase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,5 +102,25 @@ class AppDatabaseMigrationTest {
         val databaseName = "migration-v10-test"
         helper.createDatabase(databaseName, 10).close()
         helper.runMigrationsAndValidate(databaseName, 11, true, AppDatabase.MIGRATION_10_11).close()
+    }
+
+    @Test
+    fun addsHoldingMetadataToExistingAssets() {
+        val databaseName = "migration-v11-test"
+        helper.createDatabase(databaseName, 11).apply {
+            execSQL(
+                "INSERT INTO assets " +
+                    "(id, name, type, symbolOrKarats, quoteCurrency, unit, resaleDeductionPct, archived, createdAt, updatedAt) " +
+                    "VALUES ('legacy', 'Legacy holding', 'STOCK', 'COMI', 'EGP', 'share', '0', 0, 1, 1)",
+            )
+            close()
+        }
+        val migrated = helper.runMigrationsAndValidate(databaseName, 12, true, AppDatabase.MIGRATION_11_12)
+        migrated.query("SELECT goldForm, priceMode FROM assets WHERE id = 'legacy'").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertTrue(cursor.isNull(0))
+            assertEquals("MANUAL", cursor.getString(1))
+        }
+        migrated.close()
     }
 }

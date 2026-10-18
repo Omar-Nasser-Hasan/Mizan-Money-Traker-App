@@ -434,6 +434,10 @@ fun v2MizanApp(
                     },
                 )
             }
+        } else if (activeRoute == V2Route.AddHolding) {
+            Box(Modifier.padding(padding)) {
+                V2AddHoldingScreen(repository) { navigation = navigation.back() }
+            }
         } else if (activeRoute == V2Route.Wealth) {
             Box(Modifier.padding(padding)) {
                 V2WealthAccountsScreen(repository, hideAmounts) { id -> navigation = navigation.navigate(V2Route.AccountDetail(id)) }

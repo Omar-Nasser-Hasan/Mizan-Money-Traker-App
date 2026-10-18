@@ -238,7 +238,11 @@ object V2WealthModels {
             }.toList()
 
     private fun priceKey(asset: AssetEntity): String =
-        if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+        when {
+            asset.type != "GOLD" -> "MANUAL:${asset.id}"
+            asset.goldForm == "COIN" -> "GOLD_POUND"
+            else -> "GOLD_${asset.symbolOrKarats.uppercase()}"
+        }
 
     private fun assetType(value: String): AssetType = runCatching { AssetType.valueOf(value) }.getOrDefault(AssetType.OTHER)
 

@@ -336,6 +336,8 @@ data class AssetEntity(
     val archived: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long,
+    val goldForm: String? = null,
+    @androidx.room.ColumnInfo(defaultValue = "'MANUAL'") val priceMode: String = "MANUAL",
 )
 
 @Entity(
@@ -1249,7 +1251,7 @@ interface AssetDao {
 
 @Database(
     entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, InboxDraftEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, GoalEntity::class, GoalLinkEntity::class, GoalContributionEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
-    version = 11,
+    version = 12,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -1450,6 +1452,14 @@ abstract class AppDatabase : RoomDatabase() {
             object : Migration(10, 11) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_drafts_reference ON inbox_drafts(reference)")
+                }
+            }
+
+        val MIGRATION_11_12 =
+            object : Migration(11, 12) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE assets ADD COLUMN goldForm TEXT")
+                    db.execSQL("ALTER TABLE assets ADD COLUMN priceMode TEXT NOT NULL DEFAULT 'MANUAL'")
                 }
             }
     }

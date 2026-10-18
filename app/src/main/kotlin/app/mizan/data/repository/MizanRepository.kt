@@ -728,6 +728,8 @@ class MizanRepository
                     asset.archived,
                     now,
                     now,
+                    asset.goldForm,
+                    asset.priceMode,
                 ),
             )
         }

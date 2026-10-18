@@ -371,7 +371,11 @@ fun V2AssetTradeScreen(
 }
 
 private fun tradePriceKey(asset: app.mizan.data.db.AssetEntity) =
-    if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+    when {
+        asset.type != "GOLD" -> "MANUAL:${asset.id}"
+        asset.goldForm == "COIN" -> "GOLD_POUND"
+        else -> "GOLD_${asset.symbolOrKarats.uppercase()}"
+    }
 
 private fun toDomainAssetTrade(trade: AssetTransactionEntity) =
     AssetTransaction(

@@ -21,6 +21,8 @@ data class Asset(
     val unit: String,
     val resaleDeductionPct: BigDecimal = BigDecimal.ZERO,
     val archived: Boolean = false,
+    val goldForm: String? = null,
+    val priceMode: String = "MANUAL",
 )
 
 data class AssetTransaction(
