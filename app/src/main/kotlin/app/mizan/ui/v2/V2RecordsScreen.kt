@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -38,11 +37,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,16 +55,17 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import androidx.paging.insertSeparators
+import androidx.paging.map
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.PagedRecordRow
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ports.RecordQuery
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -121,7 +119,21 @@ fun V2RecordsScreen(
                     maxSize = 160,
                     jumpThreshold = 200,
                 ),
-            ) { repository.records(query) }.flow.cachedIn(scope)
+            ) { repository.records(query) }
+                .flow
+                .map { page ->
+                    page
+                        .map<PagedRecordRow, RecordPagingItem> { RecordPagingItem.Entry(it) }
+                        .insertSeparators { before, after ->
+                            val beforeDate = (before as? RecordPagingItem.Entry)?.row?.bookedDate
+                            val afterDate = (after as? RecordPagingItem.Entry)?.row?.bookedDate
+                            if (afterDate != null && beforeDate != afterDate) {
+                                RecordPagingItem.Day(afterDate)
+                            } else {
+                                null
+                            }
+                        }
+                }.cachedIn(scope)
         }
     val records = pageFlow.collectAsLazyPagingItems()
     val resultCount by remember(query) { repository.observeRecordCount(query) }.collectAsState(initial = 0)
@@ -197,59 +209,57 @@ fun V2RecordsScreen(
         }
 
         val netByDate = remember(dailyNet) { dailyNet.associate { it.date to it.baseMinor } }
-        val loadedRows = records.itemSnapshotList.items
-        val rowsByDay by produceState(initialValue = emptyList<Pair<String, List<PagedRecordRow>>>(), query, loadedRows) {
-            value =
-                withContext(Dispatchers.Default) {
-                    loadedRows.groupBy(PagedRecordRow::bookedDate).map { (date, rows) -> date to rows }
-                }
-        }
         val accountColors = remember(accounts) { accounts.associate { it.id to it.color } }
         val accountNames = remember(accounts) { accounts.associate { it.id to it.name } }
-        val listState = rememberLazyListState()
-        val appendState = records.loadState.append
-        LaunchedEffect(listState, records.itemCount, appendState) {
-            snapshotFlow {
-                listState.layoutInfo.visibleItemsInfo
-                    .lastOrNull()
-                    ?.index
-            }.collect { lastVisible ->
-                val totalItems = listState.layoutInfo.totalItemsCount
-                if (lastVisible != null && lastVisible >= totalItems - 4 && appendState is androidx.paging.LoadState.NotLoading &&
-                    !appendState.endOfPaginationReached && loadedRows.isNotEmpty()
-                ) {
-                    records[loadedRows.lastIndex]
-                }
-            }
-        }
         LazyColumn(
             modifier = Modifier.weight(1f),
-            state = listState,
             contentPadding =
                 androidx.compose.foundation.layout
                     .PaddingValues(horizontal = MzSpacing.sideMargin, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            rowsByDay.forEach { (date, dayRows) ->
-                stickyHeader(key = "records-day-$date") {
-                    RecordDayHeader(date, netByDate[date] ?: 0L, hideAmounts)
-                }
-                items(dayRows, key = PagedRecordRow::id) { row ->
-                    SwipeRecordRow(
-                        row = row,
-                        accountColors = accountColors,
-                        accountNames = accountNames,
-                        hideAmounts = hideAmounts,
-                        onOpen = { onOpenDetail(row.id) },
-                        onEdit = { onEdit(row.id) },
-                        onDelete = {
-                            scope.launch {
-                                repository.deleteRecord(row.id)
-                                val result = snackbar.showSnackbar("Record deleted", actionLabel = "Undo")
-                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) repository.restoreRecord(row.id)
-                            }
-                        },
-                    )
+            items(
+                count = records.itemCount,
+                key =
+                    records.itemKey {
+                        when (it) {
+                            is RecordPagingItem.Day -> "day-${it.date}"
+                            is RecordPagingItem.Entry -> it.row.id
+                        }
+                    },
+            ) { index ->
+                val row = records[index]
+                when (row) {
+                    null -> {
+                        MzCard(Modifier.fillMaxWidth()) { MzSkeleton(Modifier.fillMaxWidth().padding(18.dp), 52.dp) }
+                    }
+
+                    is RecordPagingItem.Day -> {
+                        RecordDayHeader(row.date, netByDate[row.date] ?: 0L, hideAmounts)
+                    }
+
+                    is RecordPagingItem.Entry -> {
+                        val entry = row.row
+                        SwipeRecordRow(
+                            row = entry,
+                            accountColors = accountColors,
+                            accountNames = accountNames,
+                            hideAmounts = hideAmounts,
+                            onOpen = { onOpenDetail(entry.id) },
+                            onEdit = { onEdit(entry.id) },
+                            onDelete = {
+                                scope.launch {
+                                    repository.deleteRecord(entry.id)
+                                    val result = snackbar.showSnackbar("Record deleted", actionLabel = "Undo")
+                                    if (result ==
+                                        androidx.compose.material3.SnackbarResult.ActionPerformed
+                                    ) {
+                                        repository.restoreRecord(entry.id)
+                                    }
+                                }
+                            },
+                        )
+                    }
                 }
             }
             if (records.loadState.refresh is androidx.paging.LoadState.Loading && records.itemCount == 0) {
@@ -290,6 +300,16 @@ fun V2RecordsScreen(
             onDismiss = { showFilters = false },
         )
     }
+}
+
+private sealed interface RecordPagingItem {
+    data class Day(
+        val date: String,
+    ) : RecordPagingItem
+
+    data class Entry(
+        val row: PagedRecordRow,
+    ) : RecordPagingItem
 }
 
 @Composable
