@@ -95,6 +95,11 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class MarketRate(
+    val egpPerUnit: BigDecimal,
+    val fetchedAt: Long,
+)
+
 private val Context.dataStore by preferencesDataStore("mizan_preferences")
 private val cairo = ZoneId.of("Africa/Cairo")
 
@@ -611,6 +616,15 @@ class MizanRepository
         ) = ledger.observeDailyBaseDeltas(accountId, from)
 
         fun observeLatestFx(currency: String) = fxRates.observeLatest(currency)
+
+        fun observeMarketRate(currency: String): Flow<MarketRate?> =
+            if (currency == "EGP") {
+                kotlinx.coroutines.flow.flowOf(MarketRate(BigDecimal.ONE, clock.millis()))
+            } else {
+                fxRates.observeLatest(currency).map { snapshot ->
+                    snapshot?.let { MarketRate(BigDecimal(it.egpPerUnit), it.fetchedAt) }
+                }
+            }
 
         fun observeLatestFxRates(): Flow<List<FxRateEntity>> = fxRates.observeLatestPerCurrency()
 

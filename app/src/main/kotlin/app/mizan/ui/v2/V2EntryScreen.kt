@@ -33,6 +33,7 @@ import app.mizan.domain.ledger.SplitIncomeRequest
 import app.mizan.domain.ledger.SplitLine
 import app.mizan.domain.ledger.SplitMode
 import app.mizan.domain.ledger.TransferRequest
+import app.mizan.domain.money.MoneyMath
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
@@ -72,7 +73,27 @@ fun V2EntryScreen(
     var currency by remember(accountId, account?.defaultCurrency) { mutableStateOf(account?.defaultCurrency ?: "EGP") }
     var targetCurrency by remember(targetId, target?.defaultCurrency) { mutableStateOf(target?.defaultCurrency ?: "EGP") }
     val decimals = currencies.firstOrNull { it.code == currency }?.decimals ?: 2
+    val targetDecimals = currencies.firstOrNull { it.code == targetCurrency }?.decimals ?: 2
+    val sourceMarketRate by repository.observeMarketRate(currency).collectAsStateWithLifecycle(null)
+    val targetMarketRate by repository.observeMarketRate(targetCurrency).collectAsStateWithLifecycle(null)
     val amount = runCatching { EntryCalculator.minorUnits(expression, decimals) }.getOrDefault(0L)
+    val suggestedReceived =
+        if (amount > 0L && sourceMarketRate != null && targetMarketRate != null) {
+            runCatching {
+                MoneyMath.convertMinor(
+                    amount,
+                    decimals,
+                    sourceMarketRate!!.egpPerUnit,
+                    targetDecimals,
+                    targetMarketRate!!.egpPerUnit,
+                )
+            }.getOrNull()
+        } else {
+            null
+        }
+    var receivedExpression by remember(currency, targetCurrency) { mutableStateOf("") }
+    val receivedAmount =
+        runCatching { EntryCalculator.minorUnits(receivedExpression, targetDecimals) }.getOrNull() ?: suggestedReceived ?: 0L
     val allocations = splitAllocations(amount, lines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
 
     LazyColumn(
@@ -180,11 +201,32 @@ fun V2EntryScreen(
         }
         if (kind == "TRANSFER") {
             item { Text("To account", style = MzTypography.labelCaps) }
-            item { AccountChips(accounts.filter { it.id != accountId }, targetId) { targetId = it } }
+            item { AccountChips(accounts, targetId) { targetId = it } }
             if (targetBuckets.size > 1) {
                 item {
                     CurrencyChips(targetBuckets.map { it.currency }, targetCurrency) { targetCurrency = it }
                 }
+            }
+            item {
+                MzInput(
+                    value = receivedExpression,
+                    onValueChange = { receivedExpression = it },
+                    label = "Amount received in $targetCurrency (market suggestion: ${suggestedReceived ?: "unavailable"})",
+                )
+            }
+            item {
+                val quote =
+                    if (sourceMarketRate != null && targetMarketRate != null) {
+                        MoneyMath
+                            .destinationUnitsPerSourceUnit(
+                                sourceMarketRate!!.egpPerUnit,
+                                targetMarketRate!!.egpPerUnit,
+                            ).stripTrailingZeros()
+                            .toPlainString()
+                    } else {
+                        "unavailable"
+                    }
+                Text("Market rate: 1 $currency = $quote $targetCurrency", style = MzTypography.bodySmall)
             }
             item { Text("Not income or expense", color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
         }
@@ -193,6 +235,10 @@ fun V2EntryScreen(
                 val current = account ?: return@MzButton
                 if (amount <= 0L) {
                     message = "Enter an amount"
+                    return@MzButton
+                }
+                if (kind == "TRANSFER" && receivedAmount <= 0L) {
+                    message = "Enter an amount received"
                     return@MzButton
                 }
                 scope.launch {
@@ -228,7 +274,10 @@ fun V2EntryScreen(
                                         message = "Choose another account"
                                         return@launch
                                     }
-                                val targetDecimals = currencies.firstOrNull { it.code == targetCurrency }?.decimals ?: 2
+                                if (current.id == destination.id && currency == targetCurrency) {
+                                    message = "Choose a different account or currency"
+                                    return@launch
+                                }
                                 val targetRate = repository.effectiveRate(targetCurrency, date)
                                 if (targetRate == null) {
                                     message = "No booking rate is available for $targetCurrency"
@@ -238,7 +287,7 @@ fun V2EntryScreen(
                                     TransferRequest(
                                         current.id,
                                         currency,
-                                        amount,
+                                        receivedAmount,
                                         decimals,
                                         rate,
                                         destination.id,

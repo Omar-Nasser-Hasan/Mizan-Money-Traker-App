@@ -23,4 +23,12 @@ class MoneyConversionTest {
             // Expected.
         }
     }
+
+    @Test
+    fun quotesDestinationUnitsPerSourceUnit() {
+        assertEquals(
+            BigDecimal("2.025000000000"),
+            MoneyMath.destinationUnitsPerSourceUnit(BigDecimal("50.625"), BigDecimal("25")),
+        )
+    }
 }

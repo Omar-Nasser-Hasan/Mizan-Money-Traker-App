@@ -74,4 +74,13 @@ object MoneyMath {
             .setScale(0, RoundingMode.HALF_UP)
             .longValueExact()
     }
+
+    /** Number of destination major units represented by one source major unit. */
+    fun destinationUnitsPerSourceUnit(
+        sourceEgpPerUnit: BigDecimal,
+        destinationEgpPerUnit: BigDecimal,
+    ): BigDecimal {
+        require(sourceEgpPerUnit > BigDecimal.ZERO && destinationEgpPerUnit > BigDecimal.ZERO) { "Rates must be positive" }
+        return sourceEgpPerUnit.divide(destinationEgpPerUnit, 12, RoundingMode.HALF_UP)
+    }
 }
