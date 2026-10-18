@@ -792,6 +792,23 @@ interface LedgerDao {
 
     @Query(
         """
+        SELECT EXISTS(
+            SELECT 1 FROM transactions t JOIN entries e ON e.txnId = t.id
+            WHERE t.deletedAt IS NULL AND e.accountId = :accountId AND ABS(e.amountMinor) = :amountMinor
+              AND ((:payeeId IS NULL AND t.payeeId IS NULL) OR t.payeeId = :payeeId)
+              AND ABS(t.bookedAt - :bookedAt) <= 120000
+        )
+        """,
+    )
+    suspend fun hasPossibleDuplicate(
+        accountId: String,
+        amountMinor: Long,
+        payeeId: String?,
+        bookedAt: Long,
+    ): Boolean
+
+    @Query(
+        """
         SELECT t.id, e.id AS entryId, t.kind, t.bookedAt, t.bookedDate, t.categoryId, c.name AS categoryName, t.payeeId,
                p.name AS payeeName, t.note, t.status, t.paymentType, t.plannedId, t.debtId, t.assetTxnId, t.createdAt,
                t.updatedAt, e.accountId, a.name AS accountName, e.currency, e.amountMinor, e.rateToBase, e.baseMinor,

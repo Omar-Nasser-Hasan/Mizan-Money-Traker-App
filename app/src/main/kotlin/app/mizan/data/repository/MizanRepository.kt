@@ -632,6 +632,13 @@ class MizanRepository
 
         fun observeRecentRecords(limit: Int): Flow<List<RecordRow>> = ledger.observeRecent(limit)
 
+        suspend fun isPossibleDuplicate(
+            accountId: String,
+            amountMinor: Long,
+            payeeId: String?,
+            bookedAt: Instant,
+        ): Boolean = ledger.hasPossibleDuplicate(accountId, amountMinor, payeeId, bookedAt.toEpochMilli())
+
         fun observeStatsEntries() = ledger.observeStatsEntries()
 
         fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()

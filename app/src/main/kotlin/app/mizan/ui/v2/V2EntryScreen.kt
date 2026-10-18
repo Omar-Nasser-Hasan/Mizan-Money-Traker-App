@@ -84,6 +84,7 @@ fun V2EntryScreen(
     var expression by remember { mutableStateOf("") }
     var feeExpression by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+    var duplicateConfirmed by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
     var expandedCategoryParentId by remember { mutableStateOf<String?>(null) }
@@ -325,6 +326,14 @@ fun V2EntryScreen(
                             return@launch
                         }
                     val payeeId = payees.firstOrNull { it.name.equals(payeeQuery.trim(), ignoreCase = true) }?.id
+                    if (kind != "TRANSFER" && !duplicateConfirmed &&
+                        repository.isPossibleDuplicate(current.id, amount, payeeId, bookedAt)
+                    ) {
+                        duplicateConfirmed = true
+                        message = "Possible duplicate. Tap Save again to post it."
+                        return@launch
+                    }
+                    duplicateConfirmed = false
                     val posting =
                         when (kind) {
                             "EXPENSE" -> {
