@@ -117,7 +117,7 @@ fun v2MizanApp(
                 V2HomeScreen(repository, hideAmounts) { destination -> navigation = navigation.navigate(destination) }
             }
         } else if (activeRoute in setOf(V2Route.ExpenseEntry, V2Route.IncomeEntry, V2Route.TransferEntry) ||
-            activeRoute is V2Route.EditEntry
+            activeRoute is V2Route.EditEntry || activeRoute is V2Route.InboxDraftEntry
         ) {
             V2EntryScreen(
                 repository = repository,
@@ -130,6 +130,7 @@ fun v2MizanApp(
                 lastAccountId = lastAccountId,
                 hideAmounts = hideAmounts,
                 editTransactionId = (activeRoute as? V2Route.EditEntry)?.id,
+                inboxDraftId = (activeRoute as? V2Route.InboxDraftEntry)?.id,
                 onDone = { navigation = navigation.back() },
             )
         } else if (activeRoute is V2Route.RecordDetail) {
@@ -138,6 +139,12 @@ fun v2MizanApp(
                 transactionId = activeRoute.id,
                 hideAmounts = hideAmounts,
                 onEdit = { navigation = navigation.navigate(V2Route.EditEntry(activeRoute.id)) },
+            )
+        } else if (activeRoute == V2Route.Inbox) {
+            V2InboxScreen(
+                repository = repository,
+                hideAmounts = hideAmounts,
+                onOpen = { id -> navigation = navigation.navigate(V2Route.InboxDraftEntry(id)) },
             )
         } else {
             V2RouteHost(

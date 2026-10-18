@@ -31,6 +31,10 @@ sealed interface V2Route {
         val id: String,
     ) : V2Route by form("entry:edit:$id", "Edit record")
 
+    data class InboxDraftEntry(
+        val id: String,
+    ) : V2Route by form("entry:inbox:$id", "Review bank draft")
+
     data class AccountDetail(
         val id: String,
     ) : V2Route by screen("account:$id", "Account details")
@@ -152,6 +156,7 @@ sealed interface V2Route {
                 RecordFilters,
                 RecordDetail("sample"),
                 EditEntry("sample"),
+                InboxDraftEntry("sample"),
                 AccountDetail("sample"),
                 NewAccount,
                 Currencies,
@@ -210,6 +215,10 @@ sealed interface V2Route {
                 path.startsWith(
                     "entry:edit:",
                 ) && path.removePrefix("entry:edit:").isNotBlank() -> EditEntry(path.removePrefix("entry:edit:"))
+
+                path.startsWith(
+                    "entry:inbox:",
+                ) && path.removePrefix("entry:inbox:").isNotBlank() -> InboxDraftEntry(path.removePrefix("entry:inbox:"))
 
                 path.startsWith("record:") && path.removePrefix("record:").isNotBlank() -> RecordDetail(path.removePrefix("record:"))
 
