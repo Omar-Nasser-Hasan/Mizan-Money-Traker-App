@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.CategoryEntity
+import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ledger.EntryCalculator
@@ -60,6 +61,7 @@ fun V2EntryScreen(
     val sources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
     val templates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
     val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
+    val labels by repository.observeLabels().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var kind by remember(initialKind) { mutableStateOf(initialKind) }
     val recordTemplates by repository.observeRecordTemplates(kind).collectAsStateWithLifecycle(emptyList())
@@ -87,6 +89,8 @@ fun V2EntryScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var note by remember { mutableStateOf("") }
     var payeeQuery by remember { mutableStateOf("") }
+    var selectedLabelIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var newLabelName by remember { mutableStateOf("") }
     var paymentType by remember { mutableStateOf(PaymentType.CASH) }
     var status by remember { mutableStateOf(TxnStatus.CLEARED) }
     var bookedDate by remember { mutableStateOf(LocalDate.now(ZoneId.of("Africa/Cairo"))) }
@@ -426,7 +430,7 @@ fun V2EntryScreen(
                                 )
                             }
                         }
-                    repository.post(posting)
+                    repository.post(posting, selectedLabelIds)
                     repository.setLastUsedAccountId(current.id)
                     onDone()
                 }
@@ -452,6 +456,24 @@ fun V2EntryScreen(
             payees.filter { it.name.contains(payeeQuery, ignoreCase = true) }.take(4).forEach { payee ->
                 MzChip(payee.name, payee.name.equals(payeeQuery, ignoreCase = true), onClick = { payeeQuery = payee.name })
             }
+            Text("Labels", style = MzTypography.labelCaps)
+            labels.forEach { label ->
+                MzChip(label.name, label.id in selectedLabelIds, onClick = {
+                    selectedLabelIds = if (label.id in selectedLabelIds) selectedLabelIds - label.id else selectedLabelIds + label.id
+                })
+            }
+            MzInput(newLabelName, { newLabelName = it }, "Create label")
+            MzButton("Add label", onClick = {
+                val name = newLabelName.trim()
+                if (name.isNotEmpty()) {
+                    scope.launch {
+                        val id = UUID.randomUUID().toString()
+                        repository.saveLabel(LabelEntity(id, name, "#F2B84B"))
+                        selectedLabelIds += id
+                        newLabelName = ""
+                    }
+                }
+            }, style = MzButtonStyle.GHOST)
             Text("Payment type", style = MzTypography.labelCaps)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf(PaymentType.CASH, PaymentType.DEBIT, PaymentType.CREDIT, PaymentType.BANK_TRANSFER).forEach { candidate ->

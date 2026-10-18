@@ -1049,40 +1049,51 @@ class MizanRepository
             return clock.millis() - started
         }
 
-        suspend fun post(posting: LedgerPosting) {
+        suspend fun post(
+            posting: LedgerPosting,
+            labelIds: Set<String> = emptySet(),
+        ) {
             val feePosting = posting.feePosting
             val postings = if (feePosting == null) listOf(posting) else listOf(posting, feePosting)
             val now = clock.millis()
-            ledger.persistBatch(
-                postings.map { current ->
-                    TxnEntity(
-                        id = current.transaction.id,
-                        kind = current.transaction.kind.name,
-                        bookedAt = current.transaction.bookedAt.toEpochMilli(),
-                        bookedDate = current.transaction.bookedDate.toString(),
-                        categoryId = current.transaction.categoryId,
-                        payeeId = current.transaction.payeeId,
-                        note = current.transaction.note,
-                        status = current.transaction.status.name,
-                        paymentType = current.transaction.paymentType.name,
-                        createdAt = now,
-                        updatedAt = now,
-                    )
-                },
-                postings.flatMap { current ->
-                    current.entries.map {
-                        EntryEntity(
-                            it.id,
-                            it.txnId,
-                            it.accountId,
-                            it.currency,
-                            it.amountMinor,
-                            it.rateToBase.toPlainString(),
-                            it.baseMinor,
+            database.withTransaction {
+                ledger.persistBatch(
+                    postings.map { current ->
+                        TxnEntity(
+                            id = current.transaction.id,
+                            kind = current.transaction.kind.name,
+                            bookedAt = current.transaction.bookedAt.toEpochMilli(),
+                            bookedDate = current.transaction.bookedDate.toString(),
+                            categoryId = current.transaction.categoryId,
+                            payeeId = current.transaction.payeeId,
+                            note = current.transaction.note,
+                            status = current.transaction.status.name,
+                            paymentType = current.transaction.paymentType.name,
+                            createdAt = now,
+                            updatedAt = now,
                         )
-                    }
-                },
-            )
+                    },
+                    postings.flatMap { current ->
+                        current.entries.map {
+                            EntryEntity(
+                                it.id,
+                                it.txnId,
+                                it.accountId,
+                                it.currency,
+                                it.amountMinor,
+                                it.rateToBase.toPlainString(),
+                                it.baseMinor,
+                            )
+                        }
+                    },
+                )
+                ledger.insertLabels(
+                    labelIds.map { labelId ->
+                        app.mizan.data.db
+                            .RecordLabelEntity(posting.transaction.id, labelId)
+                    },
+                )
+            }
         }
 
         suspend fun setCurrencyEnabled(
