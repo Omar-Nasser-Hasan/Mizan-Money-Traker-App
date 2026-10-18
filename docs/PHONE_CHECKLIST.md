@@ -28,6 +28,7 @@
 - Capture Plan Budgets, Planned, New budget, and New planned payment screens under docs/ui/shots/p9/; expect real account data and the planned-payment no-auto-post note.
 - Open Plan Goals and Debts, exercise goal allocations/contributions and a partial repayment, and capture populated and form screens in docs/ui/shots/p10/; expect linked values and remaining debt to match their source balances.
 - Open Wealth with gold, a stock, and EGP/USD cash, then go offline and capture Wealth in docs/ui/shots/p11/; expect unchanged last-known values with source ages and stale tags.
-- Open gold, stock, fund, and other holding details; expect price range history, market source/age, average cost, P/L, holdings weight, XIRR, and recorded lots to match saved data.
-- Buy and sell a small holding from an eligible cash account; expect ASSET_BUY/ASSET_SELL entries, the cash bucket to change, and no income/expense record.
-- Add a gold coin/bar and an EGX holding; expect enabled quote currencies, the chosen karat/form, and manual versus automatic price mode to persist after reopening.
+- Open and capture gold, stock, fund, and other holding details in docs/ui/shots/p11/; expect price history, source/age, average cost, P/L, weight, XIRR, and lots to match saved data.
+- Buy and sell a small holding from an eligible cash account and capture Buy/Sell in docs/ui/shots/p11/; expect ASSET_BUY/ASSET_SELL entries, changed cash, and no income/expense record.
+- Add a gold coin/bar and an EGX holding and capture Add holding in docs/ui/shots/p11/; expect enabled quote currency, karat/form, and price mode to persist after reopening.
+- Open Update prices online and offline, enter 21K and stock prices, and capture the screen in docs/ui/shots/p11/; expect gold ratios, source ages, stale badges, and last-known values to remain visible.

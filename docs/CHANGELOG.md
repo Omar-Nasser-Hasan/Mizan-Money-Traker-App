@@ -15,6 +15,7 @@
 - Added holding detail with saved price history, dealer/source age, average and realized/unrealized P/L, holdings weight, XIRR, lots, and Buy/Sell shortcuts.
 - Added Buy/Sell entry with quantity, price, fee, cash account, date, dealer-value impact, and ledger-backed ASSET_BUY/ASSET_SELL posting.
 - Added Add holding for gold, EGX shares, funds, and other investments, including form/karat and price-mode metadata with a Room migration.
+- Added offline-safe price management with editable 21K gold, derived 24K/18K/pound prices, Daleelak refresh and attribution, stale labels, and manual prices for other holdings.
 
 ## M10 — SMS and notification Inbox
 

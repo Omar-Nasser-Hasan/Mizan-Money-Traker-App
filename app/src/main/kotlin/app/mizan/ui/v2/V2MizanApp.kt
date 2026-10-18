@@ -438,6 +438,10 @@ fun v2MizanApp(
             Box(Modifier.padding(padding)) {
                 V2AddHoldingScreen(repository) { navigation = navigation.back() }
             }
+        } else if (activeRoute == V2Route.Prices) {
+            Box(Modifier.padding(padding)) {
+                V2PricesScreen(repository, hideAmounts) { navigation = navigation.navigate(V2Route.AddHolding) }
+            }
         } else if (activeRoute == V2Route.Wealth) {
             Box(Modifier.padding(padding)) {
                 V2WealthAccountsScreen(repository, hideAmounts) { id -> navigation = navigation.navigate(V2Route.AccountDetail(id)) }
