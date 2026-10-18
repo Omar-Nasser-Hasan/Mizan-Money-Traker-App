@@ -112,18 +112,24 @@ fun v2MizanApp(
             if (activeRoute == null) MzFab(onClick = { navigation = navigation.navigate(V2Route.ExpenseEntry) })
         },
     ) { padding ->
-        V2RouteHost(
-            route = activeRoute ?: selectedTab,
-            padding = padding,
-            onBack = { navigation = navigation.back() },
-            onNavigate = { destination -> navigation = navigation.navigate(destination) },
-            onDisableNewInterface = { scope.launch { repository.setNewInterface(false) } },
-            entryAccountId = lastAccountId,
-            globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
-            onSelectPeriod = { persisted ->
-                scope.launch { repository.setV2Period(persisted.kind, persisted.start, persisted.end) }
-            },
-        )
+        if (activeRoute == null && selectedTab == V2Route.Home) {
+            Box(Modifier.padding(padding)) {
+                V2HomeScreen(repository, hideAmounts) { destination -> navigation = navigation.navigate(destination) }
+            }
+        } else {
+            V2RouteHost(
+                route = activeRoute ?: selectedTab,
+                padding = padding,
+                onBack = { navigation = navigation.back() },
+                onNavigate = { destination -> navigation = navigation.navigate(destination) },
+                onDisableNewInterface = { scope.launch { repository.setNewInterface(false) } },
+                entryAccountId = lastAccountId,
+                globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
+                onSelectPeriod = { persisted ->
+                    scope.launch { repository.setV2Period(persisted.kind, persisted.start, persisted.end) }
+                },
+            )
+        }
     }
 }
 
