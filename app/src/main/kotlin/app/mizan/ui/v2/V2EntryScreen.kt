@@ -34,6 +34,7 @@ import app.mizan.domain.ledger.SplitLine
 import app.mizan.domain.ledger.SplitMode
 import app.mizan.domain.ledger.TransferRequest
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -52,6 +53,7 @@ fun V2EntryScreen(
     val templates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var kind by remember(initialKind) { mutableStateOf(initialKind) }
+    val recordTemplates by repository.observeRecordTemplates(kind).collectAsStateWithLifecycle(emptyList())
     val categories by repository
         .observeCategories(if (kind == "INCOME") "INCOME" else "EXPENSE")
         .collectAsStateWithLifecycle(emptyList())
@@ -83,6 +85,25 @@ fun V2EntryScreen(
                 selectedIndex = listOf("EXPENSE", "INCOME", "TRANSFER").indexOf(kind).coerceAtLeast(0),
                 onSelected = { kind = listOf("EXPENSE", "INCOME", "TRANSFER")[it] },
             )
+        }
+        if (recordTemplates.isNotEmpty()) {
+            item { Text("One-tap presets", style = MzTypography.labelCaps) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    recordTemplates.forEach { preset ->
+                        MzChip(preset.name, false, onClick = {
+                            preset.accountId?.takeIf { candidate -> accounts.any { it.id == candidate } }?.let { accountId = it }
+                            preset.categoryId?.let { categoryId = it }
+                            templateId = preset.splitTemplateId
+                            preset.amountMinor?.let { minor ->
+                                val presetDecimals =
+                                    currencies.firstOrNull { it.code == (preset.currency ?: currency) }?.decimals ?: decimals
+                                expression = BigDecimal.valueOf(minor).movePointLeft(presetDecimals).toPlainString()
+                            }
+                        })
+                    }
+                }
+            }
         }
         item {
             AmountText(
@@ -133,6 +154,7 @@ fun V2EntryScreen(
                             {
                                 sourceId = source.id
                                 templateId = source.defaultTemplateId
+                                source.defaultCategoryId?.let { categoryId = it }
                             },
                         )
                     }
