@@ -100,4 +100,42 @@ class HomeDatabaseTest {
             assertEquals(listOf(-500_00L, 500_00L), rows.map { it.amountMinor })
             assertEquals(listOf("cash", "bank"), rows.map { it.accountId })
         }
+
+    @Test
+    fun split_income_persists_one_transaction_with_exact_positive_entry_and_base_totals() =
+        runBlocking {
+            database.currencyDao().upsertAll(listOf(CurrencyEntity("EGP", "Egyptian pound", "E£", 2, true)))
+            listOf("essential", "fun", "invest").forEachIndexed { index, id ->
+                database.accountDao().upsert(AccountEntity(id, id, "CASH", "#000000", "payments", "EGP", "2026-10-01", true, false, index))
+            }
+            database.accountDao().upsertBuckets(listOf("essential", "fun", "invest").map { AccountBucketEntity(it, "EGP", 0) })
+            database.ledgerDao().insertTransaction(
+                TxnEntity(
+                    "income",
+                    "INCOME",
+                    1L,
+                    "2026-10-18",
+                    "salary",
+                    null,
+                    "",
+                    "CLEARED",
+                    "BANK_TRANSFER",
+                    createdAt = 1L,
+                    updatedAt = 1L,
+                ),
+            )
+            database.ledgerDao().insertEntries(
+                listOf(
+                    EntryEntity("income-1", "income", "essential", "EGP", 125_800L, "1", 125_800L),
+                    EntryEntity("income-2", "income", "fun", "EGP", 503_200L, "1", 503_200L),
+                    EntryEntity("income-3", "income", "invest", "EGP", 629_000L, "1", 629_000L),
+                ),
+            )
+
+            val rows = database.ledgerDao().observeRowsForTransaction("income").first()
+            assertEquals(3, rows.size)
+            assertEquals(1_258_000L, rows.sumOf { it.amountMinor })
+            assertEquals(1_258_000L, rows.sumOf { it.baseMinor })
+            assertEquals(1, rows.map { it.id }.distinct().size)
+        }
 }
