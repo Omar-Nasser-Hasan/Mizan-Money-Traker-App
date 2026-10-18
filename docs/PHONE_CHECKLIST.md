@@ -29,3 +29,4 @@
 - Open Plan Goals and Debts, exercise goal allocations/contributions and a partial repayment, and capture populated and form screens in docs/ui/shots/p10/; expect linked values and remaining debt to match their source balances.
 - Open Wealth with gold, a stock, and EGP/USD cash, then go offline and capture Wealth in docs/ui/shots/p11/; expect unchanged last-known values with source ages and stale tags.
 - Open gold, stock, fund, and other holding details; expect price range history, market source/age, average cost, P/L, holdings weight, XIRR, and recorded lots to match saved data.
+- Buy and sell a small holding from an eligible cash account; expect ASSET_BUY/ASSET_SELL entries, the cash bucket to change, and no income/expense record.

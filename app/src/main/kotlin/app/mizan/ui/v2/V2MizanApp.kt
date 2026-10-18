@@ -416,6 +416,24 @@ fun v2MizanApp(
                     onTrade = { id, selling -> navigation = navigation.navigate(V2Route.AssetTrade(id, selling)) },
                 )
             }
+        } else if (activeRoute == V2Route.BuyAsset || activeRoute is V2Route.AssetTrade) {
+            val tradeRoute = activeRoute as? V2Route.AssetTrade
+            Box(Modifier.padding(padding)) {
+                V2AssetTradeScreen(
+                    repository = repository,
+                    initialAssetId = tradeRoute?.id,
+                    initialSelling = tradeRoute?.selling ?: false,
+                    hideAmounts = hideAmounts,
+                    onSaved = { id ->
+                        navigation =
+                            if (tradeRoute != null) {
+                                navigation.back().navigate(V2Route.AssetDetail(id))
+                            } else {
+                                navigation.back()
+                            }
+                    },
+                )
+            }
         } else if (activeRoute == V2Route.Wealth) {
             Box(Modifier.padding(padding)) {
                 V2WealthAccountsScreen(repository, hideAmounts) { id -> navigation = navigation.navigate(V2Route.AccountDetail(id)) }
