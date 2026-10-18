@@ -9,7 +9,7 @@ import org.junit.Test
 class V2RouteTest {
     @Test
     fun `every designed and backend route has a unique reachable placeholder`() {
-        assertEquals(62, V2Route.placeholders.size)
+        assertEquals(64, V2Route.placeholders.size)
         assertEquals(
             V2Route.placeholders.size,
             V2Route.placeholders
@@ -38,6 +38,8 @@ class V2RouteTest {
         assertEquals(V2Route.AssetDetail("asset-id"), V2Route.fromPath("asset:asset-id"))
         assertEquals(V2Route.EditEntry("record-id"), V2Route.fromPath("entry:edit:record-id"))
         assertEquals(V2Route.InboxDraftEntry("draft-id"), V2Route.fromPath("entry:inbox:draft-id"))
+        assertEquals(V2Route.EditAccount("account-id"), V2Route.fromPath("accounts:edit:account-id"))
+        assertEquals(V2Route.CardPayment("card-id"), V2Route.fromPath("entry:card-payment:card-id"))
     }
 
     @Test

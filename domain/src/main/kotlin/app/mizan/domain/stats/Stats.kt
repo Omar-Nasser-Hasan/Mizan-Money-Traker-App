@@ -6,7 +6,18 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
-enum class StatKind { INCOME, ASSET_INCOME, EXPENSE, TRANSFER, OTHER }
+enum class StatKind {
+    INCOME,
+    ASSET_INCOME,
+    EXPENSE,
+    TRANSFER,
+    OTHER,
+    ;
+
+    companion object {
+        fun fromLedgerKind(kind: String): StatKind = entries.firstOrNull { it.name == kind } ?: OTHER
+    }
+}
 
 data class StatRecord(
     val id: String,

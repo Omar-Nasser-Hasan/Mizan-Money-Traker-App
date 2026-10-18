@@ -156,6 +156,17 @@ data class AssetCashRequest(
     val paymentType: PaymentType = PaymentType.BANK_TRANSFER,
 )
 
+data class AdjustmentRequest(
+    val accountId: String,
+    val currency: String,
+    val deltaMinor: Long,
+    val currencyDecimals: Int,
+    val rateToBase: BigDecimal,
+    val bookedAt: Instant,
+    val bookedDate: LocalDate,
+    val note: String = "Fix balance",
+)
+
 /** Validates and constructs immutable ledger postings. Persistence is intentionally outside this service. */
 class LedgerService(
     private val id: () -> String = { UUID.randomUUID().toString() },
@@ -326,6 +337,34 @@ class LedgerService(
         return LedgerPosting(
             transaction,
             listOf(entry(transaction.id, request.accountId, request.currency, signed, request.currencyDecimals, request.rateToBase)),
+        )
+    }
+
+    fun postAdjustment(request: AdjustmentRequest): LedgerPosting {
+        require(request.deltaMinor != 0L) { "Adjustment must change the balance" }
+        val transaction =
+            transaction(
+                TxnKind.ADJUSTMENT,
+                request.bookedAt,
+                request.bookedDate,
+                null,
+                null,
+                request.note,
+                TxnStatus.CLEARED,
+                PaymentType.OTHER,
+            )
+        return LedgerPosting(
+            transaction,
+            listOf(
+                entry(
+                    transaction.id,
+                    request.accountId,
+                    request.currency,
+                    request.deltaMinor,
+                    request.currencyDecimals,
+                    request.rateToBase,
+                ),
+            ),
         )
     }
 

@@ -17,6 +17,10 @@ sealed interface V2Route {
 
     data object TransferEntry : V2Route by form("entry:TRANSFER", "Transfer")
 
+    data class CardPayment(
+        val cardId: String,
+    ) : V2Route by form("entry:card-payment:$cardId", "Pay card")
+
     data object IncomeSplit : V2Route by sheet("entry:income-split", "Income split")
 
     data object CategoryPicker : V2Route by sheet("entry:category", "Choose category")
@@ -40,6 +44,10 @@ sealed interface V2Route {
     ) : V2Route by screen("account:$id", "Account details")
 
     data object NewAccount : V2Route by form("accounts:new", "New account")
+
+    data class EditAccount(
+        val id: String,
+    ) : V2Route by form("accounts:edit:$id", "Edit account")
 
     data object Currencies : V2Route by screen("currencies", "Currencies and rates")
 
@@ -151,6 +159,7 @@ sealed interface V2Route {
                 ExpenseEntry,
                 IncomeEntry,
                 TransferEntry,
+                CardPayment("sample"),
                 IncomeSplit,
                 CategoryPicker,
                 RecordFilters,
@@ -159,6 +168,7 @@ sealed interface V2Route {
                 InboxDraftEntry("sample"),
                 AccountDetail("sample"),
                 NewAccount,
+                EditAccount("sample"),
                 Currencies,
                 Categories,
                 Templates,
@@ -219,6 +229,14 @@ sealed interface V2Route {
                 path.startsWith(
                     "entry:inbox:",
                 ) && path.removePrefix("entry:inbox:").isNotBlank() -> InboxDraftEntry(path.removePrefix("entry:inbox:"))
+
+                path.startsWith(
+                    "entry:card-payment:",
+                ) && path.removePrefix("entry:card-payment:").isNotBlank() -> CardPayment(path.removePrefix("entry:card-payment:"))
+
+                path.startsWith(
+                    "accounts:edit:",
+                ) && path.removePrefix("accounts:edit:").isNotBlank() -> EditAccount(path.removePrefix("accounts:edit:"))
 
                 path.startsWith("record:") && path.removePrefix("record:").isNotBlank() -> RecordDetail(path.removePrefix("record:"))
 

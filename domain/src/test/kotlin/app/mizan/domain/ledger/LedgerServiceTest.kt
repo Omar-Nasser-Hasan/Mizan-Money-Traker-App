@@ -29,6 +29,30 @@ class LedgerServiceTest {
         assertEquals(617_250, posting.entries.single().baseMinor)
     }
 
+    @Test fun adjustment_changes_balance_without_income_or_expense_kind() {
+        val posting = service.postAdjustment(AdjustmentRequest("cash", "EGP", -250L, 2, BigDecimal.ONE, instant, date))
+        assertEquals(TxnKind.ADJUSTMENT, posting.transaction.kind)
+        assertEquals(-250L, posting.entries.single().amountMinor)
+        assertEquals(
+            0L,
+            listOf(posting).filter { it.transaction.kind == TxnKind.INCOME || it.transaction.kind == TxnKind.EXPENSE }.sumOf {
+                it.entries.sumOf { entry ->
+                    entry.amountMinor
+                }
+            },
+        )
+    }
+
+    @Test fun bucket_math_keeps_each_currency_independent() {
+        val buckets = listOf(AccountBucket("wallet", "EGP", 10_000), AccountBucket("wallet", "USD", 2_000))
+        val changes =
+            listOf(
+                Entry("e1", "t1", "wallet", "EGP", -1_500, BigDecimal.ONE, -1_500),
+                Entry("e2", "t2", "wallet", "USD", 500, BigDecimal("50"), 25_000),
+            )
+        assertEquals(mapOf(("wallet" to "EGP") to 8_500L, ("wallet" to "USD") to 2_500L), BalanceCalculator.byBucket(buckets, changes))
+    }
+
     @Test fun transfer_keeps_two_signed_legs_and_implied_rate() {
         val posting =
             service.postTransfer(

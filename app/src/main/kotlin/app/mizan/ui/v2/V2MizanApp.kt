@@ -186,7 +186,58 @@ fun v2MizanApp(
                 },
                 onDismiss = { navigation = navigation.back() },
             )
+        } else if (activeRoute is V2Route.AccountDetail) {
+            Box(Modifier.padding(padding)) {
+                V2AccountDetailScreen(repository, activeRoute.id, hideAmounts, onNavigate = { destination ->
+                    when (destination) {
+                        V2Route.Records -> {
+                            scope.launch {
+                                repository.setV2AccountFilter(activeRoute.id)
+                                navigation =
+                                    navigation.navigate(destination)
+                            }
+                        }
+
+                        V2Route.ExpenseEntry, V2Route.IncomeEntry -> {
+                            scope.launch {
+                                repository.setLastUsedAccountId(activeRoute.id)
+                                navigation =
+                                    navigation.navigate(destination)
+                            }
+                        }
+
+                        V2Route.TransferEntry -> {
+                            scope.launch {
+                                val cashAccount =
+                                    accounts
+                                        .firstOrNull {
+                                            it.id != activeRoute.id &&
+                                                it.type in setOf("CASH", "BANK", "EWALLET")
+                                        }?.id
+                                if (cashAccount != null) repository.setLastUsedAccountId(cashAccount)
+                                navigation = navigation.navigate(V2Route.CardPayment(activeRoute.id))
+                            }
+                        }
+
+                        else -> {
+                            navigation = navigation.navigate(destination)
+                        }
+                    }
+                }, onBack = { navigation = navigation.back() })
+            }
+        } else if (activeRoute == V2Route.Wealth) {
+            Box(Modifier.padding(padding)) {
+                V2WealthAccountsScreen(repository, hideAmounts) { id -> navigation = navigation.navigate(V2Route.AccountDetail(id)) }
+            }
+        } else if (activeRoute == V2Route.NewAccount || activeRoute is V2Route.EditAccount) {
+            Box(Modifier.padding(padding)) {
+                V2AccountForm(repository, (activeRoute as? V2Route.EditAccount)?.id, onSaved = { id ->
+                    navigation =
+                        navigation.back().navigate(V2Route.AccountDetail(id))
+                }, onBack = { navigation = navigation.back() })
+            }
         } else if (activeRoute in setOf(V2Route.ExpenseEntry, V2Route.IncomeEntry, V2Route.TransferEntry) ||
+            activeRoute is V2Route.CardPayment ||
             activeRoute is V2Route.EditEntry || activeRoute is V2Route.InboxDraftEntry
         ) {
             V2EntryScreen(
@@ -195,12 +246,14 @@ fun v2MizanApp(
                     when (activeRoute) {
                         V2Route.IncomeEntry -> "INCOME"
                         V2Route.TransferEntry -> "TRANSFER"
+                        is V2Route.CardPayment -> "TRANSFER"
                         else -> "EXPENSE"
                     },
                 lastAccountId = lastAccountId,
                 hideAmounts = hideAmounts,
                 editTransactionId = (activeRoute as? V2Route.EditEntry)?.id,
                 inboxDraftId = (activeRoute as? V2Route.InboxDraftEntry)?.id,
+                presetTransferTargetId = (activeRoute as? V2Route.CardPayment)?.cardId,
                 modifier = Modifier.padding(padding),
                 onDone = { navigation = navigation.back() },
             )

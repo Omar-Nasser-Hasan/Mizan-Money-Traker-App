@@ -15,6 +15,13 @@ import androidx.compose.ui.unit.sp
 import app.mizan.R
 
 private val MaterialSymbolsRounded = FontFamily(Font(R.font.material_symbols_rounded_variable, FontWeight.Light))
+private val directGlyphs =
+    mapOf(
+        "account_balance_wallet" to 0xE850,
+        "account_balance" to 0xE84F,
+        "credit_card" to 0xE8A1,
+        "currency_exchange" to 0xEB70,
+    )
 
 /** Renders a Material Symbols Rounded ligature at the reference's 300 outlined weight. */
 @Composable
@@ -27,7 +34,7 @@ fun MzIcon(
     size: androidx.compose.ui.unit.TextUnit = 24.sp,
 ) {
     Text(
-        text = name,
+        text = directGlyphs[name]?.toChar()?.toString() ?: name,
         modifier = modifier.semantics { this.contentDescription = contentDescription },
         color = tint,
         style =

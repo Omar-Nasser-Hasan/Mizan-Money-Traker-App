@@ -24,6 +24,16 @@ class StatsTest {
         assertEquals(7_500, result.netMinor)
     }
 
+    @Test fun adjustment_kind_is_other_and_never_enters_cashflow_stats() {
+        val adjustment = StatRecord("fix", LocalDate.of(2026, 4, 4), StatKind.fromLedgerKind("ADJUSTMENT"), 900_000, "cash")
+        assertEquals(StatKind.OTHER, adjustment.kind)
+        assertEquals(
+            app.mizan.domain.stats
+                .CashFlow(0L, 0L),
+            StatsEngine.cashFlow(listOf(adjustment), april),
+        )
+    }
+
     @Test fun compare_caps_and_cashflow_sign_flip_uses_absolute_change() {
         assertEquals(99_900L, compare(2_000, 1).percentBasisPoints)
         assertNull(compare(-1_000, 1_000, cashFlow = true).percentBasisPoints)

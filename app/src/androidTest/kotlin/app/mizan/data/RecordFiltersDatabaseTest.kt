@@ -5,6 +5,7 @@ import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.CategoryEntity
@@ -101,6 +102,83 @@ class RecordFiltersDatabaseTest {
                 maximum = 40_000,
                 search = "Lunch",
             )
+        }
+
+    @Test
+    fun account_create_edit_archive_restore_round_trip_keeps_currency_buckets() =
+        runBlocking {
+            val repository = testRepository()
+            val id =
+                repository.saveAccount(
+                    id = "multi",
+                    name = "Travel",
+                    type = "CASH",
+                    color = "#3A924F",
+                    icon = "wallet",
+                    currency = "EGP",
+                    openingMinor = 125_000,
+                    openingDate = "2026-10-01",
+                    buckets =
+                        mapOf("EGP" to 125_000L, "USD" to 2_500L),
+                )
+            assertEquals("multi", id)
+            assertEquals(
+                setOf("EGP", "USD"),
+                database
+                    .accountDao()
+                    .observeBuckets(id)
+                    .first()
+                    .map { it.currency }
+                    .toSet(),
+            )
+            repository.saveAccount(
+                id = id,
+                name = "Trip Wallet",
+                type = "BANK",
+                color = "#0785DB",
+                icon = "account_balance",
+                currency = "EGP",
+                openingMinor = 100_000,
+                openingDate = "2026-10-02",
+                buckets =
+                    mapOf("EGP" to 100_000L, "USD" to 3_000L),
+            )
+            assertEquals("Trip Wallet", database.accountDao().find(id)?.name)
+            assertEquals(
+                3_000L,
+                database
+                    .accountDao()
+                    .observeBuckets(id)
+                    .first()
+                    .first { it.currency == "USD" }
+                    .openingMinor,
+            )
+            repository.archiveAccount(id, true)
+            assertTrue(database.accountDao().find(id)?.archived == true)
+            repository.archiveAccount(id, false)
+            assertTrue(database.accountDao().active().any { it.id == id })
+        }
+
+    @Test
+    fun fix_balance_persists_adjustment_kind_without_income_or_expense() =
+        runBlocking {
+            database.currencyDao().upsertAll(listOf(CurrencyEntity("EGP", "Egyptian pound", "E£", 2, true)))
+            val repository = testRepository()
+            val id =
+                repository.saveAccount(
+                    id = "adjust",
+                    name = "Cash",
+                    type = "CASH",
+                    color = "#000000",
+                    icon = "wallet",
+                    currency = "EGP",
+                    openingMinor = 10_000,
+                )
+            repository.postBalanceAdjustment(id, "EGP", -250)
+            val rows = repository.observeRecentRecords(10).first()
+            assertEquals("ADJUSTMENT", rows.single().kind)
+            assertTrue(rows.none { it.kind == "INCOME" || it.kind == "EXPENSE" })
+            assertEquals(-250L, rows.single().amountMinor)
         }
 
     @Test

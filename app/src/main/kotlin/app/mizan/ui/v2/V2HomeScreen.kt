@@ -343,7 +343,7 @@ private fun AccountsCarousel(
                     androidx.compose.material3.Text(account.name, style = MzTypography.title)
                     AmountText(accountBuckets.sumOf { it.egpMinor }, "EGP", hideAmounts = hideAmounts)
                     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        accountBuckets.drop(1).forEach { MzChip(it.currency, false, {}) }
+                        accountBuckets.forEach { MzChip(it.currency, false, {}) }
                     }
                 }
             }
@@ -539,11 +539,7 @@ private data class HomeUiData(
                     StatRecord(
                         it.id,
                         LocalDate.parse(it.bookedDate),
-                        runCatching {
-                            StatKind.valueOf(it.kind)
-                        }.getOrDefault(
-                            StatKind.OTHER,
-                        ),
+                        StatKind.fromLedgerKind(it.kind),
                         it.baseMinor,
                         it.accountId,
                         it.categoryId,

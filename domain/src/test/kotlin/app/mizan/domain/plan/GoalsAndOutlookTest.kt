@@ -34,6 +34,7 @@ class GoalsAndOutlookTest {
         assertEquals(1_000L, SavingsMath.investRate(300, 200, 1_000))
         assertEquals(5_000L, CreditMath.utilization(listOf(CreditCardBalance(10_000, -5_000))))
         assertEquals(2_500L, CreditMath.perCardUtilization(CreditCardBalance(20_000, -5_000)))
+        assertEquals(8_000L, CreditMath.perCardUtilization(CreditCardBalance(25_000, -20_000)))
         assertEquals(3_750L, CreditMath.averageUtilization(listOf(2_500L, 5_000L, null)))
         assertEquals(5_000L, CreditMath.maximumUtilization(listOf(2_500L, 5_000L, null)))
         assertNull(CreditMath.debtToIncome(100, 0))

@@ -73,6 +73,7 @@ fun V2EntryScreen(
     hideAmounts: Boolean,
     editTransactionId: String? = null,
     inboxDraftId: String? = null,
+    presetTransferTargetId: String? = null,
     modifier: Modifier = Modifier,
     onDone: () -> Unit,
 ) {
@@ -90,7 +91,9 @@ fun V2EntryScreen(
         .observeCategories(if (kind == "INCOME") "INCOME" else "EXPENSE")
         .collectAsStateWithLifecycle(emptyList())
     var accountId by remember(accounts, lastAccountId) { mutableStateOf(lastAccountId ?: accounts.firstOrNull()?.id.orEmpty()) }
-    var targetId by remember(accounts) { mutableStateOf(accounts.firstOrNull { it.id != accountId }?.id.orEmpty()) }
+    var targetId by remember(accounts, presetTransferTargetId) {
+        mutableStateOf(presetTransferTargetId ?: accounts.firstOrNull { it.id != accountId }?.id.orEmpty())
+    }
     var categoryId by remember(categories) { mutableStateOf(categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID) }
     var sourceId by remember { mutableStateOf<String?>(null) }
     var templateId by remember { mutableStateOf<String?>(null) }

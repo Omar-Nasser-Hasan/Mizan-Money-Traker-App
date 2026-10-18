@@ -64,6 +64,7 @@ import app.mizan.domain.assets.GoldRatios
 import app.mizan.domain.entry.SmsDraft
 import app.mizan.domain.entry.SmsDraftKind
 import app.mizan.domain.io.WalletCsvImporter
+import app.mizan.domain.ledger.AdjustmentRequest
 import app.mizan.domain.ledger.AssetCashRequest
 import app.mizan.domain.ledger.DebtRequest
 import app.mizan.domain.ledger.ExpenseRequest
@@ -636,6 +637,11 @@ class MizanRepository
 
         fun observeRecentRecords(limit: Int): Flow<List<RecordRow>> = ledger.observeRecent(limit)
 
+        fun observeRecentRecordsForAccount(
+            accountId: String,
+            limit: Int,
+        ): Flow<List<RecordRow>> = ledger.observeRecentForAccount(accountId, limit)
+
         fun observeRecordRows(transactionId: String): Flow<List<RecordRow>> = ledger.observeRowsForTransaction(transactionId)
 
         fun observeUncategorizedExpenseCount(): Flow<Int> = ledger.observeUncategorizedExpenseCount()
@@ -876,27 +882,73 @@ class MizanRepository
             creditLimitMinor: Long? = null,
             statementDay: Int? = null,
             dueDay: Int? = null,
+            openingDate: String? = null,
+            buckets: Map<String, Long>? = null,
         ): String {
-            val today = LocalDate.now(clock.withZone(cairo)).toString()
-            accounts.upsert(
-                AccountEntity(
-                    id,
-                    name,
-                    type,
-                    color,
-                    icon,
-                    currency,
-                    today,
-                    includeInTotals,
-                    false,
-                    0,
-                    creditLimitMinor,
-                    statementDay,
-                    dueDay,
-                ),
-            )
-            accounts.upsertBuckets(listOf(AccountBucketEntity(id, currency, openingMinor)))
+            val today = openingDate ?: LocalDate.now(clock.withZone(cairo)).toString()
+            database.withTransaction {
+                accounts.upsert(
+                    AccountEntity(
+                        id,
+                        name,
+                        type,
+                        color,
+                        icon,
+                        currency,
+                        today,
+                        includeInTotals,
+                        false,
+                        0,
+                        creditLimitMinor,
+                        statementDay,
+                        dueDay,
+                    ),
+                )
+                accounts.upsertBuckets(
+                    (buckets ?: mapOf(currency to openingMinor)).map { (code, amount) ->
+                        AccountBucketEntity(id, code, amount)
+                    },
+                )
+            }
             return id
+        }
+
+        suspend fun postBalanceAdjustment(
+            accountId: String,
+            currency: String,
+            deltaMinor: Long,
+        ) {
+            require(deltaMinor != 0L) { "Balance is already correct" }
+            val date = LocalDate.now(clock.withZone(cairo))
+            val rate = requireNotNull(effectiveRate(currency, date)) { "No rate for $currency" }
+            val decimals = requireNotNull(currencies.find(currency)) { "Unknown currency: $currency" }.decimals
+            val posting =
+                LedgerService().postAdjustment(
+                    AdjustmentRequest(accountId, currency, deltaMinor, decimals, rate, Instant.ofEpochMilli(clock.millis()), date),
+                )
+            val now = clock.millis()
+            database.withTransaction {
+                ledger.persistBatch(
+                    listOf(
+                        posting.transaction.let {
+                            TxnEntity(
+                                it.id,
+                                it.kind.name,
+                                it.bookedAt.toEpochMilli(),
+                                it.bookedDate.toString(),
+                                note = it.note,
+                                status = it.status.name,
+                                paymentType = it.paymentType.name,
+                                createdAt = now,
+                                updatedAt = now,
+                            )
+                        },
+                    ),
+                    posting.entries.map {
+                        EntryEntity(it.id, it.txnId, it.accountId, it.currency, it.amountMinor, it.rateToBase.toPlainString(), it.baseMinor)
+                    },
+                )
+            }
         }
 
         suspend fun addBucket(
