@@ -65,6 +65,7 @@ import app.mizan.domain.plan.RecurrenceEngine
 import app.mizan.domain.plan.Rollover
 import app.mizan.domain.plan.budgetWindow
 import app.mizan.domain.stats.HomeAccountValue
+import app.mizan.domain.stats.HomeBanners
 import app.mizan.domain.stats.HomeDebtValue
 import app.mizan.domain.stats.HomeSummary
 import app.mizan.domain.stats.HomeSummaryCalculator
@@ -203,12 +204,12 @@ private fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
     ) {
         item { NetWorthHero(data.summary, hideAmounts) }
-        if (data.summary.uncategorizedExpenseCount > 0) {
+        if (HomeBanners.showUncategorized(data.summary.uncategorizedExpenseCount)) {
             item {
                 MzBanner("${data.summary.uncategorizedExpenseCount} records need a category", onClick = { onNavigate(V2Route.Records) })
             }
         }
-        if (data.goldAgeHours != null && data.goldAgeHours >= 24) {
+        if (HomeBanners.showStaleGold(data.goldAgeHours)) {
             item { MzBanner("Gold prices are ${data.goldAgeHours} h old", onClick = { onNavigate(V2Route.Prices) }) }
         }
         item { SectionTitle("Accounts", "Add account") { onNavigate(V2Route.NewAccount) } }

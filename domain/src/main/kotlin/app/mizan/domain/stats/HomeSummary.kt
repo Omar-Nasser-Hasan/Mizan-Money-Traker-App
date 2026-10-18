@@ -73,3 +73,9 @@ object HomeSummaryCalculator {
         )
     }
 }
+
+object HomeBanners {
+    fun showUncategorized(count: Int): Boolean = count > 0
+
+    fun showStaleGold(ageHours: Long?): Boolean = ageHours != null && ageHours >= 24L
+}

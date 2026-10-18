@@ -39,4 +39,13 @@ class HomeSummaryCalculatorTest {
         assertEquals(listOf(20_000_00L, 5_000_00L), home.accountTotals.map { it.egpMinor })
         assertEquals(30, home.sparkline.size)
     }
+
+    @Test
+    fun `Home banners appear only for actionable data`() {
+        assertEquals(true, HomeBanners.showUncategorized(1))
+        assertEquals(false, HomeBanners.showUncategorized(0))
+        assertEquals(true, HomeBanners.showStaleGold(24))
+        assertEquals(false, HomeBanners.showStaleGold(23))
+        assertEquals(false, HomeBanners.showStaleGold(null))
+    }
 }
