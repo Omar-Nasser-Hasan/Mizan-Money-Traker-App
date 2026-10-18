@@ -44,6 +44,7 @@ import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.money.MoneyMath
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -302,7 +303,14 @@ fun V2EntryScreen(
                     } else {
                         "unavailable"
                     }
-                Text("Market rate: 1 $currency = $quote $targetCurrency", style = MzTypography.bodySmall)
+                val ageHours =
+                    sourceMarketRate?.fetchedAt?.let { fetchedAt ->
+                        Duration.between(Instant.ofEpochMilli(fetchedAt), Instant.now()).toHours().coerceAtLeast(0)
+                    }
+                Text(
+                    "Market rate: 1 $currency = $quote $targetCurrency${ageHours?.let { " · ${it}h old" } ?: ""}",
+                    style = MzTypography.bodySmall,
+                )
             }
             item { Text("Not income or expense", color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
         }
