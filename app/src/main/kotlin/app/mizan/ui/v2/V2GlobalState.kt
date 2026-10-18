@@ -12,8 +12,12 @@ data class PeriodState(
     val end: LocalDate? = null,
 ) {
     init {
-        require(kind == PeriodKind.CUSTOM || (start == null && end == null)) {
-            "Only a custom period may have explicit dates"
+        require(
+            kind == PeriodKind.CUSTOM ||
+                (kind in setOf(PeriodKind.DAY, PeriodKind.WEEK) && end == null) ||
+                (start == null && end == null),
+        ) {
+            "Only custom periods or day/week anchors may carry dates"
         }
         require(start == null || end == null || !start.isAfter(end)) { "Period start must not follow its end" }
     }
@@ -29,10 +33,22 @@ data class PeriodState(
             val parsedKind = runCatching { PeriodKind.valueOf(kind) }.getOrDefault(PeriodKind.MONTH)
             val parsedStart = start?.let { value -> runCatching { LocalDate.parse(value) }.getOrNull() }
             val parsedEnd = end?.let { value -> runCatching { LocalDate.parse(value) }.getOrNull() }
-            return if (parsedKind == PeriodKind.CUSTOM && parsedStart != null && parsedEnd != null && !parsedStart.isAfter(parsedEnd)) {
-                PeriodState(parsedKind, parsedStart, parsedEnd)
-            } else {
-                PeriodState(parsedKind)
+            return when (parsedKind) {
+                PeriodKind.CUSTOM -> {
+                    if (parsedStart != null && parsedEnd != null && !parsedStart.isAfter(parsedEnd)) {
+                        PeriodState(parsedKind, parsedStart, parsedEnd)
+                    } else {
+                        PeriodState()
+                    }
+                }
+
+                PeriodKind.DAY, PeriodKind.WEEK -> {
+                    if (parsedStart != null && parsedEnd == null) PeriodState(parsedKind, parsedStart) else PeriodState(parsedKind)
+                }
+
+                else -> {
+                    PeriodState(parsedKind)
+                }
             }
         }
     }

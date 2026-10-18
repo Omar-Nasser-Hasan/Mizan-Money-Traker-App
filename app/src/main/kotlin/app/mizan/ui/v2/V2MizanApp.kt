@@ -66,13 +66,14 @@ fun v2MizanApp(
 
     val activeRoute = navigation.activeRoute
     val selectedTab = navigation.selectedTab
+    val isSheetRoute = activeRoute?.presentation == V2Presentation.SHEET
     Scaffold(
         containerColor = LocalMzTokens.current.canvas,
         topBar = {
             MzTopBar(
-                title = activeRoute?.title ?: selectedTab.title,
+                title = if (isSheetRoute) selectedTab.title else activeRoute?.title ?: selectedTab.title,
                 navigationIcon =
-                    if (activeRoute == null) {
+                    if (activeRoute == null || isSheetRoute) {
                         null
                     } else {
                         {
@@ -88,11 +89,11 @@ fun v2MizanApp(
             )
         },
         bottomBar = {
-            if (activeRoute == null) {
+            if (activeRoute == null || isSheetRoute) {
                 MzBottomNav(
-                    selectedLabel = selectedTab.title,
+                    selectedLabel = V2NavigationState.labelForRootTab(selectedTab),
                     onSelected = { label ->
-                        navigation = navigation.selectTab(V2NavigationState.rootTabs.first { it.title == label })
+                        V2NavigationState.rootTabForLabel(label)?.let { navigation = navigation.selectTab(it) }
                     },
                 )
             }
@@ -105,6 +106,70 @@ fun v2MizanApp(
             Box(Modifier.padding(padding)) {
                 V2HomeScreen(repository, hideAmounts) { destination -> navigation = navigation.navigate(destination) }
             }
+        } else if (activeRoute == null && selectedTab == V2Route.Records) {
+            Box(Modifier.padding(padding)) {
+                V2RecordsScreen(
+                    repository = repository,
+                    period = period,
+                    selectedAccountId = accountFilterId,
+                    hideAmounts = hideAmounts,
+                    onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
+                    onOpenDetail = { id -> navigation = navigation.navigate(V2Route.RecordDetail(id)) },
+                    onEdit = { id -> navigation = navigation.navigate(V2Route.EditEntry(id)) },
+                    onOpenInbox = { navigation = navigation.navigate(V2Route.Inbox) },
+                    onAddExpense = { navigation = navigation.navigate(V2Route.ExpenseEntry) },
+                    onManageLabels = { navigation = navigation.navigate(V2Route.Categories) },
+                    onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                )
+            }
+        } else if (activeRoute == V2Route.PeriodSelector) {
+            Box(Modifier.padding(padding)) {
+                if (selectedTab == V2Route.Records) {
+                    V2RecordsScreen(
+                        repository = repository,
+                        period = period,
+                        selectedAccountId = accountFilterId,
+                        hideAmounts = hideAmounts,
+                        onOpenPeriod = {},
+                        onOpenDetail = { id -> navigation = navigation.navigate(V2Route.RecordDetail(id)) },
+                        onEdit = { id -> navigation = navigation.navigate(V2Route.EditEntry(id)) },
+                        onOpenInbox = { navigation = navigation.navigate(V2Route.Inbox) },
+                        onAddExpense = { navigation = navigation.navigate(V2Route.ExpenseEntry) },
+                        onManageLabels = { navigation = navigation.navigate(V2Route.Categories) },
+                        onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                    )
+                } else {
+                    V2Placeholder(
+                        route = selectedTab,
+                        entryAccountId = lastAccountId,
+                        globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
+                        onSelectPeriod = { persisted ->
+                            scope.launch { repository.setV2Period(persisted.kind, persisted.start, persisted.end) }
+                        },
+                        onBack = { navigation = navigation.back() },
+                        onNavigate = { destination -> navigation = navigation.navigate(destination) },
+                        onDisableNewInterface = { scope.launch { repository.setNewInterface(false) } },
+                    )
+                }
+            }
+            V2PeriodSelectorSheet(
+                initialPeriod = period,
+                accounts = accounts,
+                selectedAccountIds =
+                    accountFilterId
+                        ?.split('|')
+                        ?.filter(String::isNotBlank)
+                        ?.toSet()
+                        .orEmpty(),
+                onApply = { selected, selectedAccounts ->
+                    scope.launch {
+                        repository.setV2Period(selected.kind.name, selected.start?.toString(), selected.end?.toString())
+                        repository.setV2AccountFilter(selectedAccounts.sorted().takeIf { it.isNotEmpty() }?.joinToString("|"))
+                        navigation = navigation.back()
+                    }
+                },
+                onDismiss = { navigation = navigation.back() },
+            )
         } else if (activeRoute in setOf(V2Route.ExpenseEntry, V2Route.IncomeEntry, V2Route.TransferEntry) ||
             activeRoute is V2Route.EditEntry || activeRoute is V2Route.InboxDraftEntry
         ) {
@@ -129,6 +194,8 @@ fun v2MizanApp(
                 transactionId = activeRoute.id,
                 hideAmounts = hideAmounts,
                 onEdit = { navigation = navigation.navigate(V2Route.EditEntry(activeRoute.id)) },
+                onBack = { navigation = navigation.back() },
+                onDuplicated = { id -> navigation = navigation.navigate(V2Route.EditEntry(id)) },
             )
         } else if (activeRoute == V2Route.Inbox) {
             V2InboxScreen(
@@ -239,9 +306,18 @@ private fun V2Placeholder(
             MzEmptyState(
                 title = route.title,
                 description = description,
-                actionLabel = if (route == V2Route.PeriodSelector) "Use all time" else "Back",
+                actionLabel =
+                    when (route) {
+                        V2Route.PeriodSelector -> "Use all time"
+                        V2Route.BalanceStats -> "Period · ${globalState.period.kind.name.lowercase()}"
+                        else -> "Back"
+                    },
                 onAction = {
-                    if (route == V2Route.PeriodSelector) onSelectPeriod(PeriodState(PeriodKind.ALL).persisted()) else onBack()
+                    when (route) {
+                        V2Route.PeriodSelector -> onSelectPeriod(PeriodState(PeriodKind.ALL).persisted())
+                        V2Route.BalanceStats -> onNavigate(V2Route.PeriodSelector)
+                        else -> onBack()
+                    }
                 },
                 modifier = Modifier.weight(1f),
             )

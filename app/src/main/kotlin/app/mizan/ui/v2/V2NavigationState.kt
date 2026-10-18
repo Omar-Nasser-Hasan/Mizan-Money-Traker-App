@@ -42,6 +42,26 @@ data class V2NavigationState(
                 V2Route.Budgets,
                 V2Route.Wealth,
             )
+
+        fun rootTabForLabel(label: String): V2Route? =
+            when (label) {
+                "Home" -> V2Route.Home
+                "Records" -> V2Route.Records
+                "Stats" -> V2Route.BalanceStats
+                "Plan" -> V2Route.Budgets
+                "Wealth" -> V2Route.Wealth
+                else -> null
+            }
+
+        fun labelForRootTab(tab: V2Route): String =
+            when (tab) {
+                V2Route.Home -> "Home"
+                V2Route.Records -> "Records"
+                V2Route.BalanceStats -> "Stats"
+                V2Route.Budgets -> "Plan"
+                V2Route.Wealth -> "Wealth"
+                else -> error("Route is not a bottom-navigation tab")
+            }
     }
 }
 

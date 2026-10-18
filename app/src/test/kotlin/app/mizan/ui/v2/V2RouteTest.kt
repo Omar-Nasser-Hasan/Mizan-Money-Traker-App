@@ -39,4 +39,14 @@ class V2RouteTest {
         assertEquals(V2Route.EditEntry("record-id"), V2Route.fromPath("entry:edit:record-id"))
         assertEquals(V2Route.InboxDraftEntry("draft-id"), V2Route.fromPath("entry:inbox:draft-id"))
     }
+
+    @Test
+    fun `bottom navigation labels map to their actual destinations`() {
+        listOf("Home", "Records", "Stats", "Plan", "Wealth").forEach { label ->
+            val route = V2NavigationState.rootTabForLabel(label)
+            assertNotNull("$label is not mapped", route)
+            assertEquals(label, V2NavigationState.labelForRootTab(route!!))
+        }
+        assertEquals(null, V2NavigationState.rootTabForLabel("Unknown"))
+    }
 }

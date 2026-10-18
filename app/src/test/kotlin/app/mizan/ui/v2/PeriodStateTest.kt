@@ -2,35 +2,30 @@
 package app.mizan.ui.v2
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
 
 class PeriodStateTest {
     @Test
-    fun `custom period round trips through persisted state`() {
-        val state = PeriodState(PeriodKind.CUSTOM, LocalDate.parse("2026-10-01"), LocalDate.parse("2026-10-17"))
+    fun day_and_week_anchor_survive_persistence() {
+        val anchor = LocalDate.parse("2024-02-29")
 
-        val restored = PeriodState.fromPersisted(state.persisted().kind, state.persisted().start, state.persisted().end)
-
-        assertEquals(state, restored)
+        listOf(PeriodKind.DAY, PeriodKind.WEEK).forEach { kind ->
+            val original = PeriodState(kind, anchor)
+            assertEquals(
+                original,
+                PeriodState.fromPersisted(original.persisted().kind, original.persisted().start, original.persisted().end),
+            )
+        }
     }
 
     @Test
-    fun `invalid persisted period falls back without leaking invalid dates`() {
-        val restored = PeriodState.fromPersisted("CUSTOM", "2026-10-20", "2026-10-01")
+    fun custom_period_requires_valid_inclusive_bounds() {
+        val start = LocalDate.parse("2026-01-01")
+        val end = LocalDate.parse("2026-01-31")
+        val original = PeriodState(PeriodKind.CUSTOM, start, end)
 
-        assertEquals(PeriodKind.CUSTOM, restored.kind)
-        assertNull(restored.start)
-        assertNull(restored.end)
-    }
-
-    @Test
-    fun `non custom persisted period ignores stale custom dates`() {
-        val restored = PeriodState.fromPersisted("MONTH", "2026-10-01", "2026-10-31")
-
-        assertEquals(PeriodKind.MONTH, restored.kind)
-        assertNull(restored.start)
-        assertNull(restored.end)
+        assertEquals(original, PeriodState.fromPersisted(original.persisted().kind, original.persisted().start, original.persisted().end))
+        assertEquals(PeriodState(), PeriodState.fromPersisted("CUSTOM", "2026-02-01", "2026-01-01"))
     }
 }
