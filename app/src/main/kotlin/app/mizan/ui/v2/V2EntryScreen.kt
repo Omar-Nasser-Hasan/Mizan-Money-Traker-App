@@ -75,6 +75,7 @@ fun V2EntryScreen(
     var showSplitSheet by remember { mutableStateOf(false) }
     var customSplitMode by remember { mutableStateOf(SplitMode.PERCENT) }
     var expression by remember { mutableStateOf("") }
+    var feeExpression by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var showMore by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
@@ -107,6 +108,7 @@ fun V2EntryScreen(
     val sourceMarketRate by repository.observeMarketRate(currency).collectAsStateWithLifecycle(null)
     val targetMarketRate by repository.observeMarketRate(targetCurrency).collectAsStateWithLifecycle(null)
     val amount = runCatching { EntryCalculator.minorUnits(expression, decimals) }.getOrDefault(0L)
+    val feeAmount = runCatching { EntryCalculator.minorUnits(feeExpression, decimals) }.getOrDefault(0L)
     val suggestedReceived =
         if (amount > 0L && sourceMarketRate != null && targetMarketRate != null) {
             runCatching {
@@ -260,6 +262,13 @@ fun V2EntryScreen(
                 )
             }
             item {
+                MzInput(
+                    value = feeExpression,
+                    onValueChange = { feeExpression = it },
+                    label = "Optional fee in $currency",
+                )
+            }
+            item {
                 val quote =
                     if (sourceMarketRate != null && targetMarketRate != null) {
                         MoneyMath
@@ -395,6 +404,25 @@ fun V2EntryScreen(
                                         note,
                                         status,
                                         paymentType,
+                                        fee =
+                                            if (feeAmount > 0L) {
+                                                ExpenseRequest(
+                                                    current.id,
+                                                    currency,
+                                                    feeAmount,
+                                                    decimals,
+                                                    rate,
+                                                    categoryId,
+                                                    bookedAt,
+                                                    bookedDate,
+                                                    payeeId,
+                                                    "Transfer fee${if (note.isBlank()) "" else ": $note"}",
+                                                    status,
+                                                    paymentType,
+                                                )
+                                            } else {
+                                                null
+                                            },
                                     ),
                                 )
                             }
