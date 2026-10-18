@@ -29,15 +29,19 @@ import app.mizan.domain.ledger.IncomeAllocation
 import app.mizan.domain.ledger.IncomeRequest
 import app.mizan.domain.ledger.IncomeSplitCalculator
 import app.mizan.domain.ledger.LedgerService
+import app.mizan.domain.ledger.PaymentType
 import app.mizan.domain.ledger.SplitIncomeRequest
 import app.mizan.domain.ledger.SplitLine
 import app.mizan.domain.ledger.SplitMode
 import app.mizan.domain.ledger.TransferRequest
+import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.money.MoneyMath
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 
 @Composable
@@ -52,6 +56,7 @@ fun V2EntryScreen(
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val sources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
     val templates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
+    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var kind by remember(initialKind) { mutableStateOf(initialKind) }
     val recordTemplates by repository.observeRecordTemplates(kind).collectAsStateWithLifecycle(emptyList())
@@ -66,6 +71,22 @@ fun V2EntryScreen(
     val lines by repository.observeSplitLines(templateId ?: "").collectAsStateWithLifecycle(emptyList())
     var expression by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+    var showMore by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var note by remember { mutableStateOf("") }
+    var payeeQuery by remember { mutableStateOf("") }
+    var paymentType by remember { mutableStateOf(PaymentType.CASH) }
+    var status by remember { mutableStateOf(TxnStatus.CLEARED) }
+    var bookedDate by remember { mutableStateOf(LocalDate.now(ZoneId.of("Africa/Cairo"))) }
+    var timeText by remember {
+        mutableStateOf(
+            LocalTime
+                .now(ZoneId.of("Africa/Cairo"))
+                .withSecond(0)
+                .withNano(0)
+                .toString(),
+        )
+    }
     val account = accounts.firstOrNull { it.id == accountId }
     val target = accounts.firstOrNull { it.id == targetId }
     val buckets by repository.observeBuckets(accountId).collectAsStateWithLifecycle(emptyList())
@@ -164,6 +185,12 @@ fun V2EntryScreen(
                 item { Text("Negative balances are allowed.", color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall) }
             }
         }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                MzChip(bookedDate.toString(), false, { showDatePicker = true })
+                MzChip("More", showMore, { showMore = true })
+            }
+        }
         if (kind == "INCOME") {
             item { Text("Source", style = MzTypography.labelCaps) }
             item {
@@ -242,28 +269,78 @@ fun V2EntryScreen(
                     return@MzButton
                 }
                 scope.launch {
-                    val date = LocalDate.now(ZoneId.of("Africa/Cairo"))
-                    val rate = repository.effectiveRate(currency, date)
+                    val rate = repository.effectiveRate(currency, bookedDate)
                     if (rate == null) {
-                        message = "No booking rate is available for $currency"
+                        message = "No booking rate is available for $currency on $bookedDate"
                         return@launch
                     }
+                    val bookedAt =
+                        runCatching {
+                            LocalDateTime
+                                .of(
+                                    bookedDate,
+                                    LocalTime.parse(timeText),
+                                ).atZone(ZoneId.of("Africa/Cairo"))
+                                .toInstant()
+                        }.getOrElse {
+                            message = "Enter time as HH:mm"
+                            return@launch
+                        }
+                    val payeeId = payees.firstOrNull { it.name.equals(payeeQuery.trim(), ignoreCase = true) }?.id
                     val posting =
                         when (kind) {
                             "EXPENSE" -> {
                                 LedgerService().postExpense(
-                                    ExpenseRequest(current.id, currency, amount, decimals, rate, categoryId, Instant.now(), date),
+                                    ExpenseRequest(
+                                        current.id,
+                                        currency,
+                                        amount,
+                                        decimals,
+                                        rate,
+                                        categoryId,
+                                        bookedAt,
+                                        bookedDate,
+                                        payeeId,
+                                        note,
+                                        status,
+                                        paymentType,
+                                    ),
                                 )
                             }
 
                             "INCOME" -> {
                                 if (allocations.isEmpty()) {
                                     LedgerService().postIncome(
-                                        IncomeRequest(current.id, currency, amount, decimals, rate, Instant.now(), date, categoryId),
+                                        IncomeRequest(
+                                            current.id,
+                                            currency,
+                                            amount,
+                                            decimals,
+                                            rate,
+                                            bookedAt,
+                                            bookedDate,
+                                            categoryId,
+                                            payeeId,
+                                            note,
+                                            status,
+                                            paymentType,
+                                        ),
                                     )
                                 } else {
                                     LedgerService().postSplitIncome(
-                                        SplitIncomeRequest(allocations, currency, decimals, rate, Instant.now(), date, categoryId),
+                                        SplitIncomeRequest(
+                                            allocations,
+                                            currency,
+                                            decimals,
+                                            rate,
+                                            bookedAt,
+                                            bookedDate,
+                                            categoryId,
+                                            payeeId,
+                                            note,
+                                            status,
+                                            paymentType,
+                                        ),
                                     )
                                 }
                             }
@@ -278,7 +355,7 @@ fun V2EntryScreen(
                                     message = "Choose a different account or currency"
                                     return@launch
                                 }
-                                val targetRate = repository.effectiveRate(targetCurrency, date)
+                                val targetRate = repository.effectiveRate(targetCurrency, bookedDate)
                                 if (targetRate == null) {
                                     message = "No booking rate is available for $targetCurrency"
                                     return@launch
@@ -295,8 +372,11 @@ fun V2EntryScreen(
                                         amount,
                                         targetDecimals,
                                         targetRate,
-                                        Instant.now(),
-                                        date,
+                                        bookedAt,
+                                        bookedDate,
+                                        note,
+                                        status,
+                                        paymentType,
                                     ),
                                 )
                             }
@@ -308,6 +388,40 @@ fun V2EntryScreen(
             }, modifier = Modifier.fillMaxWidth())
         }
         if (message.isNotBlank()) item { Text(message, color = LocalMzTokens.current.warning) }
+    }
+    if (showDatePicker) {
+        MzDatePickerSheet(
+            date = bookedDate,
+            onDismissRequest = { showDatePicker = false },
+            onDateSelected = {
+                bookedDate = it
+                showDatePicker = false
+            },
+        )
+    }
+    if (showMore) {
+        MzSheet(onDismissRequest = { showMore = false }) {
+            Text("More details", style = MzTypography.title)
+            MzInput(note, { note = it }, "Note", singleLine = false)
+            MzInput(payeeQuery, { payeeQuery = it }, "Payee")
+            payees.filter { it.name.contains(payeeQuery, ignoreCase = true) }.take(4).forEach { payee ->
+                MzChip(payee.name, payee.name.equals(payeeQuery, ignoreCase = true), onClick = { payeeQuery = payee.name })
+            }
+            Text("Payment type", style = MzTypography.labelCaps)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf(PaymentType.CASH, PaymentType.DEBIT, PaymentType.CREDIT, PaymentType.BANK_TRANSFER).forEach { candidate ->
+                    MzChip(candidate.name.lowercase().replace('_', ' '), paymentType == candidate, { paymentType = candidate })
+                }
+            }
+            Text("Status", style = MzTypography.labelCaps)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                TxnStatus.entries.forEach { candidate ->
+                    MzChip(candidate.name.lowercase(), status == candidate, { status = candidate })
+                }
+            }
+            MzInput(timeText, { timeText = it }, "Time (HH:mm)")
+            MzButton("Done", { showMore = false }, modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 
