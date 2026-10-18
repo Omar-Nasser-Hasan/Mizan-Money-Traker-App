@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,6 +64,7 @@ fun v2MizanApp(
             route = startupRoute ?: V2Route.OnboardingAccounts,
             padding = PaddingValues(),
             onBack = {},
+            onNavigate = {},
             entryAccountId = lastAccountId,
             globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
             onSelectPeriod = { persisted ->
@@ -113,6 +115,7 @@ fun v2MizanApp(
             route = activeRoute ?: selectedTab,
             padding = padding,
             onBack = { navigation = navigation.back() },
+            onNavigate = { destination -> navigation = navigation.navigate(destination) },
             entryAccountId = lastAccountId,
             globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
             onSelectPeriod = { persisted ->
@@ -147,6 +150,7 @@ private fun V2RouteHost(
     route: V2Route,
     padding: PaddingValues,
     onBack: () -> Unit,
+    onNavigate: (V2Route) -> Unit,
     entryAccountId: String?,
     globalState: V2GlobalState,
     onSelectPeriod: (PersistedPeriod) -> Unit,
@@ -154,11 +158,11 @@ private fun V2RouteHost(
     if (route.presentation == V2Presentation.SHEET) {
         Box(modifier = Modifier.fillMaxSize().background(LocalMzTokens.current.canvas).padding(padding))
         MzSheet(onDismissRequest = onBack) {
-            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack)
+            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack, onNavigate)
         }
     } else {
         Column(modifier = Modifier.fillMaxSize().background(LocalMzTokens.current.canvas).padding(padding)) {
-            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack)
+            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack, onNavigate)
         }
     }
 }
@@ -171,7 +175,9 @@ private fun V2Placeholder(
     globalState: V2GlobalState,
     onSelectPeriod: (PersistedPeriod) -> Unit,
     onBack: () -> Unit,
+    onNavigate: (V2Route) -> Unit,
 ) {
+    var showRouteCatalog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val description =
         buildString {
             append("Not built yet. This destination is registered and ready for its real screen.")
@@ -182,13 +188,36 @@ private fun V2Placeholder(
             }
             if (route == V2Route.PeriodSelector) append(" Shared period: ${globalState.period.kind.name.lowercase()}.")
         }
-    MzEmptyState(
-        title = route.title,
-        description = description,
-        actionLabel = if (route == V2Route.PeriodSelector) "Use all time" else "Back",
-        onAction = {
-            if (route == V2Route.PeriodSelector) onSelectPeriod(PeriodState(PeriodKind.ALL).persisted()) else onBack()
-        },
-        modifier = Modifier.fillMaxSize(),
-    )
+    if (showRouteCatalog) {
+        androidx.compose.foundation.lazy.LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(MzSpacing.sideMargin),
+        ) {
+            item { Text("All V2 destinations", style = MzTypography.title) }
+            items(V2Route.placeholders, key = V2Route::path) { destination ->
+                MzListRow(
+                    iconName = "arrow_forward",
+                    iconDescription = destination.title,
+                    title = destination.title,
+                    subtitle = destination.path,
+                    modifier = Modifier.clickable { onNavigate(destination) },
+                )
+            }
+        }
+    } else {
+        MzEmptyState(
+            title = route.title,
+            description = description,
+            actionLabel = if (route == V2Route.PeriodSelector) "Use all time" else "Back",
+            onAction = {
+                if (route == V2Route.PeriodSelector) onSelectPeriod(PeriodState(PeriodKind.ALL).persisted()) else onBack()
+            },
+            modifier = Modifier.fillMaxSize(),
+        )
+        MzButton(
+            label = "Browse destinations",
+            onClick = { showRouteCatalog = true },
+            modifier = Modifier.padding(horizontal = MzSpacing.sideMargin),
+        )
+    }
 }

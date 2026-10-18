@@ -48,4 +48,14 @@ class V2NavigationStateTest {
         assertEquals(V2Route.VoiceReview, quickEntryRoute("voice"))
         assertNull(quickEntryRoute("unknown"))
     }
+
+    @Test
+    fun `navigation state visits every registered placeholder route`() {
+        V2Route.placeholders.forEach { destination ->
+            val state = V2NavigationState().navigate(destination)
+
+            assertEquals(destination.path, state.activeRoute?.path)
+            assertEquals(destination.path, state.routePath)
+        }
+    }
 }

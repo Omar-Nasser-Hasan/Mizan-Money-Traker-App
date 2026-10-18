@@ -99,7 +99,7 @@ fun MzBottomNav(
                     ) {
                         MzIcon(item.icon, item.label, tint = if (selected) tokens.accentText else tokens.textDim, size = 22.sp)
                         Text(
-                            item.label.uppercase(),
+                            item.label,
                             color = if (selected) tokens.accentText else tokens.textDim,
                             style = MzTypography.labelCaps.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
                         )
