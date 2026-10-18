@@ -3,15 +3,20 @@
 
 package app.mizan.ui.v2
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -22,6 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AccountEntity
@@ -45,7 +53,9 @@ import app.mizan.domain.ledger.TxnStatus
 import app.mizan.domain.money.MoneyMath
 import app.mizan.domain.plan.BudgetPeriod
 import app.mizan.domain.plan.budgetWindow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
@@ -552,7 +562,11 @@ fun V2EntryScreen(
                 style = MzButtonStyle.SECONDARY,
             )
             receiptUris.forEachIndexed { index, uri ->
-                MzChip("Receipt ${index + 1}", false, onClick = { receiptUris = receiptUris - uri })
+                ReceiptThumbnail(
+                    uri = uri,
+                    ordinal = index + 1,
+                    onRemove = { receiptUris = receiptUris - uri },
+                )
             }
             Text("Payment type", style = MzTypography.labelCaps)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -772,6 +786,51 @@ private fun splitAllocations(
                 ).allocations
         }.getOrDefault(emptyList())
     }
+
+@Composable
+private fun ReceiptThumbnail(
+    uri: String,
+    ordinal: Int,
+    onRemove: () -> Unit,
+) {
+    val context = LocalContext.current
+    var image by remember(uri) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    androidx.compose.runtime.LaunchedEffect(uri) {
+        image =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver
+                        .openInputStream(Uri.parse(uri))
+                        ?.use(BitmapFactory::decodeStream)
+                        ?.asImageBitmap()
+                }.getOrNull()
+            }
+    }
+    MzCard(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onRemove),
+    ) {
+        Row(
+            modifier = Modifier.padding(MzSpacing.gutter),
+            horizontalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
+        ) {
+            image?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = "Receipt $ordinal. Tap to remove.",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(64.dp),
+                )
+            }
+            Text(
+                if (image == null) "Receipt $ordinal loading…" else "Receipt $ordinal · tap to remove",
+                style = MzTypography.bodySmall,
+            )
+        }
+    }
+}
 
 @Composable
 private fun V2EntryBudgetLine(
