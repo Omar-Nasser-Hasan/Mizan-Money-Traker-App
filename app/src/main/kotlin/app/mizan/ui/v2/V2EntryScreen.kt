@@ -70,7 +70,10 @@ fun V2EntryScreen(
     var categoryId by remember(categories) { mutableStateOf(categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID) }
     var sourceId by remember { mutableStateOf<String?>(null) }
     var templateId by remember { mutableStateOf<String?>(null) }
-    val lines by repository.observeSplitLines(templateId ?: "").collectAsStateWithLifecycle(emptyList())
+    val persistedLines by repository.observeSplitLines(templateId ?: "").collectAsStateWithLifecycle(emptyList())
+    var customSplitLines by remember { mutableStateOf<List<SplitLine>?>(null) }
+    var showSplitSheet by remember { mutableStateOf(false) }
+    var customSplitMode by remember { mutableStateOf(SplitMode.PERCENT) }
     var expression by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var showMore by remember { mutableStateOf(false) }
@@ -121,7 +124,10 @@ fun V2EntryScreen(
     var receivedExpression by remember(currency, targetCurrency) { mutableStateOf("") }
     val receivedAmount =
         runCatching { EntryCalculator.minorUnits(receivedExpression, targetDecimals) }.getOrNull() ?: suggestedReceived ?: 0L
-    val allocations = splitAllocations(amount, lines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
+    val activeSplitLines =
+        customSplitLines
+            ?: persistedLines.map { SplitLine(it.id, it.templateId, it.accountId, SplitMode.valueOf(it.mode), it.value) }
+    val allocations = splitAllocations(amount, activeSplitLines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = MzSpacing.sideMargin),
@@ -218,8 +224,13 @@ fun V2EntryScreen(
             item { Text("Split", style = MzTypography.labelCaps) }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    templates.forEach { template -> MzChip(template.name, template.id == templateId, { templateId = template.id }) }
-                    MzChip("All to ${account?.name ?: "account"}", templateId == null, { templateId = null })
+                    MzChip(
+                        templates.firstOrNull { it.id == templateId }?.name
+                            ?: if (customSplitLines != null) "Custom" else "All to ${account?.name ?: "account"}",
+                        true,
+                        { showSplitSheet = true },
+                    )
+                    MzChip("Templates", false, { showSplitSheet = true })
                 }
             }
             if (allocations.isNotEmpty()) {
@@ -430,6 +441,89 @@ fun V2EntryScreen(
             MzButton("Done", { showMore = false }, modifier = Modifier.fillMaxWidth())
         }
     }
+    if (showSplitSheet) {
+        MzSheet(onDismissRequest = { showSplitSheet = false }) {
+            Text("Income split", style = MzTypography.title)
+            Text("Saved templates", style = MzTypography.labelCaps)
+            templates.forEach { template ->
+                MzChip(template.name, template.id == templateId && customSplitLines == null, onClick = {
+                    templateId = template.id
+                    customSplitLines = null
+                })
+            }
+            MzChip("All to ${account?.name ?: "account"}", templateId == null && customSplitLines == null, onClick = {
+                templateId = null
+                customSplitLines = null
+            })
+            MzChip("Custom", customSplitLines != null, onClick = {
+                templateId = null
+                customSplitMode = SplitMode.PERCENT
+                customSplitLines =
+                    accounts.mapIndexed { index, candidate ->
+                        SplitLine("custom-${candidate.id}", "custom", candidate.id, SplitMode.PERCENT, if (index == 0) 10_000 else 0)
+                    }
+            })
+            customSplitLines?.let { customLines ->
+                Text("Custom allocation", style = MzTypography.labelCaps)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MzChip("Percent", customSplitMode == SplitMode.PERCENT, {
+                        customSplitMode = SplitMode.PERCENT
+                        customSplitLines = customLines.map { it.copy(mode = SplitMode.PERCENT) }
+                    })
+                    MzChip("Fixed amount", customSplitMode == SplitMode.FIXED, {
+                        customSplitMode = SplitMode.FIXED
+                        customSplitLines = customLines.map { it.copy(mode = SplitMode.FIXED) }
+                    })
+                }
+                customLines.forEach { line ->
+                    val accountName = accounts.firstOrNull { it.id == line.accountId }?.name ?: line.accountId
+                    val value =
+                        if (customSplitMode == SplitMode.PERCENT) {
+                            BigDecimal
+                                .valueOf(line.value)
+                                .movePointLeft(2)
+                                .stripTrailingZeros()
+                                .toPlainString()
+                        } else {
+                            line.value.toString()
+                        }
+                    MzInput(
+                        value = value,
+                        onValueChange = { entered ->
+                            val nextValue =
+                                if (customSplitMode == SplitMode.PERCENT) {
+                                    runCatching { BigDecimal(entered).movePointRight(2).longValueExact() }.getOrDefault(0)
+                                } else {
+                                    entered.toLongOrNull() ?: 0
+                                }
+                            customSplitLines =
+                                customLines.map {
+                                    if (it.accountId ==
+                                        line.accountId
+                                    ) {
+                                        it.copy(mode = customSplitMode, value = nextValue)
+                                    } else {
+                                        it.copy(mode = customSplitMode)
+                                    }
+                                }
+                        },
+                        label = "$accountName ${if (customSplitMode == SplitMode.PERCENT) "%" else "minor units"}",
+                    )
+                }
+            }
+            val live = splitAllocations(amount, activeSplitLines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
+            Text("Live remainder: ${amount - live.sumOf { it.amountMinor }} minor", style = MzTypography.bodySmall)
+            live.forEach { allocation ->
+                Text(
+                    "${accounts
+                        .firstOrNull {
+                            it.id == allocation.accountId
+                        }?.name ?: allocation.accountId}: ${allocation.amountMinor} minor",
+                )
+            }
+            MzButton("Apply split", { showSplitSheet = false }, modifier = Modifier.fillMaxWidth())
+        }
+    }
     if (showCategoryPicker) {
         MzSheet(onDismissRequest = { showCategoryPicker = false }) {
             Text("Choose category", style = MzTypography.title)
@@ -523,7 +617,7 @@ private fun CurrencyChips(
 
 private fun splitAllocations(
     amount: Long,
-    lines: List<app.mizan.data.db.SplitLineEntity>,
+    lines: List<SplitLine>,
     remainderAccountId: String?,
 ): List<IncomeAllocation> =
     if (amount <= 0L || lines.isEmpty()) {
@@ -533,9 +627,7 @@ private fun splitAllocations(
             IncomeSplitCalculator
                 .allocate(
                     amount,
-                    lines.map {
-                        SplitLine(it.id, it.templateId, it.accountId, SplitMode.valueOf(it.mode), it.value)
-                    },
+                    lines,
                     remainderAccountId,
                 ).allocations
         }.getOrDefault(emptyList())
