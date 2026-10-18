@@ -1,6 +1,6 @@
 # P1 Design Gallery captures
 
-These captures are fresh manual acceptance checks of the third P1 pass from the local Android Studio `Pixel_7_Pro` emulator (1440 × 3120 px, API 37).
+These captures are fresh manual acceptance checks of the third P1 pass from the local Android Studio `Pixel_7_Pro` emulator (1440 × 3120 px, API 37), re-captured on 2026-10-18.
 
 - `gallery-dark.png`, `gallery-light.png`, and `gallery-oled.png` show the spending donut in each theme: a 200dp maximum ring, full-strength colors, 2dp segment gaps, the category/share/amount legend, and no axis row or chart grid.
 - `gallery-dark-charts-bottom.png` shows the 12dp composition bar and legend plus the uncluttered 20sp budget ring; only the line, area, and bar charts retain grids and axis labels.
@@ -17,6 +17,6 @@ To repeat: build and install the debug APK, complete the local onboarding fixtur
 
 ## Third-pass live verification — 2026-10-18
 
-Fresh captures were taken on the running API 37 Pixel_7_Pro emulator at 1440 × 3120 px. The dark, light, and OLED donut captures show the ring and dot/name/share/amount legend without axis labels; `third-pass-dark-composition-ring.png`, `third-pass-light-composition.png`, and `third-pass-oled-composition.png` show the 12dp segmented composition bar and value legend (the dark capture also shows the 20sp budget ring). The three `third-pass-*-states.png` captures show distinct Empty, Loading skeleton, and Error cards; the skeleton blocks are visible. The Empty title/body use theme text colors and the icon circle is 56dp.
+Fresh captures were taken on the running API 37 Pixel_7_Pro emulator at 1440 × 3120 px. The dark, light, and OLED donut captures show the ring and dot/name/share/amount legend without axis labels; `third-pass-dark-composition-ring.png`, `third-pass-light-composition.png`, and `third-pass-oled-composition.png` show the 12dp segmented composition bar and value legend (each also shows the 20sp budget ring). The three `third-pass-*-states.png` captures show distinct Empty, Loading skeleton, and Error cards; the skeleton blocks are visible and the error message fits without card overlap. The Empty title/body use theme text colors and the icon circle is 56dp.
 
 Chart-card grid and axis labels now default off; line, area, and bar samples opt in explicitly. `AmountTextTest` covers optional currency, base-currency list signs, hero grouping, the requested golden values, hidden amounts, and negatives. The fresh captures were made from the running app after completing the emulator's local onboarding and opening the gallery through Dev tools.
