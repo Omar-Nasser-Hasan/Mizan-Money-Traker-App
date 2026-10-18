@@ -6,7 +6,6 @@ package app.mizan.ui.v2
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,13 +25,18 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.work.ExistingWorkPolicy
@@ -146,17 +150,28 @@ fun V2HomeScreen(
         work.enqueueUniqueWork("home-fx-refresh", ExistingWorkPolicy.REPLACE, OneTimeWorkRequestBuilder<FxRefreshWorker>().build())
         work.enqueueUniqueWork("home-price-refresh", ExistingWorkPolicy.REPLACE, OneTimeWorkRequestBuilder<PriceRefreshWorker>().build())
     }
+    val refreshConnection =
+        remember(refresh) {
+            object : NestedScrollConnection {
+                private var downwardDistance = 0f
+
+                override fun onPreScroll(
+                    available: Offset,
+                    source: NestedScrollSource,
+                ): Offset {
+                    if (source == NestedScrollSource.UserInput && available.y > 0f) downwardDistance += available.y
+                    return Offset.Zero
+                }
+
+                override suspend fun onPreFling(available: Velocity): Velocity {
+                    if (downwardDistance >= 120f) refresh()
+                    downwardDistance = 0f
+                    return Velocity.Zero
+                }
+            }
+        }
     Box(
-        Modifier.fillMaxSize().pointerInput(Unit) {
-            var verticalDrag = 0f
-            detectVerticalDragGestures(
-                onVerticalDrag = { _, amount -> verticalDrag += amount },
-                onDragEnd = {
-                    if (verticalDrag > 120f) refresh()
-                    verticalDrag = 0f
-                },
-            )
-        },
+        Modifier.fillMaxSize().nestedScroll(refreshConnection),
     ) {
         when {
             data == null -> {
