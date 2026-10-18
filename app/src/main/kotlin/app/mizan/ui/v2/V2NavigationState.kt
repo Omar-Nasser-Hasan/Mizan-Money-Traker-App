@@ -53,7 +53,17 @@ object V2StartupGate {
         hasAccounts: Boolean,
         quickAction: String?,
     ): V2Route? = next(hasAccounts) ?: quickEntryRoute(quickAction)
+
+    /** AppLock remains Activity-owned; this sequence documents the shell handoff after authentication. */
+    fun order(hasAccounts: Boolean): List<StartupStage> =
+        buildList {
+            add(StartupStage.APP_LOCK)
+            if (!hasAccounts) add(StartupStage.ONBOARDING)
+            add(StartupStage.SHELL)
+        }
 }
+
+enum class StartupStage { APP_LOCK, ONBOARDING, SHELL }
 
 enum class AppInterface { LEGACY, V2 }
 

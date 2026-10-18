@@ -5,7 +5,7 @@ Automated JVM coverage lives in `app/src/test/kotlin/app/mizan/ui/v2/`. It verif
 Do this manual check on an emulator or phone after installing the debug APK:
 
 1. Open the existing interface, then choose **Settings → About → New interface**.
-2. Restart Mizan. The new shell must show the top-bar eye and settings buttons, the bottom tabs **Home**, **Records**, **Stats**, **Plan**, and **Wealth**, and the gold add button.
+2. If App Lock is configured, leave and reopen Mizan first. Device authentication must happen before the onboarding gate or V2 shell appears. Restart Mizan. The new shell must show the top-bar eye and settings buttons, the bottom tabs **Home**, **Records**, **Stats**, **Plan**, and **Wealth**, and the gold add button.
 3. Tap each tab. It must select without losing its position when returning from a placeholder.
 4. Use the settings button and confirm that its placeholder opens. Use the back button to return to the selected tab.
 5. Tap **Browse destinations** from any placeholder. Every registered route must be listed; tap entries to open their matching placeholder. Sheet destinations open in a bottom sheet and form destinations replace the shell full-screen.

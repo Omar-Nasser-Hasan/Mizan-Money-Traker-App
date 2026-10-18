@@ -33,6 +33,11 @@ class V2NavigationStateTest {
         assertNull(V2StartupGate.next(hasAccounts = true))
         assertEquals(V2Route.OnboardingAccounts, V2StartupGate.destination(hasAccounts = false, quickAction = "expense"))
         assertEquals(V2Route.ExpenseEntry, V2StartupGate.destination(hasAccounts = true, quickAction = "expense"))
+        assertEquals(
+            listOf(StartupStage.APP_LOCK, StartupStage.ONBOARDING, StartupStage.SHELL),
+            V2StartupGate.order(hasAccounts = false),
+        )
+        assertEquals(listOf(StartupStage.APP_LOCK, StartupStage.SHELL), V2StartupGate.order(hasAccounts = true))
     }
 
     @Test
