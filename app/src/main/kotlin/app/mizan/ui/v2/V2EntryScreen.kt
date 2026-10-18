@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.CategoryEntity
+import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ledger.EntryCalculator
 import app.mizan.domain.ledger.ExpenseRequest
@@ -73,6 +74,7 @@ fun V2EntryScreen(
     val persistedLines by repository.observeSplitLines(templateId ?: "").collectAsStateWithLifecycle(emptyList())
     var customSplitLines by remember { mutableStateOf<List<SplitLine>?>(null) }
     var showSplitSheet by remember { mutableStateOf(false) }
+    var showRecordTemplates by remember { mutableStateOf(false) }
     var customSplitMode by remember { mutableStateOf(SplitMode.PERCENT) }
     var expression by remember { mutableStateOf("") }
     var feeExpression by remember { mutableStateOf("") }
@@ -131,6 +133,17 @@ fun V2EntryScreen(
             ?: persistedLines.map { SplitLine(it.id, it.templateId, it.accountId, SplitMode.valueOf(it.mode), it.value) }
     val allocations = splitAllocations(amount, activeSplitLines, templates.firstOrNull { it.id == templateId }?.remainderAccountId)
 
+    fun applyPreset(preset: RecordTemplateEntity) {
+        preset.accountId?.takeIf { candidate -> accounts.any { it.id == candidate } }?.let { accountId = it }
+        preset.categoryId?.let { categoryId = it }
+        templateId = preset.splitTemplateId
+        customSplitLines = null
+        preset.amountMinor?.let { minor ->
+            val presetDecimals = currencies.firstOrNull { it.code == (preset.currency ?: currency) }?.decimals ?: decimals
+            expression = BigDecimal.valueOf(minor).movePointLeft(presetDecimals).toPlainString()
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = MzSpacing.sideMargin),
         verticalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
@@ -143,22 +156,8 @@ fun V2EntryScreen(
             )
         }
         if (recordTemplates.isNotEmpty()) {
-            item { Text("One-tap presets", style = MzTypography.labelCaps) }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    recordTemplates.forEach { preset ->
-                        MzChip(preset.name, false, onClick = {
-                            preset.accountId?.takeIf { candidate -> accounts.any { it.id == candidate } }?.let { accountId = it }
-                            preset.categoryId?.let { categoryId = it }
-                            templateId = preset.splitTemplateId
-                            preset.amountMinor?.let { minor ->
-                                val presetDecimals =
-                                    currencies.firstOrNull { it.code == (preset.currency ?: currency) }?.decimals ?: decimals
-                                expression = BigDecimal.valueOf(minor).movePointLeft(presetDecimals).toPlainString()
-                            }
-                        })
-                    }
-                }
+                MzChip("Templates", false, { showRecordTemplates = true })
             }
         }
         item {
@@ -550,6 +549,17 @@ fun V2EntryScreen(
                 )
             }
             MzButton("Apply split", { showSplitSheet = false }, modifier = Modifier.fillMaxWidth())
+        }
+    }
+    if (showRecordTemplates) {
+        MzSheet(onDismissRequest = { showRecordTemplates = false }) {
+            Text("One-tap templates", style = MzTypography.title)
+            recordTemplates.forEach { preset ->
+                MzChip(preset.name, false, onClick = {
+                    applyPreset(preset)
+                    showRecordTemplates = false
+                })
+            }
         }
     }
     if (showCategoryPicker) {
