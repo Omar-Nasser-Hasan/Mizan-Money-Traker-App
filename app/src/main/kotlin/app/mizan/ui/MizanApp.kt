@@ -618,6 +618,7 @@ private fun entryScreen(
                             message = "Transfers need a second account."
                         } else {
                             repository.post(posting)
+                            repository.setLastUsedAccountId(current.id)
                             message = "Saved"
                         }
                     }
