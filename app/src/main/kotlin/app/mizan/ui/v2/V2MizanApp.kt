@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -27,6 +28,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mizan.data.db.AccountEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.ui.onboardingScreen
 import kotlinx.coroutines.launch
@@ -41,7 +43,10 @@ fun v2MizanApp(
     repository: MizanRepository,
     quickAction: String? = null,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
+    val accountSnapshot by produceState<List<AccountEntity>?>(null, repository) {
+        repository.observeAccounts().collect { value = it }
+    }
+    val accounts = accountSnapshot.orEmpty()
     val hideAmounts by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
     val periodKind by repository.observeV2PeriodKind().collectAsStateWithLifecycle("MONTH")
     val periodStart by repository.observeV2PeriodStart().collectAsStateWithLifecycle(null)
@@ -59,9 +64,20 @@ fun v2MizanApp(
 
     // The legacy lock is an Activity gate, so it completes before either shell is composed. Empty
     // accounts retain the existing first-run gate before root navigation is exposed.
-    if (V2StartupGate.next(accounts.isNotEmpty()) != null) {
-        onboardingScreen(repository, Modifier.fillMaxSize(), onDone = {})
-        return
+    when (V2StartupGate.destinationForAccounts(accountSnapshot != null, accounts.isNotEmpty())) {
+        StartupDestination.LOADING -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                MzSkeleton(Modifier.size(48.dp), 48.dp)
+            }
+            return
+        }
+
+        StartupDestination.ONBOARDING -> {
+            onboardingScreen(repository, Modifier.fillMaxSize(), onDone = {})
+            return
+        }
+
+        StartupDestination.SHELL -> {}
     }
 
     val activeRoute = navigation.activeRoute

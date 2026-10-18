@@ -69,6 +69,16 @@ data class V2NavigationState(
 object V2StartupGate {
     fun next(hasAccounts: Boolean): V2Route? = if (hasAccounts) null else V2Route.OnboardingAccounts
 
+    fun destinationForAccounts(
+        accountsLoaded: Boolean,
+        hasAccounts: Boolean,
+    ): StartupDestination =
+        when {
+            !accountsLoaded -> StartupDestination.LOADING
+            !hasAccounts -> StartupDestination.ONBOARDING
+            else -> StartupDestination.SHELL
+        }
+
     fun destination(
         hasAccounts: Boolean,
         quickAction: String?,
@@ -82,6 +92,8 @@ object V2StartupGate {
             add(StartupStage.SHELL)
         }
 }
+
+enum class StartupDestination { LOADING, ONBOARDING, SHELL }
 
 enum class StartupStage { APP_LOCK, ONBOARDING, SHELL }
 

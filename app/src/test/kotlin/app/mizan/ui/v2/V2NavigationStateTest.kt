@@ -48,6 +48,13 @@ class V2NavigationStateTest {
     }
 
     @Test
+    fun `startup gate waits for the accounts flow before treating it as a clean install`() {
+        assertEquals(StartupDestination.LOADING, V2StartupGate.destinationForAccounts(accountsLoaded = false, hasAccounts = false))
+        assertEquals(StartupDestination.ONBOARDING, V2StartupGate.destinationForAccounts(accountsLoaded = true, hasAccounts = false))
+        assertEquals(StartupDestination.SHELL, V2StartupGate.destinationForAccounts(accountsLoaded = true, hasAccounts = true))
+    }
+
+    @Test
     fun `new interface flag preserves legacy interface unless explicitly enabled`() {
         assertEquals(AppInterface.LEGACY, appInterface(newInterfaceEnabled = false))
         assertEquals(AppInterface.V2, appInterface(newInterfaceEnabled = true))
