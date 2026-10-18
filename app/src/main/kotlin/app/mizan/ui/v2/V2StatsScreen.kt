@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -117,8 +118,12 @@ fun V2StatsScreen(
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
+    val plannedPayments by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
+    val plannedOccurrences by repository.observePlannedOccurrences().collectAsStateWithLifecycle(emptyList())
+    val incomeCategories by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val selectedPeriod = period.through(today)
+    val outlookEnd = periodState.outlookEnd(today)
     val previous = StatPeriods.previous(selectedPeriod).through(today)
     val lastYear = StatPeriods.lastYear(selectedPeriod).through(today)
     val snapshot by produceState(
@@ -168,6 +173,64 @@ fun V2StatsScreen(
     val hostView = LocalView.current
     val scope = rememberCoroutineScope()
     val tokens = LocalMzTokens.current
+    var includeTypicalIncome by rememberSaveable { mutableStateOf(false) }
+    val outlook by produceState<OutlookStats?>(
+        null,
+        rows,
+        balances,
+        accounts,
+        categories,
+        plannedPayments,
+        plannedOccurrences,
+        entries,
+        currencies,
+        rates,
+        selectedPeriod,
+        outlookEnd,
+        today,
+        accountFilterId,
+        includeTypicalIncome,
+    ) {
+        value =
+            withContext(Dispatchers.Default) {
+                OutlookStats.create(
+                    rows,
+                    balances,
+                    accounts,
+                    categories,
+                    plannedPayments,
+                    plannedOccurrences,
+                    entries,
+                    currencies,
+                    rates,
+                    selectedPeriod,
+                    outlookEnd,
+                    today,
+                    accountFilterId,
+                    includeTypicalIncome,
+                )
+            }
+    }
+    val reports by produceState<ReportsStats?>(
+        null,
+        rows,
+        entries,
+        balances,
+        accounts,
+        categories,
+        incomeCategories,
+        selectedPeriod,
+        today,
+        accountFilterId,
+    ) {
+        value =
+            withContext(Dispatchers.Default) {
+                ReportsStats.create(rows, entries, balances, accounts, categories, incomeCategories, selectedPeriod, today, accountFilterId)
+            }
+    }
+    val share: (String, androidx.compose.ui.geometry.Rect) -> Unit = { title, bounds ->
+        scope.launch { shareCard(context, hostView, title, bounds) }
+    }
 
     Column(Modifier.fillMaxSize().background(tokens.canvas)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -192,35 +255,30 @@ fun V2StatsScreen(
         }
         when (page) {
             StatsPage.CASH_FLOW -> {
-                CashFlowPage(snapshot, hideAmounts, { title, bounds ->
-                    scope.launch {
-                        shareCard(context, hostView, title, bounds)
-                    }
-                })
+                CashFlowPage(snapshot, hideAmounts, share)
             }
 
             StatsPage.SPENDING -> {
-                SpendingPage(snapshot, hideAmounts, onGoDeeper, { title, bounds ->
-                    scope.launch {
-                        shareCard(context, hostView, title, bounds)
-                    }
-                })
+                SpendingPage(snapshot, hideAmounts, onGoDeeper, share)
             }
 
             StatsPage.BALANCE -> {
                 BalancePage(
                     snapshot,
                     hideAmounts,
-                    { title, bounds -> scope.launch { shareCard(context, hostView, title, bounds) } },
+                    share,
                 )
             }
 
             StatsPage.OUTLOOK -> {
-                EmptyStatsPage("Outlook", "Outlook arrives in P8.")
+                outlook?.let { data ->
+                    V2StatsOutlookPage(data, hideAmounts, includeTypicalIncome, { includeTypicalIncome = it }, share)
+                } ?: StatsLoadingPage("Loading forecast")
             }
 
             StatsPage.REPORTS -> {
-                EmptyStatsPage("Reports", "Reports arrives in P8.")
+                reports?.let { data -> V2StatsReportsPage(data, hideAmounts, onGoDeeper, share) }
+                    ?: StatsLoadingPage("Loading reports")
             }
         }
     }
@@ -623,7 +681,7 @@ internal fun BalancePage(
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
-private fun ShareableCard(
+internal fun ShareableCard(
     title: String,
     share: (String, androidx.compose.ui.geometry.Rect) -> Unit,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
@@ -660,11 +718,18 @@ private fun MetricBar(
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
-private fun EmptyStatsPage(
-    title: String,
-    text: String,
-) {
-    MzEmptyState(title, text, "Back", {}, Modifier.fillMaxSize())
+private fun StatsLoadingPage(label: String) {
+    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        repeat(3) {
+            MzCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(label, color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall)
+                    Spacer(Modifier.fillMaxWidth().height(20.dp).background(LocalMzTokens.current.raisedSurface))
+                    Spacer(Modifier.fillMaxWidth(0.7f).height(14.dp).background(LocalMzTokens.current.raisedSurface))
+                }
+            }
+        }
+    }
 }
 
 private suspend fun shareCard(
@@ -712,7 +777,7 @@ internal fun captureCardBitmap(
     return cropped
 }
 
-private fun amount(minor: Long): String =
+internal fun amount(minor: Long): String =
     "EGP " +
         java.text
             .DecimalFormat(
@@ -727,7 +792,7 @@ private fun sharePercent(
     total: Long,
 ): Long = if (total == 0L) 0L else (value * 100 / total).coerceAtLeast(0L)
 
-private fun changeText(change: app.mizan.domain.stats.Change?): String =
+internal fun changeText(change: app.mizan.domain.stats.Change?): String =
     when {
         change == null -> {
             "— vs previous period"
@@ -1115,3 +1180,27 @@ private fun PeriodState.toStatsPeriod(): Period {
         }
     return Period(pair.first, pair.second)
 }
+
+private fun PeriodState.outlookEnd(today: LocalDate): LocalDate =
+    when (kind) {
+        PeriodKind.DAY -> {
+            start ?: today
+        }
+
+        PeriodKind.WEEK -> {
+            val anchor = start ?: today
+            anchor.minusDays(((anchor.dayOfWeek.value + 1) % 7).toLong()).plusDays(6)
+        }
+
+        PeriodKind.MONTH, PeriodKind.ALL -> {
+            today.withDayOfMonth(today.lengthOfMonth())
+        }
+
+        PeriodKind.YEAR -> {
+            today.withMonth(12).withDayOfMonth(31)
+        }
+
+        PeriodKind.CUSTOM -> {
+            end ?: today
+        }
+    }

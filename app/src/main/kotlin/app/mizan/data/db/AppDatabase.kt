@@ -696,6 +696,9 @@ interface PlanningDao {
     @Query("SELECT * FROM planned_payments WHERE active = 1 ORDER BY startDate")
     fun observePlanned(): Flow<List<PlannedPaymentEntity>>
 
+    @Query("SELECT * FROM planned_occurrences")
+    fun observeOccurrences(): Flow<List<PlannedOccurrenceEntity>>
+
     @Query("SELECT * FROM planned_payments WHERE active = 1")
     suspend fun activePlanned(): List<PlannedPaymentEntity>
 

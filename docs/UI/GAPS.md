@@ -19,4 +19,6 @@
 | Offline/error/skeleton variants | old UI has partial coverage | implement on every V2 screen | L |
 | Records scroll performance | API 37 Pixel_7_Pro AVD, 5,000 seeded transactions, repeated full-list flings: latest run p50 38 ms / p95 77 ms / 40.11% janky frames | not accepted at 60 Hz; continue profiling on emulator and repeat on a physical phone | L |
 | Stats 50k / 500 ms screen budget | One existing domain benchmark covers 50k aggregation; UI golden tests cover values and filtering, not full-device render latency | phone verification is listed in `docs/PHONE_CHECKLIST.md`; do not infer device acceptance from the emulator | M |
-| Stats Outlook and Reports | Planned for P8 | show scaffold placeholders until P8 | M |
+| Stats Outlook and Reports | Existing forecast, recurrence, StatsEngine, and CreditMath calculators are wired in V2; custom report tests/screenshots cover the golden fixture | implemented; on-device visual confirmation is listed in `docs/PHONE_CHECKLIST.md` | M |
+| Reports guide thresholds | No user-specific investing target or DTI ceiling is persisted | show documented 15% and 35% reference markers until preferences are added | S |
+| V2 Stats error/offline variants | Flows supply loading and populated/empty values; the new reports do not yet surface Room flow errors | add screen-level error/retry presentation in a later polish pass | S |

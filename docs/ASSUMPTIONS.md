@@ -1,5 +1,9 @@
 # Assumptions
 
+## P8 Reports guide markers
+
+- Reports uses a 15% investing-rate target marker and 35% debt-to-income reference ceiling because neither value has a user preference or calculator constant yet. They are comparison guides only and do not change account, forecast, or report calculations.
+
 ## P4 V2 record entry
 
 - The three-action expense acceptance definition counts one calculator interaction as the amount action,
