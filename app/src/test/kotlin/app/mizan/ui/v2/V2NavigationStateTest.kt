@@ -28,6 +28,13 @@ class V2NavigationStateTest {
     }
 
     @Test
+    fun `settings routes to about so the interface flag remains reversible`() {
+        val about = V2NavigationState().navigate(V2Route.Settings).navigate(V2Route.About)
+
+        assertEquals(V2Route.About.path, about.activeRoute?.path)
+    }
+
+    @Test
     fun `startup gate sends a clean install to onboarding after activity lock`() {
         assertEquals(V2Route.OnboardingAccounts, V2StartupGate.next(hasAccounts = false))
         assertNull(V2StartupGate.next(hasAccounts = true))

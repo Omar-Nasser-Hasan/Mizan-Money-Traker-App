@@ -65,6 +65,7 @@ fun v2MizanApp(
             padding = PaddingValues(),
             onBack = {},
             onNavigate = {},
+            onDisableNewInterface = {},
             entryAccountId = lastAccountId,
             globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
             onSelectPeriod = { persisted ->
@@ -116,6 +117,7 @@ fun v2MizanApp(
             padding = padding,
             onBack = { navigation = navigation.back() },
             onNavigate = { destination -> navigation = navigation.navigate(destination) },
+            onDisableNewInterface = { scope.launch { repository.setNewInterface(false) } },
             entryAccountId = lastAccountId,
             globalState = V2GlobalState(hideAmounts, period, accountFilterId, baseCurrency, lastAccountId),
             onSelectPeriod = { persisted ->
@@ -151,6 +153,7 @@ private fun V2RouteHost(
     padding: PaddingValues,
     onBack: () -> Unit,
     onNavigate: (V2Route) -> Unit,
+    onDisableNewInterface: () -> Unit,
     entryAccountId: String?,
     globalState: V2GlobalState,
     onSelectPeriod: (PersistedPeriod) -> Unit,
@@ -158,11 +161,11 @@ private fun V2RouteHost(
     if (route.presentation == V2Presentation.SHEET) {
         Box(modifier = Modifier.fillMaxSize().background(LocalMzTokens.current.canvas).padding(padding))
         MzSheet(onDismissRequest = onBack) {
-            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack, onNavigate)
+            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack, onNavigate, onDisableNewInterface)
         }
     } else {
         Column(modifier = Modifier.fillMaxSize().background(LocalMzTokens.current.canvas).padding(padding)) {
-            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack, onNavigate)
+            V2Placeholder(route, entryAccountId, globalState, onSelectPeriod, onBack, onNavigate, onDisableNewInterface)
         }
     }
 }
@@ -176,6 +179,7 @@ private fun V2Placeholder(
     onSelectPeriod: (PersistedPeriod) -> Unit,
     onBack: () -> Unit,
     onNavigate: (V2Route) -> Unit,
+    onDisableNewInterface: () -> Unit,
 ) {
     var showRouteCatalog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val description =
@@ -205,19 +209,29 @@ private fun V2Placeholder(
             }
         }
     } else {
-        MzEmptyState(
-            title = route.title,
-            description = description,
-            actionLabel = if (route == V2Route.PeriodSelector) "Use all time" else "Back",
-            onAction = {
-                if (route == V2Route.PeriodSelector) onSelectPeriod(PeriodState(PeriodKind.ALL).persisted()) else onBack()
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
-        MzButton(
-            label = "Browse destinations",
-            onClick = { showRouteCatalog = true },
-            modifier = Modifier.padding(horizontal = MzSpacing.sideMargin),
-        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            MzEmptyState(
+                title = route.title,
+                description = description,
+                actionLabel = if (route == V2Route.PeriodSelector) "Use all time" else "Back",
+                onAction = {
+                    if (route == V2Route.PeriodSelector) onSelectPeriod(PeriodState(PeriodKind.ALL).persisted()) else onBack()
+                },
+                modifier = Modifier.weight(1f),
+            )
+            if (route == V2Route.About) {
+                MzToggle(
+                    checked = true,
+                    onCheckedChange = { enabled -> if (!enabled) onDisableNewInterface() },
+                    label = "New interface",
+                    modifier = Modifier.padding(horizontal = MzSpacing.sideMargin),
+                )
+            }
+            MzButton(
+                label = if (route == V2Route.Settings) "About" else "Browse destinations",
+                onClick = { if (route == V2Route.Settings) onNavigate(V2Route.About) else showRouteCatalog = true },
+                modifier = Modifier.padding(horizontal = MzSpacing.sideMargin),
+            )
+        }
     }
 }
