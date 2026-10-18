@@ -13,10 +13,10 @@ import app.mizan.R
 object MzTypography {
     val manrope =
         FontFamily(
-            Font(R.font.manrope_variable, FontWeight.Normal),
-            Font(R.font.manrope_variable, FontWeight.Medium),
-            Font(R.font.manrope_variable, FontWeight.SemiBold),
-            Font(R.font.manrope_variable, FontWeight.Bold),
+            Font(R.font.manrope_regular, FontWeight.Normal),
+            Font(R.font.manrope_medium, FontWeight.Medium),
+            Font(R.font.manrope_semibold, FontWeight.SemiBold),
+            Font(R.font.manrope_bold, FontWeight.Bold),
         )
     val hero =
         TextStyle(fontFamily = manrope, fontWeight = FontWeight.Medium, fontSize = 36.sp, lineHeight = 40.sp, letterSpacing = (-0.02).em)
@@ -51,4 +51,5 @@ object MzTypography {
             fontFeatureSettings = "tnum",
         )
     val keypad = TextStyle(fontFamily = manrope, fontWeight = FontWeight.Medium, fontSize = 30.sp, lineHeight = 30.sp)
+    val button = TextStyle(fontFamily = manrope, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 20.sp)
 }
