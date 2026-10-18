@@ -88,6 +88,7 @@ fun V2RecordsScreen(
     onAddExpense: () -> Unit,
     onManageLabels: () -> Unit,
     onAccountSelected: (String?) -> Unit,
+    initialCategoryId: String? = null,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
@@ -100,6 +101,7 @@ fun V2RecordsScreen(
             RecordQuery(
                 accountId = selectedAccountId?.takeUnless { '|' in it },
                 accountIds = selectedAccountId?.takeIf { '|' in it },
+                categoryId = initialCategoryId,
                 dateStart = periodBounds(period).first,
                 dateEnd = periodBounds(period).second,
             ),

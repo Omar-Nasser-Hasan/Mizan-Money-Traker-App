@@ -48,6 +48,7 @@ android {
     }
     sourceSets {
         getByName("androidTest").assets.srcDir("schemas")
+        getByName("androidTest").assets.srcDir("../domain/src/test/resources")
     }
 }
 

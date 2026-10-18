@@ -18,3 +18,5 @@
 | Charts’ Breakdown/Analytics tabs | explicitly mock-only | hide | S |
 | Offline/error/skeleton variants | old UI has partial coverage | implement on every V2 screen | L |
 | Records scroll performance | API 37 Pixel_7_Pro AVD, 5,000 seeded transactions, repeated full-list flings: latest run p50 38 ms / p95 77 ms / 40.11% janky frames | not accepted at 60 Hz; continue profiling on emulator and repeat on a physical phone | L |
+| Stats 50k / 500 ms screen budget | One existing domain benchmark covers 50k aggregation; UI golden tests cover values and filtering, not full-device render latency | phone verification is listed in `docs/PHONE_CHECKLIST.md`; do not infer device acceptance from the emulator | M |
+| Stats Outlook and Reports | Planned for P8 | show scaffold placeholders until P8 | M |

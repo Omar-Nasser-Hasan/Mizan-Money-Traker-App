@@ -56,6 +56,8 @@ fun v2MizanApp(
     val lastAccountId by repository.observeLastUsedAccountId().collectAsStateWithLifecycle(null)
     val scope = rememberCoroutineScope()
     var navigation by rememberSaveable(stateSaver = V2NavigationState.Saver) { mutableStateOf(V2NavigationState()) }
+    var selectedStatsPage by rememberSaveable { mutableStateOf("Balance") }
+    var selectedStatsCategory by rememberSaveable { mutableStateOf<String?>(null) }
     val period = PeriodState.fromPersisted(periodKind, periodStart, periodEnd)
 
     LaunchedEffect(quickAction) {
@@ -87,7 +89,13 @@ fun v2MizanApp(
         containerColor = LocalMzTokens.current.canvas,
         topBar = {
             MzTopBar(
-                title = if (isSheetRoute) selectedTab.title else activeRoute?.title ?: selectedTab.title,
+                title =
+                    if (isSheetRoute) {
+                        selectedTab.title
+                    } else {
+                        activeRoute?.title
+                            ?: if (selectedTab == V2Route.BalanceStats) "Stats" else selectedTab.title
+                    },
                 navigationIcon =
                     if (activeRoute == null || isSheetRoute) {
                         null
@@ -136,6 +144,24 @@ fun v2MizanApp(
                     onAddExpense = { navigation = navigation.navigate(V2Route.ExpenseEntry) },
                     onManageLabels = { navigation = navigation.navigate(V2Route.Categories) },
                     onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                    initialCategoryId = selectedStatsCategory,
+                )
+            }
+        } else if (activeRoute == null && selectedTab == V2Route.BalanceStats) {
+            Box(Modifier.padding(padding)) {
+                V2StatsScreen(
+                    repository = repository,
+                    periodState = period,
+                    accountFilterId = accountFilterId,
+                    hideAmounts = hideAmounts,
+                    selectedPage = selectedStatsPage,
+                    onPageSelected = { selectedStatsPage = it },
+                    onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
+                    onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                    onGoDeeper = { category ->
+                        selectedStatsCategory = category
+                        navigation = navigation.selectTab(V2Route.Records)
+                    },
                 )
             }
         } else if (activeRoute == V2Route.PeriodSelector) {
@@ -153,6 +179,21 @@ fun v2MizanApp(
                         onAddExpense = { navigation = navigation.navigate(V2Route.ExpenseEntry) },
                         onManageLabels = { navigation = navigation.navigate(V2Route.Categories) },
                         onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                    )
+                } else if (selectedTab == V2Route.BalanceStats) {
+                    V2StatsScreen(
+                        repository = repository,
+                        periodState = period,
+                        accountFilterId = accountFilterId,
+                        hideAmounts = hideAmounts,
+                        selectedPage = selectedStatsPage,
+                        onPageSelected = { selectedStatsPage = it },
+                        onOpenPeriod = {},
+                        onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                        onGoDeeper = { category ->
+                            selectedStatsCategory = category
+                            navigation = navigation.selectTab(V2Route.Records)
+                        },
                     )
                 } else {
                     V2Placeholder(
@@ -186,6 +227,29 @@ fun v2MizanApp(
                 },
                 onDismiss = { navigation = navigation.back() },
             )
+        } else if (activeRoute in setOf(V2Route.BalanceStats, V2Route.CashFlowStats, V2Route.SpendingStats)) {
+            val routePage =
+                when (activeRoute) {
+                    V2Route.CashFlowStats -> "Cash flow"
+                    V2Route.SpendingStats -> "Spending"
+                    else -> "Balance"
+                }
+            Box(Modifier.padding(padding)) {
+                V2StatsScreen(
+                    repository = repository,
+                    periodState = period,
+                    accountFilterId = accountFilterId,
+                    hideAmounts = hideAmounts,
+                    selectedPage = routePage,
+                    onPageSelected = { selectedStatsPage = it },
+                    onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
+                    onAccountSelected = { id -> scope.launch { repository.setV2AccountFilter(id) } },
+                    onGoDeeper = { category ->
+                        selectedStatsCategory = category
+                        navigation = navigation.navigate(V2Route.Records)
+                    },
+                )
+            }
         } else if (activeRoute is V2Route.AccountDetail) {
             Box(Modifier.padding(padding)) {
                 V2AccountDetailScreen(repository, activeRoute.id, hideAmounts, onNavigate = { destination ->

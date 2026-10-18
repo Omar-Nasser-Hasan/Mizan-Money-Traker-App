@@ -1,0 +1,24 @@
+# Phone checklist
+
+- Open Records, fling the list, and confirm rows stay smooth near 60 fps on the phone.
+- Open a month of Records and scroll past the first grouped date; expect the pinned date header to stay above the first row without covering it.
+- Open the period sheet, choose Day and then Week, and confirm Apply is enabled and returns to the matching period.
+- Open the Inbox and compare each filter chip count with the visible matching draft count.
+- Open the Records filter sheet and confirm “Show N records” matches the filtered SQL result count.
+- Search Records by payee and confirm matches update while typing and an unmatched query shows the empty state.
+- Swipe a record to Edit, save it, then swipe another to Delete and Undo; expect the edit to persist and the deleted row to return.
+- Open an expense detail and confirm kind, amount, category, account, date, and payee are shown.
+- Open an income record and confirm all split allocations appear.
+- Open a transfer record and confirm both account legs appear.
+- Open a record with a receipt and confirm its attachment is visible.
+- Swipe-delete a record, tap Undo, and confirm it returns to Records.
+- Duplicate a record and confirm the copy opens for editing with its values prefilled without posting automatically.
+- Open account detail, edit an account, and archive then undo on the phone; confirm each screen and restoration work.
+- Open a cash account with EGP and USD buckets; expect both currencies and EGP values on Home and Wealth.
+- Open a credit card and tap Pay card; expect a cash-to-card prefilled transfer that posts as a transfer.
+- Use speech recognition on the phone and confirm recognized text opens review without posting automatically.
+- Reboot the phone and confirm scheduled reminders are rescheduled and delivered.
+- Use encrypted backups for seven days and confirm the rotating backups remain restorable without data loss.
+- Reconcile a Wallet CSV export on the phone and confirm previewed totals match Wallet before import.
+- Run the on-device model benchmarks and confirm latency stays within the documented thresholds.
+- Seed 50,000 records, switch across Cash flow, Spending, and Balance, and change period and account filters; expect all cards to update and each tab to render within 500 ms.

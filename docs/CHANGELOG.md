@@ -32,6 +32,7 @@
 
 ## Unreleased
 
+- P7 adds the shared Stats shell and live Cash flow, Spending, and Balance pages backed by the stats calculators. Golden-data instrumentation covers displayed totals, account/period recalculation, and bitmap capture. API 37 screenshots are in `docs/ui/shots/p7/`; the 50k/500 ms gate remains a phone check in `docs/PHONE_CHECKLIST.md`.
 - P6 adds live account and credit-card detail, multi-currency New/Edit account forms, opening-balance buckets, Fix balance via ADJUSTMENT, soft archive with Undo, and a prefilled Pay card transfer. Account and card screens have Room-backed instrumented coverage and real API 37 captures in `docs/UI/shots/p6/`.
 - P5 pins the visible Cairo date header above the Records list, keeps 64dp rows with stable paging keys, and parses split allocations before row composition. Day and Week period selections enable Apply for valid anchor dates, with a unit test for both kinds.
 - Captured one provisional emulator Records fling: 359/366 frames were janky (p50 97 ms). Physical-phone verification remains open; see `docs/ui/BASELINE.md` and `docs/BLOCKERS.md`.

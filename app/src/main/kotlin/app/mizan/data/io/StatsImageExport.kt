@@ -13,6 +13,17 @@ import java.io.File
 object StatsImageExport {
     suspend fun write(
         context: Context,
+        bitmap: Bitmap,
+    ): File =
+        withContext(Dispatchers.IO) {
+            val output = File(context.filesDir, "exports").also { it.mkdirs() }
+            File(output, "mizan-stats-${System.currentTimeMillis()}.png").also { file ->
+                file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            }
+        }
+
+    suspend fun write(
+        context: Context,
         title: String,
         lines: List<String>,
     ): File =

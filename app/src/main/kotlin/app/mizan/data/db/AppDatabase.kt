@@ -469,6 +469,7 @@ data class StatsEntryRow(
     val bookedDate: String,
     val accountId: String,
     val baseMinor: Long,
+    val txnId: String = "",
 )
 
 /** A current bucket total evaluated with the most recently cached EGP rate. */
@@ -1067,7 +1068,7 @@ interface LedgerDao {
     fun observeStatsRows(): Flow<List<StatsRecordRow>>
 
     @Query(
-        "SELECT t.bookedDate AS bookedDate, e.accountId AS accountId, e.baseMinor AS baseMinor FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL",
+        "SELECT t.bookedDate AS bookedDate, e.accountId AS accountId, e.baseMinor AS baseMinor, t.id AS txnId FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL",
     )
     fun observeStatsEntries(): Flow<List<StatsEntryRow>>
 
