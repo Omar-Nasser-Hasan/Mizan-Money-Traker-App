@@ -3,6 +3,9 @@
 
 package app.mizan.ui.v2
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,6 +94,11 @@ fun V2EntryScreen(
     var payeeQuery by remember { mutableStateOf("") }
     var selectedLabelIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var newLabelName by remember { mutableStateOf("") }
+    var receiptUris by remember { mutableStateOf<List<String>>(emptyList()) }
+    val receiptPicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+            receiptUris = receiptUris + uris.map { it.toString() }
+        }
     var paymentType by remember { mutableStateOf(PaymentType.CASH) }
     var status by remember { mutableStateOf(TxnStatus.CLEARED) }
     var bookedDate by remember { mutableStateOf(LocalDate.now(ZoneId.of("Africa/Cairo"))) }
@@ -430,7 +438,7 @@ fun V2EntryScreen(
                                 )
                             }
                         }
-                    repository.post(posting, selectedLabelIds)
+                    repository.post(posting, selectedLabelIds, receiptUris)
                     repository.setLastUsedAccountId(current.id)
                     onDone()
                 }
@@ -474,6 +482,17 @@ fun V2EntryScreen(
                     }
                 }
             }, style = MzButtonStyle.GHOST)
+            Text("Receipts", style = MzTypography.labelCaps)
+            MzButton(
+                "Add receipt",
+                onClick = {
+                    receiptPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                },
+                style = MzButtonStyle.SECONDARY,
+            )
+            receiptUris.forEachIndexed { index, uri ->
+                MzChip("Receipt ${index + 1}", false, onClick = { receiptUris = receiptUris - uri })
+            }
             Text("Payment type", style = MzTypography.labelCaps)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf(PaymentType.CASH, PaymentType.DEBIT, PaymentType.CREDIT, PaymentType.BANK_TRANSFER).forEach { candidate ->

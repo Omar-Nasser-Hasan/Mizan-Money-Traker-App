@@ -1052,6 +1052,7 @@ class MizanRepository
         suspend fun post(
             posting: LedgerPosting,
             labelIds: Set<String> = emptySet(),
+            receiptUris: List<String> = emptyList(),
         ) {
             val feePosting = posting.feePosting
             val postings = if (feePosting == null) listOf(posting) else listOf(posting, feePosting)
@@ -1091,6 +1092,12 @@ class MizanRepository
                     labelIds.map { labelId ->
                         app.mizan.data.db
                             .RecordLabelEntity(posting.transaction.id, labelId)
+                    },
+                )
+                ledger.insertAttachments(
+                    receiptUris.map { uri ->
+                        app.mizan.data.db
+                            .AttachmentEntity(UUID.randomUUID().toString(), posting.transaction.id, uri, "image/*")
                     },
                 )
             }
