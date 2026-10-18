@@ -24,6 +24,10 @@ The JVM test-result XML reports **62 tests**, with **0 failures**, **0 errors**,
 | 50k Stats aggregation | Existing JVM evidence in `docs/ASSUMPTIONS.md`: p90 53 ms, p95 69 ms on this API 37 emulator; this is not a full screen-performance pass. |
 | ANRs/main-thread I/O | No dedicated ANR or main-thread I/O trace captured in this pass. |
 
+## Provisional emulator run — 2026-10-18 (one Records fling)
+
+One `adb shell dumpsys gfxinfo app.mizan` capture followed a single Records fling on the API 37 Pixel_7_Pro AVD (1440 × 3120, 60 Hz target) with 15,001 visible-query records. The provisional emulator trace reported 366 frames, 359 janky frames (98.09%), p50 97 ms, p90 250 ms, p95 350 ms, and p99 900 ms. This is not a phone result or a performance pass. Raw output: `docs/UI/p5-gfxinfo-provisional-2026-10-18.txt`.
+
 ## CI baseline
 
 Command:

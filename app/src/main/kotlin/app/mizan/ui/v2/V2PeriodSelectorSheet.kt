@@ -187,15 +187,21 @@ fun V2PeriodSelectorSheet(
                     if (selected != null) onApply(selected, checkedAccounts)
                 },
                 Modifier.fillMaxWidth(),
-                enabled =
-                    when (kind) {
-                        PeriodKind.CUSTOM -> startText.toDateOrNull() != null && endText.toDateOrNull() != null
-                        PeriodKind.DAY, PeriodKind.WEEK -> startText.toDateOrNull() != null
-                        else -> true
-                    },
+                enabled = periodSelectionCanApply(kind, startText, endText),
             )
         }
     }
 }
+
+internal fun periodSelectionCanApply(
+    kind: PeriodKind,
+    startText: String,
+    endText: String,
+): Boolean =
+    when (kind) {
+        PeriodKind.CUSTOM -> startText.toDateOrNull() != null && endText.toDateOrNull() != null
+        PeriodKind.DAY, PeriodKind.WEEK -> startText.toDateOrNull() != null
+        else -> true
+    }
 
 private fun String.toDateOrNull(): LocalDate? = runCatching { LocalDate.parse(this) }.getOrNull()

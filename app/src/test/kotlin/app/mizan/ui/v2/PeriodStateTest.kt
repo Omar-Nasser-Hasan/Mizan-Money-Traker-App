@@ -2,10 +2,22 @@
 package app.mizan.ui.v2
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 
 class PeriodStateTest {
+    @Test
+    fun day_and_week_enable_apply_for_a_valid_anchor_date() {
+        val anchor = "2026-10-18"
+
+        listOf(PeriodKind.DAY, PeriodKind.WEEK).forEach { kind ->
+            assertTrue(periodSelectionCanApply(kind, anchor, ""))
+            assertFalse(periodSelectionCanApply(kind, "not-a-date", ""))
+        }
+    }
+
     @Test
     fun day_and_week_anchor_survive_persistence() {
         val anchor = LocalDate.parse("2024-02-29")

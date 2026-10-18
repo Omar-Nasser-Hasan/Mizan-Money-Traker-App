@@ -32,6 +32,8 @@
 
 ## Unreleased
 
+- P5 pins the visible Cairo date header above the Records list, keeps 64dp rows with stable paging keys, and parses split allocations before row composition. Day and Week period selections enable Apply for valid anchor dates, with a unit test for both kinds.
+- Captured one provisional emulator Records fling: 359/366 frames were janky (p50 97 ms). Physical-phone verification remains open; see `docs/ui/BASELINE.md` and `docs/BLOCKERS.md`.
 - P5 Records now pages one transaction per row (split income appears once, transfers expose both legs), with SQL-backed filters/counts, Cairo-day grouping, live search, period selection, detail navigation, swipe edit/delete, and empty/loading/error states. Room filter integration tests pass; the 5,000-row emulator scroll still misses 60 Hz and remains an open performance gate.
 - P5 renders Cairo-day headers through Paging separators, removing per-page grouping work from Compose. The current emulator trace is inconclusive because the Home control is similarly janky; the 60 Hz gate remains open.
 - P5 retested at lower emulator resolution; the trace stayed near 85 ms p50, so the emulator run remains inconclusive rather than a performance pass.
