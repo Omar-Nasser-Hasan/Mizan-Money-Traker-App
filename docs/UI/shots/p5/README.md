@@ -9,6 +9,7 @@ Captured from the API 37 Pixel_7_Pro AVD (1440 × 3120, 60 Hz target) using the 
 | Populated Records | [p5-records-current.png](p5-records-current.png) | All time, 5,000 count, Cairo day heading and transaction rows. |
 | Paging separator pass | [p5-records-paging-separators.png](p5-records-paging-separators.png) | Current APK, verified `5000 records`; day headers now enter through Paging separators rather than rebuilding groups from loaded rows. |
 | Release-like Records | [p5-release-records.png](p5-release-records.png) | Minified release APK, visually verified with exactly `5000 records`. |
+| Release scrolling | [p5-release-records-scrolled.png](p5-release-records-scrolled.png) | The same list after a real swipe; successive rows and amounts confirm the list moved. |
 | Empty search | [p5-empty-search-current.png](p5-empty-search-current.png) | Nonmatching search shows zero count, empty-state title/body and Add expense action. |
 | Filters | [p5-filters-current.png](p5-filters-current.png) | Kind/account/category chips and the scrollable filter sheet. |
 | Period selector | [p5-period-selector-current.png](p5-period-selector-current.png) | Month/All/Custom selector and account scope. |
