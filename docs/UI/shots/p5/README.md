@@ -8,6 +8,7 @@ Captured from the API 37 Pixel_7_Pro AVD (1440 × 3120, 60 Hz target) using the 
 | --- | --- | --- |
 | Populated Records | [p5-records-current.png](p5-records-current.png) | All time, 5,000 count, Cairo day heading and transaction rows. |
 | Paging separator pass | [p5-records-paging-separators.png](p5-records-paging-separators.png) | Current APK, verified `5000 records`; day headers now enter through Paging separators rather than rebuilding groups from loaded rows. |
+| Release-like Records | [p5-release-records.png](p5-release-records.png) | Minified release APK, visually verified with exactly `5000 records`. |
 | Empty search | [p5-empty-search-current.png](p5-empty-search-current.png) | Nonmatching search shows zero count, empty-state title/body and Add expense action. |
 | Filters | [p5-filters-current.png](p5-filters-current.png) | Kind/account/category chips and the scrollable filter sheet. |
 | Period selector | [p5-period-selector-current.png](p5-period-selector-current.png) | Month/All/Custom selector and account scope. |
@@ -23,5 +24,6 @@ Captured from the API 37 Pixel_7_Pro AVD (1440 × 3120, 60 Hz target) using the 
 - Manual performance repro: launch the debug app, open Dev tools (long-press the Wealth title), run Seed 5,000 records, open Records, select All time, run repeated full-list flings, then inspect `adb shell dumpsys gfxinfo app.mizan`.
 - Latest 5,000-row trace is saved in [p5-gfxinfo-5000-next.txt](p5-gfxinfo-5000-next.txt): 121 frames, 119 janky (98.35%), p50 81 ms, p95 129 ms. A Home-screen control run on the same AVD was similarly slow (197/198 janky, p50 85 ms), so the emulator/host is currently too saturated for a useful screen-specific comparison. **The 60 Hz acceptance gate is not met or verified.** Profile on a less saturated emulator and repeat on a physical phone before claiming performance acceptance.
 - A follow-up at 720×1560 / 280 dpi (same logical density and 5,000-row list) remained similarly slow: 90/90 janky, p50 85 ms, p95 129 ms; see [p5-gfxinfo-720p.txt](p5-gfxinfo-720p.txt). The AVD was restored to 1440×3120 / 560 dpi afterward.
+- A minified release APK (signed locally with the Android debug key only for this emulator test) measured 97/98 janky frames, p50 73 ms, p95 121 ms; see [p5-gfxinfo-release.txt](p5-gfxinfo-release.txt). Release optimization helped the median somewhat but **the 60 Hz gate still fails**. This debug-key artifact is not a production release.
 
 The AVD’s app data is a synthetic fixture. Instrumentation tests can remove/reinstall the app and clear that fixture; do not use this AVD procedure on a phone with personal records.
