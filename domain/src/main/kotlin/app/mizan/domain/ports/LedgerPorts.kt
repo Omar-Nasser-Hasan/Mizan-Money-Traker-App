@@ -8,9 +8,11 @@ import java.time.LocalDate
 
 data class RecordQuery(
     val accountId: String? = null,
+    val accountIds: String? = null,
     val categoryId: String? = null,
     val labelId: String? = null,
     val kind: TxnKind? = null,
+    val kindGroup: String? = null,
     val status: String? = null,
     val currency: String? = null,
     val dateStart: LocalDate? = null,

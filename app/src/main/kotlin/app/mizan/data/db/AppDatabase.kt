@@ -404,12 +404,50 @@ data class RecordRow(
     val attachments: String,
 )
 
+/** One paging item per transaction; all matching entry details stay together across page boundaries. */
+data class PagedRecordRow(
+    val id: String,
+    val entryId: String,
+    val kind: String,
+    val bookedAt: Long,
+    val bookedDate: String,
+    val categoryId: String?,
+    val categoryName: String?,
+    val payeeId: String?,
+    val payeeName: String?,
+    val note: String,
+    val status: String,
+    val paymentType: String,
+    val plannedId: String?,
+    val debtId: String?,
+    val assetTxnId: String?,
+    val createdAt: Long,
+    val updatedAt: Long,
+    val accountId: String,
+    val accountName: String,
+    val currency: String,
+    val amountMinor: Long,
+    val rateToBase: String,
+    val baseMinor: Long,
+    val labels: String,
+    val attachments: String,
+    val allocationData: String,
+    val counterAccountName: String?,
+    val counterCurrency: String?,
+    val counterAmountMinor: Long?,
+)
+
 data class BucketDelta(
     val currency: String,
     val amountMinor: Long,
 )
 
 data class DailyBaseDelta(
+    val date: String,
+    val baseMinor: Long,
+)
+
+data class DailyRecordNet(
     val date: String,
     val baseMinor: Long,
 )
@@ -756,6 +794,91 @@ interface PlanningDao {
 
 @Dao
 interface LedgerDao {
+    @Query("SELECT * FROM transactions WHERE id = :id AND deletedAt IS NULL")
+    suspend fun findTransaction(id: String): TxnEntity?
+
+    @Query("SELECT * FROM entries WHERE txnId = :transactionId")
+    suspend fun entriesForTransaction(transactionId: String): List<EntryEntity>
+
+    @Query("SELECT * FROM record_labels WHERE txnId = :transactionId")
+    suspend fun labelsForTransaction(transactionId: String): List<RecordLabelEntity>
+
+    @Query("SELECT * FROM attachments WHERE txnId = :transactionId")
+    suspend fun attachmentsForTransaction(transactionId: String): List<AttachmentEntity>
+
+    @Query(
+        """
+        SELECT COUNT(*) FROM transactions t
+        LEFT JOIN payees p ON p.id = t.payeeId
+        WHERE t.deletedAt IS NULL
+          AND ((:accountId IS NULL AND :accountIds IS NULL AND :currency IS NULL AND :minAmount IS NULL AND :maxAmount IS NULL) OR EXISTS (
+              SELECT 1 FROM entries f WHERE f.txnId = t.id
+                AND (:accountId IS NULL OR f.accountId = :accountId)
+                AND (:accountIds IS NULL OR instr('|' || :accountIds || '|', '|' || f.accountId || '|') > 0)
+                AND (:currency IS NULL OR f.currency = :currency)
+                AND (:minAmount IS NULL OR ABS(f.amountMinor) >= :minAmount)
+                AND (:maxAmount IS NULL OR ABS(f.amountMinor) <= :maxAmount)
+          ))
+          AND (:categoryId IS NULL OR t.categoryId = :categoryId)
+          AND (:kind IS NULL OR t.kind = :kind OR (:kind = 'INVESTMENT' AND t.kind LIKE 'ASSET_%') OR (:kind = 'DEBT' AND t.kind LIKE 'DEBT_%'))
+          AND (:status IS NULL OR t.status = :status)
+          AND (:start IS NULL OR t.bookedDate >= :start) AND (:end IS NULL OR t.bookedDate <= :end)
+          AND (:labelId IS NULL OR EXISTS (SELECT 1 FROM record_labels rl WHERE rl.txnId = t.id AND rl.labelId = :labelId))
+          AND (:search IS NULL OR t.note LIKE '%' || :search || '%' OR p.name LIKE '%' || :search || '%')
+    """,
+    )
+    fun observeRecordCount(
+        accountId: String?,
+        accountIds: String?,
+        categoryId: String?,
+        labelId: String?,
+        kind: String?,
+        status: String?,
+        currency: String?,
+        start: String?,
+        end: String?,
+        minAmount: Long?,
+        maxAmount: Long?,
+        search: String?,
+    ): Flow<Int>
+
+    @Query(
+        "SELECT COUNT(*) FROM transactions WHERE deletedAt IS NULL AND kind = 'EXPENSE' AND categoryId = (SELECT id FROM categories WHERE name = 'Uncategorized' AND archived = 0 LIMIT 1)",
+    )
+    fun observeUncategorizedExpenseCount(): Flow<Int>
+
+    @Query(
+        """
+        SELECT t.bookedDate AS date, SUM(e.baseMinor) AS baseMinor
+        FROM transactions t JOIN entries e ON e.txnId = t.id
+        LEFT JOIN payees p ON p.id = t.payeeId
+        WHERE t.deletedAt IS NULL AND (:accountId IS NULL OR e.accountId = :accountId)
+          AND (:accountIds IS NULL OR instr('|' || :accountIds || '|', '|' || e.accountId || '|') > 0)
+          AND (:categoryId IS NULL OR t.categoryId = :categoryId)
+          AND (:kind IS NULL OR t.kind = :kind OR (:kind = 'INVESTMENT' AND t.kind LIKE 'ASSET_%') OR (:kind = 'DEBT' AND t.kind LIKE 'DEBT_%'))
+          AND (:status IS NULL OR t.status = :status) AND (:currency IS NULL OR e.currency = :currency)
+          AND (:start IS NULL OR t.bookedDate >= :start) AND (:end IS NULL OR t.bookedDate <= :end)
+          AND (:minAmount IS NULL OR ABS(e.amountMinor) >= :minAmount) AND (:maxAmount IS NULL OR ABS(e.amountMinor) <= :maxAmount)
+          AND (:labelId IS NULL OR EXISTS (SELECT 1 FROM record_labels rl WHERE rl.txnId = t.id AND rl.labelId = :labelId))
+          AND (:search IS NULL OR t.note LIKE '%' || :search || '%' OR p.name LIKE '%' || :search || '%')
+        GROUP BY t.bookedDate ORDER BY t.bookedDate DESC
+        """,
+    )
+    fun observeDailyRecordNet(
+        accountId: String?,
+        accountIds: String?,
+        categoryId: String?,
+        labelId: String?,
+        kind: String?,
+        status: String?,
+        currency: String?,
+        start: String?,
+        end: String?,
+        minAmount: Long?,
+        maxAmount: Long?,
+        search: String?,
+    ): Flow<List<DailyRecordNet>>
+
     @Insert suspend fun insertTransaction(value: TxnEntity)
 
     @Insert suspend fun insertEntries(values: List<EntryEntity>)
@@ -814,16 +937,35 @@ interface LedgerDao {
         """
         SELECT t.id, e.id AS entryId, t.kind, t.bookedAt, t.bookedDate, t.categoryId, c.name AS categoryName, t.payeeId,
                p.name AS payeeName, t.note, t.status, t.paymentType, t.plannedId, t.debtId, t.assetTxnId, t.createdAt,
-               t.updatedAt, e.accountId, a.name AS accountName, e.currency, e.amountMinor, e.rateToBase, e.baseMinor,
+               t.updatedAt, e.accountId, a.name AS accountName, e.currency,
+               CASE WHEN t.kind = 'INCOME' THEN (SELECT SUM(amountMinor) FROM entries WHERE txnId = t.id) ELSE e.amountMinor END AS amountMinor,
+               e.rateToBase,
+               CASE WHEN t.kind = 'INCOME' THEN (SELECT SUM(baseMinor) FROM entries WHERE txnId = t.id) ELSE e.baseMinor END AS baseMinor,
                COALESCE((SELECT GROUP_CONCAT(l.name, '|') FROM record_labels rl JOIN labels l ON l.id = rl.labelId WHERE rl.txnId = t.id), '') AS labels,
-               COALESCE((SELECT GROUP_CONCAT(uri, '|') FROM attachments at WHERE at.txnId = t.id), '') AS attachments FROM transactions t JOIN entries e ON e.txnId = t.id
+               COALESCE((SELECT GROUP_CONCAT(uri, '|') FROM attachments at WHERE at.txnId = t.id), '') AS attachments,
+               CASE WHEN t.kind = 'INCOME' THEN COALESCE((SELECT GROUP_CONCAT(accountId || ':' || amountMinor, ',') FROM entries WHERE txnId = t.id), '') ELSE '' END AS allocationData,
+               (SELECT ca.name FROM entries ce JOIN accounts ca ON ca.id = ce.accountId WHERE ce.txnId = t.id AND ce.id != e.id ORDER BY ce.id LIMIT 1) AS counterAccountName,
+               (SELECT ce.currency FROM entries ce WHERE ce.txnId = t.id AND ce.id != e.id ORDER BY ce.id LIMIT 1) AS counterCurrency,
+               (SELECT ce.amountMinor FROM entries ce WHERE ce.txnId = t.id AND ce.id != e.id ORDER BY ce.id LIMIT 1) AS counterAmountMinor
+        FROM transactions t
+        JOIN entries e ON e.id = (
+            SELECT selected.id FROM entries selected WHERE selected.txnId = t.id
+            ORDER BY selected.amountMinor ASC, selected.id LIMIT 1
+        )
         JOIN accounts a ON a.id = e.accountId LEFT JOIN categories c ON c.id = t.categoryId
         LEFT JOIN payees p ON p.id = t.payeeId WHERE t.deletedAt IS NULL
-          AND (:accountId IS NULL OR e.accountId = :accountId) AND (:categoryId IS NULL OR t.categoryId = :categoryId)
-          AND (:kind IS NULL OR t.kind = :kind) AND (:status IS NULL OR t.status = :status)
-          AND (:currency IS NULL OR e.currency = :currency) AND (:start IS NULL OR t.bookedDate >= :start)
-          AND (:end IS NULL OR t.bookedDate <= :end) AND (:minAmount IS NULL OR ABS(e.amountMinor) >= :minAmount)
-          AND (:maxAmount IS NULL OR ABS(e.amountMinor) <= :maxAmount)
+          AND ((:accountId IS NULL AND :accountIds IS NULL AND :currency IS NULL AND :minAmount IS NULL AND :maxAmount IS NULL) OR EXISTS (
+              SELECT 1 FROM entries f WHERE f.txnId = t.id
+                AND (:accountId IS NULL OR f.accountId = :accountId)
+                AND (:accountIds IS NULL OR instr('|' || :accountIds || '|', '|' || f.accountId || '|') > 0)
+                AND (:currency IS NULL OR f.currency = :currency)
+                AND (:minAmount IS NULL OR ABS(f.amountMinor) >= :minAmount)
+                AND (:maxAmount IS NULL OR ABS(f.amountMinor) <= :maxAmount)
+          ))
+          AND (:categoryId IS NULL OR t.categoryId = :categoryId)
+          AND (:kind IS NULL OR t.kind = :kind OR (:kind = 'INVESTMENT' AND t.kind LIKE 'ASSET_%') OR (:kind = 'DEBT' AND t.kind LIKE 'DEBT_%'))
+          AND (:status IS NULL OR t.status = :status)
+          AND (:start IS NULL OR t.bookedDate >= :start) AND (:end IS NULL OR t.bookedDate <= :end)
           AND (:labelId IS NULL OR EXISTS (SELECT 1 FROM record_labels rl WHERE rl.txnId = t.id AND rl.labelId = :labelId))
           AND (:search IS NULL OR t.note LIKE '%' || :search || '%' OR p.name LIKE '%' || :search || '%')
         ORDER BY t.bookedDate DESC, t.bookedAt DESC
@@ -831,6 +973,7 @@ interface LedgerDao {
     )
     fun records(
         accountId: String?,
+        accountIds: String?,
         categoryId: String?,
         labelId: String?,
         kind: String?,
@@ -841,7 +984,7 @@ interface LedgerDao {
         minAmount: Long?,
         maxAmount: Long?,
         search: String?,
-    ): PagingSource<Int, RecordRow>
+    ): PagingSource<Int, PagedRecordRow>
 
     @Query(
         """

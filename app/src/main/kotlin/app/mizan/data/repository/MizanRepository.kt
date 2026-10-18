@@ -27,6 +27,7 @@ import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyDao
 import app.mizan.data.db.CurrencyEntity
+import app.mizan.data.db.DailyRecordNet
 import app.mizan.data.db.DebtEntity
 import app.mizan.data.db.EntryEntity
 import app.mizan.data.db.FxRateDao
@@ -39,6 +40,7 @@ import app.mizan.data.db.InboxDraftEntity
 import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.IncomeSourceEntity
 import app.mizan.data.db.LedgerDao
+import app.mizan.data.db.PagedRecordRow
 import app.mizan.data.db.PayeeEntity
 import app.mizan.data.db.PlannedOccurrenceEntity
 import app.mizan.data.db.PlannedPaymentEntity
@@ -636,6 +638,24 @@ class MizanRepository
 
         fun observeRecordRows(transactionId: String): Flow<List<RecordRow>> = ledger.observeRowsForTransaction(transactionId)
 
+        fun observeUncategorizedExpenseCount(): Flow<Int> = ledger.observeUncategorizedExpenseCount()
+
+        fun observeDailyRecordNet(query: RecordQuery): Flow<List<DailyRecordNet>> =
+            ledger.observeDailyRecordNet(
+                query.accountId,
+                query.accountIds,
+                query.categoryId,
+                query.labelId,
+                query.kindGroup ?: query.kind?.name,
+                query.status,
+                query.currency,
+                query.dateStart?.toString(),
+                query.dateEnd?.toString(),
+                query.amountMin,
+                query.amountMax,
+                query.search?.trim()?.takeIf { it.isNotEmpty() },
+            )
+
         suspend fun isPossibleDuplicate(
             accountId: String,
             amountMinor: Long,
@@ -807,12 +827,29 @@ class MizanRepository
             }
         }
 
-        fun records(query: RecordQuery): PagingSource<Int, RecordRow> =
+        fun records(query: RecordQuery): PagingSource<Int, PagedRecordRow> =
             ledger.records(
                 query.accountId,
+                query.accountIds,
                 query.categoryId,
                 query.labelId,
-                query.kind?.name,
+                query.kindGroup ?: query.kind?.name,
+                query.status,
+                query.currency,
+                query.dateStart?.toString(),
+                query.dateEnd?.toString(),
+                query.amountMin,
+                query.amountMax,
+                query.search?.trim()?.takeIf { it.isNotEmpty() },
+            )
+
+        fun observeRecordCount(query: RecordQuery): Flow<Int> =
+            ledger.observeRecordCount(
+                query.accountId,
+                query.accountIds,
+                query.categoryId,
+                query.labelId,
+                query.kindGroup ?: query.kind?.name,
                 query.status,
                 query.currency,
                 query.dateStart?.toString(),
@@ -1006,6 +1043,46 @@ class MizanRepository
         suspend fun deleteRecord(id: String) = ledger.softDelete(id, clock.millis())
 
         suspend fun restoreRecord(id: String) = ledger.restore(id, clock.millis())
+
+        suspend fun addRecordAttachments(
+            transactionId: String,
+            uris: List<String>,
+        ) = database.withTransaction {
+            ledger.insertAttachments(
+                uris.map { uri ->
+                    app.mizan.data.db
+                        .AttachmentEntity(UUID.randomUUID().toString(), transactionId, uri, "image/*")
+                },
+            )
+        }
+
+        suspend fun duplicateRecord(transactionId: String): String? =
+            database.withTransaction {
+                val original = ledger.findTransaction(transactionId) ?: return@withTransaction null
+                val now = clock.millis()
+                val duplicateId = UUID.randomUUID().toString()
+                ledger.insertTransaction(
+                    original.copy(
+                        id = duplicateId,
+                        status = if (original.status == "RECONCILED") "CLEARED" else original.status,
+                        createdAt = now,
+                        updatedAt = now,
+                        deletedAt = null,
+                    ),
+                )
+                ledger.insertEntries(
+                    ledger.entriesForTransaction(transactionId).map { it.copy(id = UUID.randomUUID().toString(), txnId = duplicateId) },
+                )
+                val labels = ledger.labelsForTransaction(transactionId)
+                if (labels.isNotEmpty()) ledger.insertLabels(labels.map { it.copy(txnId = duplicateId) })
+                val attachments = ledger.attachmentsForTransaction(transactionId)
+                if (attachments.isNotEmpty()) {
+                    ledger.insertAttachments(
+                        attachments.map { it.copy(id = UUID.randomUUID().toString(), txnId = duplicateId) },
+                    )
+                }
+                duplicateId
+            }
 
         fun observeTrash() = ledger.observeTrash()
 
