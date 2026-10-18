@@ -29,7 +29,7 @@
 ## Unreleased
 
 - Refined the debug design gallery: static Manrope weights, fixed-size rounded controls, fitted Money amounts,
-  titled/gridlined chart cards, and a square, centered spending donut; added fresh dark/light/OLED emulator captures.
+  titled/gridlined chart cards, and a square, centered spending donut; removed the gallery FAB overlay so chart labels stay unobstructed; added fresh dark/light/OLED emulator captures.
 - Added instrumented V2 expense-entry coverage for the three-action flow, persisted negative/base
   amount, allowed-overdraft warning, duplicate warning, and edit-through-Trash round trip.
 - Added the V2 record-entry flow for expense, income, and transfer with the calculator, account/currency/category controls, date and More details, templates, saved income splits, transfer exchange/fee handling, duplicate confirmation, and Save & add another.
