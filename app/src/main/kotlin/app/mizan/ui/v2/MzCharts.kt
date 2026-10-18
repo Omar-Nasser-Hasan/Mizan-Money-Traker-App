@@ -3,15 +3,25 @@ package app.mizan.ui.v2
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -20,6 +30,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
@@ -30,6 +41,60 @@ data class MzDonutSlice(
     val value: Long,
     val color: Color,
 )
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+fun MzChartCard(
+    title: String,
+    axisLabels: List<String> = listOf("Jan", "Apr", "Jun"),
+    modifier: Modifier = Modifier,
+    chartHeight: androidx.compose.ui.unit.Dp = 180.dp,
+    squareChart: Boolean = false,
+    content: @Composable (Modifier) -> Unit,
+) {
+    val tokens = LocalMzTokens.current
+    val selectedAxisLabels =
+        when {
+            axisLabels.size <= 3 -> axisLabels
+            else -> listOf(axisLabels.first(), axisLabels[axisLabels.lastIndex / 2], axisLabels.last())
+        }
+    MzCard(modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(title, style = MzTypography.title)
+            HorizontalDivider(Modifier.padding(top = 10.dp), color = tokens.outline.copy(alpha = 0.35f), thickness = 1.dp)
+            BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                val chartBoxModifier =
+                    if (squareChart) {
+                        Modifier.size(minOf(maxWidth, 280.dp)).align(Alignment.Center)
+                    } else {
+                        Modifier.fillMaxWidth().height(chartHeight)
+                    }
+                Box(
+                    modifier =
+                        chartBoxModifier.drawBehind {
+                            repeat(3) { index ->
+                                val y = size.height * (index + 1) / 4f
+                                drawLine(
+                                    color = tokens.outline.copy(alpha = 0.25f),
+                                    start = Offset.Zero.copy(y = y),
+                                    end = Offset(size.width, y),
+                                    strokeWidth = 1.dp.toPx(),
+                                )
+                            }
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    content(Modifier.fillMaxSize())
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                selectedAxisLabels.forEach { label ->
+                    Text(label, color = tokens.textDim, style = MzTypography.bodySmall)
+                }
+            }
+        }
+    }
+}
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
@@ -126,14 +191,16 @@ fun MzDonut(
     slices: List<MzDonutSlice>,
     modifier: Modifier = Modifier,
     centerText: String,
+    changeText: String? = null,
     selectedIndex: Int? = null,
     onSliceSelected: (Int) -> Unit = {},
 ) {
+    val tokens = LocalMzTokens.current
     val total = slices.sumOf { it.value.coerceAtLeast(0L) }.coerceAtLeast(1L)
-    Box(modifier = modifier.height(200.dp), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
         Canvas(
             modifier =
-                Modifier.matchParentSize().pointerInput(slices) {
+                Modifier.fillMaxSize().pointerInput(slices) {
                     detectTapGestures { offset ->
                         val center = Offset(size.width / 2f, size.height / 2f)
                         val angle =
@@ -152,7 +219,13 @@ fun MzDonut(
                     }
                 },
         ) {
-            val stroke = size.minDimension * 0.22f
+            val diameter = size.minDimension
+            val stroke = diameter * 0.22f
+            val arcDiameter = diameter - stroke
+            val inset = (diameter - arcDiameter) / 2f
+            val arcTopLeft = Offset(inset, inset)
+            val arcSize = Size(arcDiameter, arcDiameter)
+            drawCircle(tokens.surface, radius = diameter * 0.28f)
             var start = -90f
             slices.forEachIndexed { index, slice ->
                 val sweep = slice.value.coerceAtLeast(0L).toFloat() / total * 360f
@@ -161,12 +234,47 @@ fun MzDonut(
                     startAngle = start,
                     sweepAngle = sweep,
                     useCenter = false,
+                    topLeft = arcTopLeft,
+                    size = arcSize,
                     style = Stroke(stroke, cap = StrokeCap.Butt),
                 )
                 start += sweep
             }
         }
-        Text(centerText, style = MzTypography.amountMedium, textAlign = TextAlign.Center)
+        Column(
+            modifier = Modifier.fillMaxSize(0.55f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            chartCenterText(centerText, MzTypography.amountSmall)
+            changeText?.let {
+                chartCenterText(it, MzTypography.bodySmall, LocalMzTokens.current.income)
+            }
+        }
+    }
+}
+
+@Composable
+private fun chartCenterText(
+    text: String,
+    style: androidx.compose.ui.text.TextStyle,
+    color: Color = LocalMzTokens.current.text,
+) {
+    val textMeasurer =
+        androidx.compose.ui.text
+            .rememberTextMeasurer()
+    val measuredWidth = remember(text, style) { textMeasurer.measure(AnnotatedString(text), style).size.width }
+    BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val availableWidth = constraints.maxWidth.toFloat()
+        val fit = if (availableWidth > 0f && measuredWidth > availableWidth) availableWidth / measuredWidth else 1f
+        Text(
+            text,
+            color = color,
+            style = if (fit < 1f) style.copy(fontSize = style.fontSize * fit) else style,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
+        )
     }
 }
 

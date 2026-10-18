@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.ui.v2
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import app.mizan.domain.money.Money
 import java.time.LocalDate
 
 @Composable
@@ -33,6 +36,12 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
     val mode = listOf(MizanThemeMode.DARK, MizanThemeMode.LIGHT, MizanThemeMode.TRUE_BLACK)[modeIndex]
     MizanTheme(mode = mode) {
         val tokens = LocalMzTokens.current
+        val expenseSample = remember { Money(1_258_000, "EGP") }
+        val incomeSample = remember { Money(1_258_000, "EGP") }
+        LaunchedEffect(Unit) {
+            Log.d("P1DesignGallery", "Expense AmountText receives $expenseSample")
+            Log.d("P1DesignGallery", "Income AmountText receives $incomeSample")
+        }
         var input by remember { mutableStateOf("Mizan") }
         var toggle by remember { mutableStateOf(true) }
         var selectedChip by remember { mutableStateOf(true) }
@@ -74,10 +83,10 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item {
                         MzCard(Modifier.fillMaxWidth()) {
                             MzListRow("shopping_bag", "Groceries", "Groceries", "Today · Cash") {
-                                AmountText(-1_258, "EGP", AmountStyle.EXPENSE, false)
+                                AmountText(expenseSample.copy(minor = -expenseSample.minor), AmountStyle.EXPENSE, false)
                             }
                             MzListRow("payments", "Income", "Salary", "Yesterday · Bank") {
-                                AmountText(1_258, "EGP", AmountStyle.INCOME, false)
+                                AmountText(incomeSample, AmountStyle.INCOME, false)
                             }
                         }
                     }
@@ -86,25 +95,64 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item { MzBudgetBar(0.85f) }
                     item { MzBudgetBar(1.1f) }
                     item { GalleryTitle("Charts") }
-                    item { MzSparkline(listOf(12, 18, 15, 25, 22, 34), Modifier.fillMaxWidth()) }
-                    item { MzAreaChart(listOf(10, 18, 14, 24, 21, 30, 29, 38)) }
-                    item { MzBarChart(listOf(30, 48, 36, 52), listOf(18, 33, 24, 40)) }
-                    item { MzMultiLine(listOf(10, 20, 18, 30), listOf(8, 12, 28, 24), listOf(4, 18, 14, 20)) }
                     item {
-                        MzDonut(
-                            listOf(
-                                MzDonutSlice("Food", 45, tokens.expense),
-                                MzDonutSlice("Travel", 30, tokens.warning),
-                                MzDonutSlice("Other", 25, tokens.investment),
-                            ),
-                            centerText = "EGP 100.00",
-                            selectedIndex = selectedSlice,
-                            onSliceSelected = { selectedSlice = it },
-                        )
+                        MzChartCard("Sparkline", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                            MzSparkline(listOf(12, 18, 15, 25, 22, 34), chartModifier)
+                        }
                     }
-                    item { MzWaterfall(listOf(50, -18, -12, 32, -28)) }
-                    item { MzCompositionBar(listOf(MzDonutSlice("Cash", 40, tokens.income), MzDonutSlice("Bank", 60, tokens.transfer))) }
-                    item { MzProgressRing(0.68f, "68%") }
+                    item {
+                        MzChartCard("Balance trend", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                            MzAreaChart(listOf(10, 18, 14, 24, 21, 30, 29, 38), chartModifier)
+                        }
+                    }
+                    item {
+                        MzChartCard("Cash flow", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                            MzBarChart(listOf(30, 48, 36, 52), listOf(18, 33, 24, 40), chartModifier)
+                        }
+                    }
+                    item {
+                        MzChartCard("Period comparison", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                            MzMultiLine(listOf(10, 20, 18, 30), listOf(8, 12, 28, 24), listOf(4, 18, 14, 20), chartModifier)
+                        }
+                    }
+                    item {
+                        MzChartCard(
+                            "Spending breakdown",
+                            axisLabels = listOf("Food", "Travel", "Other"),
+                            squareChart = true,
+                        ) { chartModifier ->
+                            MzDonut(
+                                listOf(
+                                    MzDonutSlice("Food", 45, tokens.expense),
+                                    MzDonutSlice("Travel", 30, tokens.warning),
+                                    MzDonutSlice("Other", 25, tokens.investment),
+                                ),
+                                centerText = "EGP 100.00",
+                                changeText = "+12.5%",
+                                selectedIndex = selectedSlice,
+                                onSliceSelected = { selectedSlice = it },
+                                modifier = chartModifier,
+                            )
+                        }
+                    }
+                    item {
+                        MzChartCard("Monthly change", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                            MzWaterfall(listOf(50, -18, -12, 32, -28), chartModifier)
+                        }
+                    }
+                    item {
+                        MzChartCard("Account share", axisLabels = listOf("Cash", "Bank", "Total"), chartHeight = 100.dp) { chartModifier ->
+                            MzCompositionBar(
+                                listOf(MzDonutSlice("Cash", 40, tokens.income), MzDonutSlice("Bank", 60, tokens.transfer)),
+                                chartModifier,
+                            )
+                        }
+                    }
+                    item {
+                        MzChartCard("Budget used", axisLabels = listOf("0%", "50%", "100%"), chartHeight = 104.dp) { _ ->
+                            MzProgressRing(0.68f, "68%")
+                        }
+                    }
                     item { GalleryTitle("States") }
                     item { MzSkeleton(Modifier.fillMaxWidth(), 64.dp) }
                     item { MzEmptyState("No accounts yet", "Create an account to begin tracking your money.", "Add account", {}) }
