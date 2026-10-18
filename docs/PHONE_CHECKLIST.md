@@ -24,3 +24,5 @@
 - Seed 50,000 records, switch across Cash flow, Spending, and Balance, and change period and account filters; expect all cards to update and each tab to render within 500 ms.
 - Open Outlook and Reports on the phone and share each card; expect the captured card image to open in Android's share sheet and the charts and rows to fit at normal and 1.3x text size.
 - With a credit card account present, open Reports and share the Credit utilization card; expect its owed-versus-limit percentage image to open in Android's share sheet.
+- Open Plan, create and edit one budget and one planned payment, then verify Mark paid opens a prefilled Entry and confirms once, Skip/Snooze work, and 80%/100% alerts each fire once per period; expect amounts to match Records/Stats and planned payments never to post automatically.
+- Capture Plan Budgets, Planned, New budget, and New planned payment screens under docs/ui/shots/p9/; expect real account data and the planned-payment no-auto-post note.

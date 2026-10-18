@@ -94,7 +94,15 @@ fun v2MizanApp(
                         selectedTab.title
                     } else {
                         activeRoute?.title
-                            ?: if (selectedTab == V2Route.BalanceStats) "Stats" else selectedTab.title
+                            ?: if (selectedTab ==
+                                V2Route.BalanceStats
+                            ) {
+                                "Stats"
+                            } else if (selectedTab == V2Route.Budgets) {
+                                "Plan"
+                            } else {
+                                selectedTab.title
+                            }
                     },
                 navigationIcon =
                     if (activeRoute == null || isSheetRoute) {
@@ -123,7 +131,14 @@ fun v2MizanApp(
             }
         },
         floatingActionButton = {
-            if (activeRoute == null) MzFab(onClick = { navigation = navigation.navigate(V2Route.ExpenseEntry) })
+            if (activeRoute ==
+                null
+            ) {
+                MzFab(onClick = {
+                    navigation =
+                        navigation.navigate(if (selectedTab == V2Route.Budgets) V2Route.NewBudget else V2Route.ExpenseEntry)
+                })
+            }
         },
     ) { padding ->
         if (activeRoute == null && selectedTab == V2Route.Home) {
@@ -147,6 +162,56 @@ fun v2MizanApp(
                     initialCategoryId = selectedStatsCategory,
                 )
             }
+        } else if ((activeRoute == null && selectedTab == V2Route.Budgets) ||
+            activeRoute in setOf(V2Route.Budgets, V2Route.PlannedPayments, V2Route.Goals, V2Route.Debts)
+        ) {
+            val section = activeRoute ?: selectedTab
+            Box(Modifier.padding(padding)) {
+                V2PlanScreen(
+                    repository = repository,
+                    section = section,
+                    hideAmounts = hideAmounts,
+                    onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
+                    onNavigate = { navigation = navigation.navigate(it) },
+                    onSelectPlanTab = { route ->
+                        if (route ==
+                            V2Route.Budgets
+                        ) {
+                            navigation = navigation.selectTab(V2Route.Budgets)
+                        } else {
+                            navigation = navigation.navigate(route)
+                        }
+                    },
+                )
+            }
+        } else if (activeRoute == V2Route.NewBudget || activeRoute is V2Route.EditBudget) {
+            Box(Modifier.padding(padding)) {
+                V2BudgetForm(repository, (activeRoute as? V2Route.EditBudget)?.id, hideAmounts = hideAmounts, onSaved = {
+                    navigation =
+                        navigation.back()
+                }, onBack = {
+                    navigation =
+                        navigation.back()
+                })
+            }
+        } else if (activeRoute == V2Route.NewPlannedPayment || activeRoute is V2Route.EditPlannedPayment) {
+            Box(Modifier.padding(padding)) {
+                V2PlannedPaymentForm(repository, (activeRoute as? V2Route.EditPlannedPayment)?.id, onSaved = {
+                    navigation =
+                        navigation.back()
+                }, onBack = { navigation = navigation.back() })
+            }
+        } else if (activeRoute is V2Route.PlannedEntry) {
+            V2EntryScreen(
+                repository = repository,
+                initialKind = "EXPENSE",
+                lastAccountId = lastAccountId,
+                hideAmounts = hideAmounts,
+                plannedPaymentId = activeRoute.id,
+                plannedDueDate = activeRoute.dueDate,
+                modifier = Modifier.padding(padding),
+                onDone = { navigation = navigation.back() },
+            )
         } else if (activeRoute == null && selectedTab == V2Route.BalanceStats) {
             Box(Modifier.padding(padding)) {
                 V2StatsScreen(

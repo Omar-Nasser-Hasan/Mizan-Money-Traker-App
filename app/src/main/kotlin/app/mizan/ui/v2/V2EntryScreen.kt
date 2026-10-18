@@ -36,6 +36,7 @@ import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.LabelEntity
+import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.RecordTemplateEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ledger.EntryCalculator
@@ -74,6 +75,8 @@ fun V2EntryScreen(
     editTransactionId: String? = null,
     inboxDraftId: String? = null,
     presetTransferTargetId: String? = null,
+    plannedPaymentId: String? = null,
+    plannedDueDate: String? = null,
     modifier: Modifier = Modifier,
     onDone: () -> Unit,
 ) {
@@ -178,6 +181,22 @@ fun V2EntryScreen(
         (buckets.firstOrNull { it.currency == currency }?.openingMinor ?: 0L) +
             (bucketDeltas.firstOrNull { it.currency == currency }?.amountMinor ?: 0L)
     val wouldOverdraw = kind == "EXPENSE" && amount > 0L && selectedBucketBalance - amount < 0L
+
+    androidx.compose.runtime.LaunchedEffect(plannedPaymentId, accounts, currencies, categories, payees) {
+        val id = plannedPaymentId ?: return@LaunchedEffect
+        val planned = repository.activePlannedPayment(id) ?: return@LaunchedEffect
+        kind = planned.kind
+        accountId = planned.accountId
+        targetId = planned.toAccountId ?: targetId
+        currency = planned.currency
+        categoryId = planned.categoryId ?: MizanRepository.UNCATEGORIZED_ID
+        val amountDecimals = currencies.firstOrNull { it.code == planned.currency }?.decimals ?: 2
+        expression = BigDecimal.valueOf(planned.amountMinor).movePointLeft(amountDecimals).toPlainString()
+        note = planned.name
+        payeeQuery = payees.firstOrNull { it.id == planned.payeeId }?.name.orEmpty()
+        paymentType = runCatching { PaymentType.valueOf(planned.paymentType) }.getOrDefault(PaymentType.CASH)
+        bookedDate = plannedDueDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: LocalDate.parse(planned.startDate)
+    }
 
     androidx.compose.runtime.LaunchedEffect(editTransactionId, editRows, currencies, labels) {
         if (editTransactionId == null || editLoaded || editRows.isEmpty()) return@LaunchedEffect
@@ -424,7 +443,12 @@ fun V2EntryScreen(
                 }
             }
         if (editTransactionId == null) {
-            repository.post(posting, selectedLabelIds, receiptUris)
+            repository.post(
+                posting,
+                selectedLabelIds,
+                receiptUris,
+                plannedPaymentId?.let { it to (plannedDueDate ?: bookedDate.toString()) },
+            )
             if (inboxDraftId != null) repository.confirmInboxDraft(inboxDraftId)
         } else {
             repository.replaceRecord(editTransactionId, posting, selectedLabelIds, receiptUris)

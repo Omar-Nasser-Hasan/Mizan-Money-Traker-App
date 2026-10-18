@@ -77,9 +77,22 @@ sealed interface V2Route {
 
     data object NewBudget : V2Route by form("plan:budget:new", "New budget")
 
+    data class EditBudget(
+        val id: String,
+    ) : V2Route by form("plan:budget:edit:$id", "Edit budget")
+
     data object PlannedPayments : V2Route by screen("plan:planned", "Planned payments")
 
     data object NewPlannedPayment : V2Route by form("plan:planned:new", "New planned payment")
+
+    data class EditPlannedPayment(
+        val id: String,
+    ) : V2Route by form("plan:planned:edit:$id", "Edit planned payment")
+
+    data class PlannedEntry(
+        val id: String,
+        val dueDate: String,
+    ) : V2Route by form("plan:planned-entry:$id:$dueDate", "Confirm planned payment")
 
     data object Debts : V2Route by screen("plan:debts", "Debts")
 
@@ -224,27 +237,61 @@ sealed interface V2Route {
             when {
                 path.startsWith(
                     "entry:edit:",
-                ) && path.removePrefix("entry:edit:").isNotBlank() -> EditEntry(path.removePrefix("entry:edit:"))
+                ) && path.removePrefix("entry:edit:").isNotBlank() -> {
+                    EditEntry(path.removePrefix("entry:edit:"))
+                }
 
                 path.startsWith(
                     "entry:inbox:",
-                ) && path.removePrefix("entry:inbox:").isNotBlank() -> InboxDraftEntry(path.removePrefix("entry:inbox:"))
+                ) && path.removePrefix("entry:inbox:").isNotBlank() -> {
+                    InboxDraftEntry(path.removePrefix("entry:inbox:"))
+                }
 
                 path.startsWith(
                     "entry:card-payment:",
-                ) && path.removePrefix("entry:card-payment:").isNotBlank() -> CardPayment(path.removePrefix("entry:card-payment:"))
+                ) && path.removePrefix("entry:card-payment:").isNotBlank() -> {
+                    CardPayment(path.removePrefix("entry:card-payment:"))
+                }
 
                 path.startsWith(
                     "accounts:edit:",
-                ) && path.removePrefix("accounts:edit:").isNotBlank() -> EditAccount(path.removePrefix("accounts:edit:"))
+                ) && path.removePrefix("accounts:edit:").isNotBlank() -> {
+                    EditAccount(path.removePrefix("accounts:edit:"))
+                }
 
-                path.startsWith("record:") && path.removePrefix("record:").isNotBlank() -> RecordDetail(path.removePrefix("record:"))
+                path.startsWith("plan:budget:edit:") && path.removePrefix("plan:budget:edit:").isNotBlank() -> {
+                    EditBudget(path.removePrefix("plan:budget:edit:"))
+                }
 
-                path.startsWith("account:") && path.removePrefix("account:").isNotBlank() -> AccountDetail(path.removePrefix("account:"))
+                path.startsWith("plan:planned:edit:") && path.removePrefix("plan:planned:edit:").isNotBlank() -> {
+                    EditPlannedPayment(path.removePrefix("plan:planned:edit:"))
+                }
 
-                path.startsWith("asset:") && path.removePrefix("asset:").isNotBlank() -> AssetDetail(path.removePrefix("asset:"))
+                path.startsWith("plan:planned-entry:") -> {
+                    path
+                        .removePrefix("plan:planned-entry:")
+                        .split(':', limit = 2)
+                        .takeIf {
+                            it.size ==
+                                2
+                        }?.let { PlannedEntry(it[0], it[1]) }
+                }
 
-                else -> placeholders.firstOrNull { it.path == path }
+                path.startsWith("record:") && path.removePrefix("record:").isNotBlank() -> {
+                    RecordDetail(path.removePrefix("record:"))
+                }
+
+                path.startsWith("account:") && path.removePrefix("account:").isNotBlank() -> {
+                    AccountDetail(path.removePrefix("account:"))
+                }
+
+                path.startsWith("asset:") && path.removePrefix("asset:").isNotBlank() -> {
+                    AssetDetail(path.removePrefix("asset:"))
+                }
+
+                else -> {
+                    placeholders.firstOrNull { it.path == path }
+                }
             }
     }
 }

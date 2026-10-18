@@ -981,7 +981,17 @@ class MizanRepository
 
         suspend fun saveBudget(value: BudgetEntity) = planning.upsertBudget(value)
 
+        suspend fun setBudgetArchived(
+            id: String,
+            archived: Boolean,
+        ) = planning.setBudgetArchived(id, archived)
+
         suspend fun savePlannedPayment(value: PlannedPaymentEntity) = planning.upsertPlanned(value)
+
+        suspend fun setPlannedActive(
+            id: String,
+            active: Boolean,
+        ) = planning.setPlannedActive(id, active)
 
         suspend fun saveDebt(value: DebtEntity) {
             require(value.accountId.isNotBlank()) { "Debt account is required" }
@@ -1195,11 +1205,15 @@ class MizanRepository
             posting: LedgerPosting,
             labelIds: Set<String> = emptySet(),
             receiptUris: List<String> = emptyList(),
+            plannedOccurrence: Pair<String, String>? = null,
         ) {
             val feePosting = posting.feePosting
             val postings = if (feePosting == null) listOf(posting) else listOf(posting, feePosting)
             val now = clock.millis()
             database.withTransaction {
+                plannedOccurrence?.let { (plannedId, dueDate) ->
+                    check(planning.occurrence(plannedId, dueDate)?.status != "PAID") { "Planned occurrence was already paid" }
+                }
                 ledger.persistBatch(
                     postings.map { current ->
                         TxnEntity(
@@ -1242,6 +1256,9 @@ class MizanRepository
                             .AttachmentEntity(UUID.randomUUID().toString(), posting.transaction.id, uri, "image/*")
                     },
                 )
+                plannedOccurrence?.let { (plannedId, dueDate) ->
+                    planning.upsertOccurrence(PlannedOccurrenceEntity(plannedId, dueDate, "PAID", posting.transaction.id))
+                }
             }
         }
 

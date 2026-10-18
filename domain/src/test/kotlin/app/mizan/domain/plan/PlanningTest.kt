@@ -34,6 +34,44 @@ class PlanningTest {
         assertEquals(13_000, result.forecastMinor)
     }
 
+    @Test fun budget_states_follow_spent_and_forecast_boundaries() {
+        fun status(
+            spent: Long,
+            planned: Long = 0,
+            elapsed: Int = 10,
+            remaining: Int = 0,
+        ) = BudgetMath.status(
+            spent,
+            BudgetMath.calculate(
+                BudgetMathInput(10_000, spent, plannedRemainingMinor = planned, elapsedDays = elapsed, remainingDays = remaining),
+            ),
+        )
+
+        assertEquals(BudgetStatus.ON_PACE, status(7_900))
+        assertEquals(BudgetStatus.TRENDING_OVER, status(8_000, elapsed = 10, remaining = 10))
+        assertEquals(BudgetStatus.TRENDING_OVER, status(10_000, remaining = 1))
+        assertEquals(BudgetStatus.OVER, status(10_001))
+        assertEquals(BudgetStatus.TRENDING_OVER, status(4_000, planned = 6_100))
+    }
+
+    @Test fun recurrence_generates_every_frequency_supported_by_the_planned_form() {
+        val start = LocalDate.of(2026, 1, 31)
+        val cases =
+            mapOf(
+                Frequency.ONCE to (LocalDate.of(2026, 1, 31) to listOf("2026-01-31")),
+                Frequency.DAILY to (LocalDate.of(2026, 2, 2) to listOf("2026-01-31", "2026-02-01", "2026-02-02")),
+                Frequency.WEEKLY to (LocalDate.of(2026, 2, 14) to listOf("2026-01-31", "2026-02-07", "2026-02-14")),
+                Frequency.MONTHLY to
+                    (LocalDate.of(2026, 5, 31) to listOf("2026-01-31", "2026-02-28", "2026-03-31", "2026-04-30", "2026-05-31")),
+                Frequency.YEARLY to
+                    (LocalDate.of(2030, 1, 31) to listOf("2026-01-31", "2027-01-31", "2028-01-31", "2029-01-31", "2030-01-31")),
+            )
+        cases.forEach { (frequency, case) ->
+            val dates = RecurrenceEngine.occurrences(Recurrence(frequency, startDate = start), start, case.first)
+            assertEquals(frequency.name, case.second, dates.map(LocalDate::toString))
+        }
+    }
+
     @Test fun debt_outstanding_closes_at_zero() {
         assertEquals(600, DebtBalance(1_000, 400).outstandingMinor)
         assertFalse(DebtBalance(1_000, 400).isClosed)

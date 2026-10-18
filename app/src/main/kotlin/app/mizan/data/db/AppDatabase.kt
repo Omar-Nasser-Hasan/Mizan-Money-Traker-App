@@ -794,6 +794,18 @@ interface PlanningDao {
 
     @Query("UPDATE budgets SET archived = 1 WHERE id = :id")
     suspend fun archiveBudget(id: String)
+
+    @Query("UPDATE budgets SET archived = :archived WHERE id = :id")
+    suspend fun setBudgetArchived(
+        id: String,
+        archived: Boolean,
+    )
+
+    @Query("UPDATE planned_payments SET active = :active WHERE id = :id")
+    suspend fun setPlannedActive(
+        id: String,
+        active: Boolean,
+    )
 }
 
 @Dao

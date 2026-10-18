@@ -78,7 +78,7 @@ class ReminderWorker(
                     )
                 if (today !in period.start..period.end) return@forEach
                 val spent = repository().budgetSpent(period.start.toString(), today.toString(), budget.scope, budget.scopeIds)
-                listOf(80, 100).forEach { threshold ->
+                budget.alertPcts.split(',').mapNotNull(String::toIntOrNull).distinct().forEach { threshold ->
                     if (spent * 100L < budget.limitMinor * threshold) return@forEach
                     if (!repository().recordBudgetAlert(budget.id, period.start.toString(), threshold)) return@forEach
                     NotificationManagerCompat.from(applicationContext).notify(

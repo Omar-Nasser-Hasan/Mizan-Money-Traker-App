@@ -34,6 +34,8 @@ data class BudgetMathResult(
     val forecastMinor: Long,
 )
 
+enum class BudgetStatus { ON_PACE, TRENDING_OVER, OVER }
+
 object BudgetMath {
     fun calculate(input: BudgetMathInput): BudgetMathResult {
         require(input.limitMinor > 0) { "Budget limit must be positive" }
@@ -50,6 +52,16 @@ object BudgetMath {
         val forecast = input.spentMinor + input.plannedRemainingMinor + input.spentMinor / input.elapsedDays * input.remainingDays
         return BudgetMathResult(effective, percent, forecast)
     }
+
+    fun status(
+        spentMinor: Long,
+        result: BudgetMathResult,
+    ): BudgetStatus =
+        when {
+            spentMinor > result.effectiveLimitMinor -> BudgetStatus.OVER
+            result.forecastMinor > result.effectiveLimitMinor -> BudgetStatus.TRENDING_OVER
+            else -> BudgetStatus.ON_PACE
+        }
 }
 
 data class BudgetWindow(

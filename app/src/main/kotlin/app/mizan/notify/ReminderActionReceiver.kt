@@ -4,17 +4,13 @@ package app.mizan.notify
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import app.mizan.data.repository.MizanRepository
-import app.mizan.worker.ReminderWorker
+import app.mizan.worker.PlanningReminderScheduler
 import app.mizan.worker.WorkerEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 class ReminderActionReceiver : BroadcastReceiver() {
     override fun onReceive(
@@ -41,14 +37,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
                 repository.markPlannedOccurrence(plannedId, dueDate, status)
             }
             if (intent.action == ACTION_SNOOZE) {
-                val request =
-                    OneTimeWorkRequestBuilder<ReminderWorker>()
-                        .setInitialDelay(1, TimeUnit.HOURS)
-                        .setInputData(ReminderWorker.input(plannedId, dueDate))
-                        .build()
-                WorkManager
-                    .getInstance(context)
-                    .enqueueUniqueWork("snooze-$plannedId-$dueDate", ExistingWorkPolicy.REPLACE, request)
+                PlanningReminderScheduler.snooze(context, plannedId, dueDate)
             }
             pending.finish()
         }
