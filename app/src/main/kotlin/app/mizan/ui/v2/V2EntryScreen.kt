@@ -73,6 +73,7 @@ fun V2EntryScreen(
     hideAmounts: Boolean,
     editTransactionId: String? = null,
     inboxDraftId: String? = null,
+    modifier: Modifier = Modifier,
     onDone: () -> Unit,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
@@ -428,7 +429,7 @@ fun V2EntryScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = MzSpacing.sideMargin),
+        modifier = modifier.fillMaxSize().padding(horizontal = MzSpacing.sideMargin),
         verticalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
     ) {
         item {

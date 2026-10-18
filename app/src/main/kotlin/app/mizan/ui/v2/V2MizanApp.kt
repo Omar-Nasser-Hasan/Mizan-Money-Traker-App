@@ -120,6 +120,7 @@ fun v2MizanApp(
                 hideAmounts = hideAmounts,
                 editTransactionId = (activeRoute as? V2Route.EditEntry)?.id,
                 inboxDraftId = (activeRoute as? V2Route.InboxDraftEntry)?.id,
+                modifier = Modifier.padding(padding),
                 onDone = { navigation = navigation.back() },
             )
         } else if (activeRoute is V2Route.RecordDetail) {
