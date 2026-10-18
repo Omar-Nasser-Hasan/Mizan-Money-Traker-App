@@ -28,6 +28,7 @@
 
 ## Unreleased
 
+- P5 Records now pages one transaction per row (split income appears once, transfers expose both legs), with SQL-backed filters/counts, Cairo-day grouping, live search, period selection, detail navigation, swipe edit/delete, and empty/loading/error states. Room filter integration tests pass; the 5,000-row emulator scroll still misses 60 Hz and remains an open performance gate.
 - Re-captured and visually verified the P1 donut, composition bar, budget ring, and Empty/Loading/Error gallery states on the API 37 emulator in dark, light, and OLED modes.
 - P1 visual pass: the spending donut now fits the card inner width minus 24dp (capped at 200dp), keeps a 56% inner diameter and full-strength slice colors, and formats legend amounts without floating point. Re-captured dark, light, OLED, and state-gallery screens on the API 37 emulator.
 - Refined P1 chart primitives: spending donuts use full-strength account colors and a compact legend; composition bars show separated segments and legends; grid/axis decoration is limited to line, area, and bar charts; progress rings now have a legible two-line center.

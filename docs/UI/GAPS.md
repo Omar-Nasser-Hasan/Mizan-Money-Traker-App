@@ -2,10 +2,10 @@
 
 | Design element | Backend state | Decision | Size |
 | --- | --- | --- | --- |
-| Record detail edit/duplicate | no dedicated record-by-id route/edit API | build duplicate (allowed); hide edit until dedicated mutation exists | M |
+| Record detail edit/duplicate | dedicated detail route, duplicate, edit and soft-delete actions are implemented; confirmed edits still require the reconciliation confirmation | keep the current action flow; verify additional transaction kinds as they enter the editor | S |
 | Templates management | observation exists, CRUD route absent | build template CRUD (allowed) | M |
 | More hub | features exist as separate routes | build navigation-only hub | S |
-| Custom/all-time period selector | domain period needs UI contract | build (allowed) | M |
+| Custom/all-time period selector | Records sheet supports day, week, month, year, custom and all-time; day/week default anchors are set to today | implemented for Records; stats screens must use the same shared period state | S |
 | Account “fix balance” | no ADJUSTMENT posting flow | build later under allowed additions | M |
 | Budget spending breakdown | budget total exists; breakdown query absent | add SQL projection later | M |
 | Goal detail | aggregate exists but no route | build detail sheet | M |
@@ -16,3 +16,4 @@
 | Zakat automatic aggregation | calculator is manual-input only | add repository aggregate projections | M |
 | Charts’ Breakdown/Analytics tabs | explicitly mock-only | hide | S |
 | Offline/error/skeleton variants | old UI has partial coverage | implement on every V2 screen | L |
+| Records scroll performance | API 37 Pixel_7_Pro AVD, 5,000 seeded transactions, repeated full-list flings: latest run p50 38 ms / p95 77 ms / 40.11% janky frames | not accepted at 60 Hz; continue profiling on emulator and repeat on a physical phone | L |
