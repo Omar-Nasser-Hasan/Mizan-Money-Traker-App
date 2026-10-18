@@ -6,6 +6,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.mizan.data.backup.BackupArchive
 import app.mizan.data.db.AppDatabase
+import app.mizan.di.RepositoryEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -19,6 +21,7 @@ class BackupArchiveInstrumentedTest {
     @Test
     fun backup_wipe_restore_preserves_every_table_and_receipt() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
+        closeApplicationDatabase(context)
         context.deleteDatabase(DATABASE_NAME)
         File(context.filesDir, "attachments").deleteRecursively()
         val database = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).allowMainThreadQueries().build()
@@ -39,8 +42,18 @@ class BackupArchiveInstrumentedTest {
                 restored.close()
             }
         } finally {
+            closeApplicationDatabase(context)
             context.deleteDatabase(DATABASE_NAME)
             File(context.filesDir, "attachments").deleteRecursively()
+        }
+    }
+
+    private fun closeApplicationDatabase(context: android.content.Context) {
+        runCatching {
+            EntryPointAccessors
+                .fromApplication(context, RepositoryEntryPoint::class.java)
+                .database()
+                .close()
         }
     }
 
