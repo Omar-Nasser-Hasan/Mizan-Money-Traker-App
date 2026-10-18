@@ -52,10 +52,12 @@ object HomeSummaryCalculator {
         val uncategorized = rows.count { it.kind == StatKind.EXPENSE && it.categoryId == null }
         val openingCash = cash - rows.filter { it.date >= thirtyDays.start }.sumOf { it.baseMinor }
         var runningCash = openingCash
-        val trend = generateSequence(thirtyDays.start) { it.plusDays(1).takeIf { next -> next <= thirtyDays.end } }.map { date ->
-            runningCash += rows.filter { it.date == date }.sumOf { it.baseMinor }
-            NetWorthMath.total(runningCash, holdingsMinor, receivables, payables)
-        }.toList()
+        val trend =
+            generateSequence(thirtyDays.start) { it.plusDays(1).takeIf { next -> next <= thirtyDays.end } }
+                .map { date ->
+                    runningCash += rows.filter { it.date == date }.sumOf { it.baseMinor }
+                    NetWorthMath.total(runningCash, holdingsMinor, receivables, payables)
+                }.toList()
         return HomeSummary(
             netWorthMinor = NetWorthMath.total(cash, holdingsMinor, receivables, payables),
             cashMinor = cash,
