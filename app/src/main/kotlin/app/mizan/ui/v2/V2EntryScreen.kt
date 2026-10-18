@@ -142,8 +142,10 @@ fun V2EntryScreen(
     var targetCurrency by remember(targetId, target?.defaultCurrency) { mutableStateOf(target?.defaultCurrency ?: "EGP") }
     val decimals = currencies.firstOrNull { it.code == currency }?.decimals ?: 2
     val targetDecimals = currencies.firstOrNull { it.code == targetCurrency }?.decimals ?: 2
-    val sourceMarketRate by repository.observeMarketRate(currency).collectAsStateWithLifecycle(null)
-    val targetMarketRate by repository.observeMarketRate(targetCurrency).collectAsStateWithLifecycle(null)
+    val sourceMarketRateFlow = remember(currency) { repository.observeMarketRate(currency) }
+    val targetMarketRateFlow = remember(targetCurrency) { repository.observeMarketRate(targetCurrency) }
+    val sourceMarketRate by sourceMarketRateFlow.collectAsStateWithLifecycle(null)
+    val targetMarketRate by targetMarketRateFlow.collectAsStateWithLifecycle(null)
     val amount = runCatching { EntryCalculator.minorUnits(expression, decimals) }.getOrDefault(0L)
     val feeAmount = runCatching { EntryCalculator.minorUnits(feeExpression, decimals) }.getOrDefault(0L)
     val suggestedReceived =
