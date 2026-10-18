@@ -54,8 +54,8 @@ fun MzChartCard(
     modifier: Modifier = Modifier,
     chartHeight: androidx.compose.ui.unit.Dp = 180.dp,
     squareChart: Boolean = false,
-    showGrid: Boolean = true,
-    showAxisLabels: Boolean = true,
+    showGrid: Boolean = false,
+    showAxisLabels: Boolean = false,
     content: @Composable (Modifier) -> Unit,
 ) {
     val tokens = LocalMzTokens.current

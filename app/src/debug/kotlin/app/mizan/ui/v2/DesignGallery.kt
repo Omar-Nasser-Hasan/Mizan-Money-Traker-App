@@ -108,22 +108,42 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item { MzBudgetBar(1.1f) }
                     item { GalleryTitle("Charts") }
                     item {
-                        MzChartCard("Sparkline", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                        MzChartCard(
+                            "Sparkline",
+                            axisLabels = listOf("Jan", "Apr", "Jun"),
+                            showGrid = true,
+                            showAxisLabels = true,
+                        ) { chartModifier ->
                             MzSparkline(listOf(12, 18, 15, 25, 22, 34), chartModifier)
                         }
                     }
                     item {
-                        MzChartCard("Balance trend", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                        MzChartCard(
+                            "Balance trend",
+                            axisLabels = listOf("Jan", "Apr", "Jun"),
+                            showGrid = true,
+                            showAxisLabels = true,
+                        ) { chartModifier ->
                             MzAreaChart(listOf(10, 18, 14, 24, 21, 30, 29, 38), chartModifier)
                         }
                     }
                     item {
-                        MzChartCard("Cash flow", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                        MzChartCard(
+                            "Cash flow",
+                            axisLabels = listOf("Jan", "Apr", "Jun"),
+                            showGrid = true,
+                            showAxisLabels = true,
+                        ) { chartModifier ->
                             MzBarChart(listOf(30, 48, 36, 52), listOf(18, 33, 24, 40), chartModifier)
                         }
                     }
                     item {
-                        MzChartCard("Period comparison", axisLabels = listOf("Jan", "Apr", "Jun")) { chartModifier ->
+                        MzChartCard(
+                            "Period comparison",
+                            axisLabels = listOf("Jan", "Apr", "Jun"),
+                            showGrid = true,
+                            showAxisLabels = true,
+                        ) { chartModifier ->
                             MzMultiLine(listOf(10, 20, 18, 30), listOf(8, 12, 28, 24), listOf(4, 18, 14, 20), chartModifier)
                         }
                     }
@@ -161,7 +181,7 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item {
                         MzChartCard("Account share", chartHeight = 152.dp, showGrid = false, showAxisLabels = false) { chartModifier ->
                             MzCompositionBar(
-                                listOf(MzDonutSlice("Cash", 40, tokens.income), MzDonutSlice("Bank", 60, tokens.transfer)),
+                                listOf(MzDonutSlice("Cash", 4_000, tokens.income), MzDonutSlice("Bank", 6_000, tokens.transfer)),
                                 chartModifier,
                             )
                         }
