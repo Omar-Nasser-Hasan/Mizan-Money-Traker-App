@@ -116,6 +116,18 @@ fun v2MizanApp(
             Box(Modifier.padding(padding)) {
                 V2HomeScreen(repository, hideAmounts) { destination -> navigation = navigation.navigate(destination) }
             }
+        } else if (activeRoute in setOf(V2Route.ExpenseEntry, V2Route.IncomeEntry, V2Route.TransferEntry)) {
+            V2EntryScreen(
+                repository = repository,
+                initialKind =
+                    when (activeRoute) {
+                        V2Route.IncomeEntry -> "INCOME"
+                        V2Route.TransferEntry -> "TRANSFER"
+                        else -> "EXPENSE"
+                    },
+                lastAccountId = lastAccountId,
+                onDone = { navigation = navigation.back() },
+            )
         } else {
             V2RouteHost(
                 route = activeRoute ?: selectedTab,
