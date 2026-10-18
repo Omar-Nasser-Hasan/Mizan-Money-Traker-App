@@ -28,6 +28,11 @@
 
 ## Unreleased
 
+- Added the V2 record-entry flow for expense, income, and transfer with the calculator, account/currency/category controls, date and More details, templates, saved income splits, transfer exchange/fee handling, duplicate confirmation, and Save & add another.
+- Added V2 category selection, receipt thumbnails, Inbox draft review, record detail and reconciled edit confirmation. Editing retains booking rates and replaces the old transaction through the soft-delete/Trash path.
+- Added real API 37 emulator captures for the V2 Expense, Income, and Transfer entry states under `docs/UI/shots/p4/`.
+- Fixed V2 Entry Scaffold insets so the Income, Expense, and Transfer tabs remain visible below the top bar, and use the existing full onboarding flow on clean installs.
+- Voice review can now save proposed records into the pending Inbox for explicit V2 Entry review; it does not post them automatically.
 - Added the V2 Home screen: live ledger-backed net worth, account carousel, cash-flow card, budget status, upcoming plan/debt items, recent records, conditional Inbox/gold banners, amount masking, and worker-backed pull-to-refresh.
 - Added the opt-in V2 shell runtime flag, DataStore-backed global period/account/currency state, typed route registry for every designed and backend screen, first-run gate, and V2 shortcut/deep-link routing. The legacy interface remains the default.
 - Started the V2 Obsidian & Champagne component layer with bundled Manrope and Material Symbols Rounded fonts, tokenized dark/light/OLED themes, and verified AmountText formatting and contrast.
