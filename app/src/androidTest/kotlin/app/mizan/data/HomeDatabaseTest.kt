@@ -66,4 +66,38 @@ class HomeDatabaseTest {
                     .let { it.openingMinor + it.entryMinor },
             )
         }
+
+    @Test
+    fun transaction_detail_returns_both_transfer_legs() =
+        runBlocking {
+            database.currencyDao().upsertAll(listOf(CurrencyEntity("EGP", "Egyptian pound", "E£", 2, true)))
+            database.accountDao().upsert(AccountEntity("cash", "Cash", "CASH", "#000000", "payments", "EGP", "2026-10-01", true, false, 0))
+            database.accountDao().upsert(AccountEntity("bank", "Bank", "BANK", "#000000", "payments", "EGP", "2026-10-01", true, false, 1))
+            database.accountDao().upsertBuckets(listOf(AccountBucketEntity("cash", "EGP", 0), AccountBucketEntity("bank", "EGP", 0)))
+            database.ledgerDao().insertTransaction(
+                TxnEntity(
+                    "transfer",
+                    "TRANSFER",
+                    1L,
+                    "2026-10-18",
+                    null,
+                    null,
+                    "",
+                    "CLEARED",
+                    "BANK_TRANSFER",
+                    createdAt = 1L,
+                    updatedAt = 1L,
+                ),
+            )
+            database.ledgerDao().insertEntries(
+                listOf(
+                    EntryEntity("out", "transfer", "cash", "EGP", -500_00, "1", -500_00),
+                    EntryEntity("in", "transfer", "bank", "EGP", 500_00, "1", 500_00),
+                ),
+            )
+
+            val rows = database.ledgerDao().observeRowsForTransaction("transfer").first()
+            assertEquals(listOf(-500_00L, 500_00L), rows.map { it.amountMinor })
+            assertEquals(listOf("cash", "bank"), rows.map { it.accountId })
+        }
 }
