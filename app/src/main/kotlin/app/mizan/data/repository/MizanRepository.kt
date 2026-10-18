@@ -632,6 +632,8 @@ class MizanRepository
 
         fun observeRecentRecords(limit: Int): Flow<List<RecordRow>> = ledger.observeRecent(limit)
 
+        fun observeRecordRows(transactionId: String): Flow<List<RecordRow>> = ledger.observeRowsForTransaction(transactionId)
+
         suspend fun isPossibleDuplicate(
             accountId: String,
             amountMinor: Long,
