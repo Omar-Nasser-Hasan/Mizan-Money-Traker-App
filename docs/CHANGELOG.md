@@ -28,6 +28,8 @@
 
 ## Unreleased
 
+- Refined P1 chart primitives: spending donuts use full-strength account colors and a compact legend; composition bars show separated segments and legends; grid/axis decoration is limited to line, area, and bar charts; progress rings now have a legible two-line center.
+- Reworked the design-gallery States section into separate Empty, Loading skeleton, and Error cards, fixed empty-state title contrast, and added currency-optional list amounts with a grouped net-worth hero amount.
 - Refined the debug design gallery: static Manrope weights, fixed-size rounded controls, fitted Money amounts,
   titled/gridlined chart cards, and a square, centered spending donut; removed the gallery FAB overlay so chart labels stay unobstructed; added fresh dark/light/OLED emulator captures.
 - Added instrumented V2 expense-entry coverage for the three-action flow, persisted negative/base

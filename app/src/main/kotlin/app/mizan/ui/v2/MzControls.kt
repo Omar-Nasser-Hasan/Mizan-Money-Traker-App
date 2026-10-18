@@ -392,7 +392,7 @@ fun MzEmptyState(
         ) {
             MzIcon("account_balance_wallet", "Empty", tint = tokens.champagne)
         }
-        Text(title, style = MzTypography.title, textAlign = TextAlign.Center)
+        Text(title, color = tokens.text, style = MzTypography.title, textAlign = TextAlign.Center)
         Text(description, color = tokens.textDim, style = MzTypography.body, textAlign = TextAlign.Center)
         MzButton(actionLabel, onAction)
     }

@@ -82,10 +82,23 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item {
                         MzCard(Modifier.fillMaxWidth()) {
                             MzListRow("shopping_bag", "Groceries", "Groceries", "Today · Cash") {
-                                AmountText(expenseSample.copy(minor = -expenseSample.minor), AmountStyle.EXPENSE, false)
+                                AmountText(
+                                    expenseSample.copy(minor = -expenseSample.minor),
+                                    AmountStyle.EXPENSE,
+                                    false,
+                                    showCurrency = false,
+                                )
                             }
                             MzListRow("payments", "Income", "Salary", "Yesterday · Bank") {
-                                AmountText(incomeSample, AmountStyle.INCOME, false)
+                                AmountText(incomeSample, AmountStyle.INCOME, false, showCurrency = false)
+                            }
+                        }
+                    }
+                    item {
+                        MzCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("NET WORTH", color = tokens.textDim, style = MzTypography.labelCaps)
+                                AmountText(123_456_789, "EGP", hideAmounts = false, textStyle = MzTypography.hero)
                             }
                         }
                     }
@@ -117,14 +130,15 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                     item {
                         MzChartCard(
                             "Spending breakdown",
-                            axisLabels = listOf("Food", "Travel", "Other"),
-                            squareChart = true,
+                            chartHeight = 320.dp,
+                            showGrid = false,
+                            showAxisLabels = false,
                         ) { chartModifier ->
                             MzDonut(
                                 listOf(
-                                    MzDonutSlice("Food", 45, tokens.expense),
-                                    MzDonutSlice("Travel", 30, tokens.warning),
-                                    MzDonutSlice("Other", 25, tokens.investment),
+                                    MzDonutSlice("Food", 4_500, MzAccountColors.all[6]),
+                                    MzDonutSlice("Travel", 3_000, MzAccountColors.all[0]),
+                                    MzDonutSlice("Other", 2_500, MzAccountColors.all[2]),
                                 ),
                                 centerText = "EGP 100.00",
                                 changeText = "+12.5%",
@@ -140,7 +154,7 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                         }
                     }
                     item {
-                        MzChartCard("Account share", axisLabels = listOf("Cash", "Bank", "Total"), chartHeight = 100.dp) { chartModifier ->
+                        MzChartCard("Account share", chartHeight = 152.dp, showGrid = false, showAxisLabels = false) { chartModifier ->
                             MzCompositionBar(
                                 listOf(MzDonutSlice("Cash", 40, tokens.income), MzDonutSlice("Bank", 60, tokens.transfer)),
                                 chartModifier,
@@ -148,13 +162,62 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                         }
                     }
                     item {
-                        MzChartCard("Budget used", axisLabels = listOf("0%", "50%", "100%"), chartHeight = 104.dp) { _ ->
+                        MzChartCard("Budget used", chartHeight = 104.dp, showGrid = false, showAxisLabels = false) { _ ->
                             MzProgressRing(0.68f, "68%")
                         }
                     }
                     item { GalleryTitle("States") }
-                    item { MzSkeleton(Modifier.fillMaxWidth(), 64.dp) }
-                    item { MzEmptyState("No accounts yet", "Create an account to begin tracking your money.", "Add account", {}) }
+                    item {
+                        MzCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                GalleryTitle("Empty")
+                                MzEmptyState(
+                                    "No accounts yet",
+                                    "Create an account to begin tracking your money.",
+                                    "Add account",
+                                    {},
+                                    Modifier.padding(0.dp),
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        MzCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                GalleryTitle("Loading skeleton")
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                ) {
+                                    MzSkeleton(Modifier.size(40.dp), 40.dp)
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        MzSkeleton(Modifier.fillMaxWidth(0.72f), 16.dp)
+                                        MzSkeleton(Modifier.fillMaxWidth(0.48f), 12.dp)
+                                    }
+                                    MzSkeleton(Modifier.size(72.dp), 20.dp)
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                ) {
+                                    MzSkeleton(Modifier.size(40.dp), 40.dp)
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        MzSkeleton(Modifier.fillMaxWidth(0.65f), 16.dp)
+                                        MzSkeleton(Modifier.fillMaxWidth(0.4f), 12.dp)
+                                    }
+                                    MzSkeleton(Modifier.size(60.dp), 20.dp)
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        MzCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                GalleryTitle("Error banner")
+                                MzBanner("Couldn’t load this information. Try again.", {})
+                            }
+                        }
+                    }
                     item { MzButton("Open date picker", { datePicker = true }, Modifier.fillMaxWidth(), MzButtonStyle.SECONDARY) }
                     item { MzKeypad({}, Modifier.fillMaxWidth()) }
                     item { Spacer(Modifier.height(72.dp)) }
