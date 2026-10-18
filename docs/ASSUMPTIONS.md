@@ -1,5 +1,14 @@
 # Assumptions
 
+## P4 V2 record entry
+
+- The three-action expense acceptance definition counts one calculator interaction as the amount action,
+  followed by one category choice and Save. Individual digits are not separately counted.
+- Editing a record posts its replacement with the original copied booking rates, then moves the original
+  transaction to Trash. This keeps its historical row recoverable during the normal Undo window.
+- Inbox and voice drafts remain pending until the user explicitly presses Save in V2 Entry; opening or
+  editing a draft does not post it.
+
 ## P3 Home
 
 - Home uses the current cached asset prices and FX rates for the net-worth headline. Its 30-day line retains current holdings and current debt outstanding while applying the ledger's daily cash history; full historical market-price replay remains in the dedicated Balance/Assets statistics screens.

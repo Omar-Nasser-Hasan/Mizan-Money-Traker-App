@@ -28,6 +28,8 @@
 
 ## Unreleased
 
+- Added instrumented V2 expense-entry coverage for the three-action flow, persisted negative/base
+  amount, allowed-overdraft warning, duplicate warning, and edit-through-Trash round trip.
 - Added the V2 record-entry flow for expense, income, and transfer with the calculator, account/currency/category controls, date and More details, templates, saved income splits, transfer exchange/fee handling, duplicate confirmation, and Save & add another.
 - Added V2 category selection, receipt thumbnails, Inbox draft review, record detail and reconciled edit confirmation. Editing retains booking rates and replaces the old transaction through the soft-delete/Trash path.
 - Added real API 37 emulator captures for the V2 Expense, Income, and Transfer entry states under `docs/UI/shots/p4/`.
