@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AccountEntity
+import app.mizan.data.db.CategoryEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.ledger.EntryCalculator
 import app.mizan.domain.ledger.ExpenseRequest
@@ -43,6 +44,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.UUID
 
 @Composable
 fun V2EntryScreen(
@@ -72,6 +74,10 @@ fun V2EntryScreen(
     var expression by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var showMore by remember { mutableStateOf(false) }
+    var showCategoryPicker by remember { mutableStateOf(false) }
+    var expandedCategoryParentId by remember { mutableStateOf<String?>(null) }
+    var categorySearch by remember { mutableStateOf("") }
+    var newCategoryName by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var note by remember { mutableStateOf("") }
     var payeeQuery by remember { mutableStateOf("") }
@@ -177,6 +183,7 @@ fun V2EntryScreen(
                     categories.take(6).forEach { category ->
                         MzChip(category.name, category.id == categoryId, { categoryId = category.id })
                     }
+                    MzChip("Choose", false, { showCategoryPicker = true })
                 }
             }
             if (account != null &&
@@ -421,6 +428,69 @@ fun V2EntryScreen(
             }
             MzInput(timeText, { timeText = it }, "Time (HH:mm)")
             MzButton("Done", { showMore = false }, modifier = Modifier.fillMaxWidth())
+        }
+    }
+    if (showCategoryPicker) {
+        MzSheet(onDismissRequest = { showCategoryPicker = false }) {
+            Text("Choose category", style = MzTypography.title)
+            MzInput(categorySearch, { categorySearch = it }, "Search categories")
+            Text("Frequent", style = MzTypography.labelCaps)
+            categories.take(6).forEach { category ->
+                MzChip(category.name, category.id == categoryId, onClick = {
+                    categoryId = category.id
+                    showCategoryPicker = false
+                })
+            }
+            Text("All categories", style = MzTypography.labelCaps)
+            categories.filter { it.parentId == null && it.name.contains(categorySearch, ignoreCase = true) }.forEach { parent ->
+                MzChip(
+                    label = if (expandedCategoryParentId == parent.id) "⌄ ${parent.name}" else "› ${parent.name}",
+                    selected = parent.id == categoryId,
+                    onClick = {
+                        val children = categories.filter { it.parentId == parent.id }
+                        if (children.isEmpty()) {
+                            categoryId = parent.id
+                            showCategoryPicker = false
+                        } else {
+                            expandedCategoryParentId = if (expandedCategoryParentId == parent.id) null else parent.id
+                        }
+                    },
+                )
+                if (expandedCategoryParentId == parent.id) {
+                    categories.filter { it.parentId == parent.id }.forEach { child ->
+                        MzChip("  ${child.name}", child.id == categoryId, onClick = {
+                            categoryId = child.id
+                            showCategoryPicker = false
+                        })
+                    }
+                }
+            }
+            MzInput(newCategoryName, { newCategoryName = it }, "New category")
+            MzButton(
+                "Create category",
+                onClick = {
+                    val name = newCategoryName.trim()
+                    if (name.isNotEmpty()) {
+                        scope.launch {
+                            val id = UUID.randomUUID().toString()
+                            repository.saveCategory(
+                                CategoryEntity(
+                                    id,
+                                    null,
+                                    name,
+                                    "category",
+                                    "#F2B84B",
+                                    if (kind == "INCOME") "INCOME" else "EXPENSE",
+                                ),
+                            )
+                            categoryId = id
+                            newCategoryName = ""
+                            showCategoryPicker = false
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
