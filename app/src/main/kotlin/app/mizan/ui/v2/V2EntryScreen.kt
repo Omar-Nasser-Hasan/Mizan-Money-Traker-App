@@ -71,6 +71,7 @@ fun V2EntryScreen(
     initialKind: String,
     lastAccountId: String?,
     hideAmounts: Boolean,
+    editTransactionId: String? = null,
     onDone: () -> Unit,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
@@ -111,6 +112,9 @@ fun V2EntryScreen(
     var selectedLabelIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var newLabelName by remember { mutableStateOf("") }
     var receiptUris by remember { mutableStateOf<List<String>>(emptyList()) }
+    var bookingRateOverride by remember(editTransactionId) { mutableStateOf<BigDecimal?>(null) }
+    var targetBookingRateOverride by remember(editTransactionId) { mutableStateOf<BigDecimal?>(null) }
+    var editLoaded by remember(editTransactionId) { mutableStateOf(false) }
     val receiptPicker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
             receiptUris = receiptUris + uris.map { it.toString() }
@@ -155,6 +159,7 @@ fun V2EntryScreen(
             null
         }
     var receivedExpression by remember(currency, targetCurrency) { mutableStateOf("") }
+    val editRows by repository.observeRecordRows(editTransactionId.orEmpty()).collectAsStateWithLifecycle(emptyList())
     val receivedAmount =
         runCatching { EntryCalculator.minorUnits(receivedExpression, targetDecimals) }.getOrNull() ?: suggestedReceived ?: 0L
     val activeSplitLines =
@@ -165,6 +170,55 @@ fun V2EntryScreen(
         (buckets.firstOrNull { it.currency == currency }?.openingMinor ?: 0L) +
             (bucketDeltas.firstOrNull { it.currency == currency }?.amountMinor ?: 0L)
     val wouldOverdraw = kind == "EXPENSE" && amount > 0L && selectedBucketBalance - amount < 0L
+
+    androidx.compose.runtime.LaunchedEffect(editTransactionId, editRows, currencies, labels) {
+        if (editTransactionId == null || editLoaded || editRows.isEmpty()) return@LaunchedEffect
+        val first = editRows.first()
+        val sourceRow = editRows.firstOrNull { it.amountMinor < 0L } ?: first
+        val destinationRow = editRows.firstOrNull { it.amountMinor > 0L }
+        val sourceDecimals = currencies.firstOrNull { it.code == sourceRow.currency }?.decimals ?: 2
+        kind = first.kind
+        accountId = sourceRow.accountId
+        currency = sourceRow.currency
+        categoryId = first.categoryId ?: MizanRepository.UNCATEGORIZED_ID
+        expression =
+            BigDecimal
+                .valueOf(sourceRow.amountMinor)
+                .abs()
+                .movePointLeft(sourceDecimals)
+                .toPlainString()
+        note = first.note
+        payeeQuery = first.payeeName.orEmpty()
+        status = TxnStatus.valueOf(first.status)
+        paymentType = PaymentType.valueOf(first.paymentType)
+        bookedDate = LocalDate.parse(first.bookedDate)
+        timeText =
+            Instant
+                .ofEpochMilli(first.bookedAt)
+                .atZone(ZoneId.of("Africa/Cairo"))
+                .toLocalTime()
+                .withSecond(0)
+                .withNano(0)
+                .toString()
+        bookingRateOverride = BigDecimal(sourceRow.rateToBase)
+        selectedLabelIds = labels.filter { it.name in first.labels.split('|') }.mapTo(linkedSetOf()) { it.id }
+        receiptUris = first.attachments.split('|').filter(String::isNotBlank)
+        if (first.kind == "INCOME" && editRows.size > 1) {
+            customSplitMode = SplitMode.FIXED
+            customSplitLines =
+                editRows.map { row ->
+                    SplitLine("edit-${row.entryId}", "edit", row.accountId, SplitMode.FIXED, row.amountMinor)
+                }
+        }
+        if (first.kind == "TRANSFER" && destinationRow != null) {
+            targetId = destinationRow.accountId
+            targetCurrency = destinationRow.currency
+            val destinationDecimals = currencies.firstOrNull { it.code == destinationRow.currency }?.decimals ?: 2
+            receivedExpression = BigDecimal.valueOf(destinationRow.amountMinor).movePointLeft(destinationDecimals).toPlainString()
+            targetBookingRateOverride = BigDecimal(destinationRow.rateToBase)
+        }
+        editLoaded = true
+    }
 
     fun applyPreset(preset: RecordTemplateEntity) {
         preset.accountId?.takeIf { candidate -> accounts.any { it.id == candidate } }?.let { accountId = it }
@@ -201,7 +255,7 @@ fun V2EntryScreen(
             message = "Enter an amount received"
             return
         }
-        val rate = repository.effectiveRate(currency, bookedDate)
+        val rate = bookingRateOverride ?: repository.effectiveRate(currency, bookedDate)
         if (rate == null) {
             message = "No booking rate is available for $currency on $bookedDate"
             return
@@ -214,7 +268,7 @@ fun V2EntryScreen(
                 return
             }
         val payeeId = payees.firstOrNull { it.name.equals(payeeQuery.trim(), ignoreCase = true) }?.id
-        if (kind != "TRANSFER" && !duplicateConfirmed &&
+        if (editTransactionId == null && kind != "TRANSFER" && !duplicateConfirmed &&
             repository.isPossibleDuplicate(current.id, amount, payeeId, bookedAt)
         ) {
             duplicateConfirmed = true
@@ -291,7 +345,7 @@ fun V2EntryScreen(
                         return
                     }
                     val targetRate =
-                        repository.effectiveRate(targetCurrency, bookedDate) ?: run {
+                        targetBookingRateOverride ?: repository.effectiveRate(targetCurrency, bookedDate) ?: run {
                             message = "No booking rate is available for $targetCurrency"
                             return
                         }
@@ -335,7 +389,11 @@ fun V2EntryScreen(
                     )
                 }
             }
-        repository.post(posting, selectedLabelIds, receiptUris)
+        if (editTransactionId == null) {
+            repository.post(posting, selectedLabelIds, receiptUris)
+        } else {
+            repository.replaceRecord(editTransactionId, posting, selectedLabelIds, receiptUris)
+        }
         repository.setLastUsedAccountId(current.id)
         if (keepOpen) clearForAnother() else onDone()
     }

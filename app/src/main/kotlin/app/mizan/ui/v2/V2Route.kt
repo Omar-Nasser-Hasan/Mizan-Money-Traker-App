@@ -27,6 +27,10 @@ sealed interface V2Route {
         val id: String,
     ) : V2Route by screen("record:$id", "Record details")
 
+    data class EditEntry(
+        val id: String,
+    ) : V2Route by form("entry:edit:$id", "Edit record")
+
     data class AccountDetail(
         val id: String,
     ) : V2Route by screen("account:$id", "Account details")
@@ -147,6 +151,7 @@ sealed interface V2Route {
                 CategoryPicker,
                 RecordFilters,
                 RecordDetail("sample"),
+                EditEntry("sample"),
                 AccountDetail("sample"),
                 NewAccount,
                 Currencies,
@@ -202,9 +207,16 @@ sealed interface V2Route {
 
         fun fromPath(path: String): V2Route? =
             when {
+                path.startsWith(
+                    "entry:edit:",
+                ) && path.removePrefix("entry:edit:").isNotBlank() -> EditEntry(path.removePrefix("entry:edit:"))
+
                 path.startsWith("record:") && path.removePrefix("record:").isNotBlank() -> RecordDetail(path.removePrefix("record:"))
+
                 path.startsWith("account:") && path.removePrefix("account:").isNotBlank() -> AccountDetail(path.removePrefix("account:"))
+
                 path.startsWith("asset:") && path.removePrefix("asset:").isNotBlank() -> AssetDetail(path.removePrefix("asset:"))
+
                 else -> placeholders.firstOrNull { it.path == path }
             }
     }

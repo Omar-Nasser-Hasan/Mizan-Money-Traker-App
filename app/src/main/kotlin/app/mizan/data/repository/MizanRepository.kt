@@ -1112,6 +1112,19 @@ class MizanRepository
             }
         }
 
+        /** Replaces a record atomically while retaining the original in Trash for the normal undo window. */
+        suspend fun replaceRecord(
+            previousTransactionId: String,
+            posting: LedgerPosting,
+            labelIds: Set<String> = emptySet(),
+            receiptUris: List<String> = emptyList(),
+        ) {
+            database.withTransaction {
+                post(posting, labelIds, receiptUris)
+                ledger.softDelete(previousTransactionId, clock.millis())
+            }
+        }
+
         suspend fun setCurrencyEnabled(
             code: String,
             enabled: Boolean,
