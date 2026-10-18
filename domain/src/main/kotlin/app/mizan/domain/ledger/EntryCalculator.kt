@@ -43,6 +43,18 @@ object EntryCalculator {
         return values.last()
     }
 
+    /** Evaluates an entry expression and rounds it once to the chosen currency's minor unit. */
+    fun minorUnits(
+        expression: String,
+        decimals: Int,
+    ): Long {
+        require(decimals >= 0) { "Currency decimals cannot be negative" }
+        return evaluate(expression)
+            .movePointRight(decimals)
+            .setScale(0, RoundingMode.HALF_UP)
+            .longValueExact()
+    }
+
     private fun precedence(operator: Char): Int = if (operator == '×' || operator == '÷') 2 else 1
 
     private fun apply(
