@@ -34,11 +34,11 @@ data class MzNavItem(
     val icon: String,
 )
 
-private val DefaultNavItems =
+val MzRootNavItems =
     listOf(
         MzNavItem("Home", "account_balance_wallet"),
         MzNavItem("Records", "receipt_long"),
-        MzNavItem("Stats", "query_stats"),
+        MzNavItem("Stats", "monitoring"),
         MzNavItem("Plan", "pie_chart"),
         MzNavItem("Wealth", "savings"),
     )
@@ -73,7 +73,7 @@ fun MzBottomNav(
     selectedLabel: String,
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
-    items: List<MzNavItem> = DefaultNavItems,
+    items: List<MzNavItem> = MzRootNavItems,
 ) {
     val tokens = LocalMzTokens.current
     Surface(modifier = modifier.fillMaxWidth(), color = tokens.surface, contentColor = tokens.text) {
