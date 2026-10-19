@@ -199,7 +199,7 @@ fun V2AssetDetailScreen(
                                 color = tokens.textDim,
                             )
                         }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
                                 if (history.size >
                                     1
