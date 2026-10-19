@@ -4,6 +4,7 @@ package app.mizan.voice
 import app.mizan.domain.entry.DraftRecord
 import app.mizan.domain.ledger.LedgerPosting
 import java.math.BigDecimal
+import java.time.LocalDate
 
 class VoiceDraftCommitter(
     private val postBatch: suspend (List<LedgerPosting>) -> Unit,
@@ -13,14 +14,20 @@ class VoiceDraftCommitter(
         accounts: Set<String>,
         ratesToEgp: Map<String, BigDecimal>,
         payeeIds: Map<String, String> = emptyMap(),
+        bookingRates: Map<Pair<String, LocalDate>, BigDecimal> = emptyMap(),
     ): Int {
         require(drafts.all { it.accountId in accounts }) { "Choose an account for each voice draft before saving." }
+
+        fun rate(draft: DraftRecord) = bookingRates[draft.currency to draft.date] ?: ratesToEgp[draft.currency]
+        require(drafts.all { (rate(it) ?: BigDecimal.ZERO) > BigDecimal.ZERO }) {
+            "A booking rate is required for every voice draft currency."
+        }
         val postings =
             drafts.map { draft ->
                 VoiceDraftPoster.posting(
                     draft,
                     requireNotNull(draft.accountId),
-                    ratesToEgp[draft.currency] ?: BigDecimal.ONE,
+                    requireNotNull(rate(draft)),
                     payeeId =
                         draft.payee
                             ?.trim()

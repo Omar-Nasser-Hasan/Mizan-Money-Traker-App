@@ -13,6 +13,44 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class VoiceDraftCommitterTest {
+    @Test fun different_booking_dates_keep_their_own_fx_rates() {
+        val date = LocalDate.parse("2026-10-19")
+        val first =
+            VoiceParser
+                .parse(
+                    "spent 5 USD",
+                    ParserContext(emptyList(), emptyList(), defaultAccountId = "cash", today = date),
+                ).single()
+        val second = first.copy(date = date.minusDays(1))
+        val baseAmounts = mutableListOf<Long>()
+        val committer = VoiceDraftCommitter { postings -> baseAmounts += postings.flatMap { it.entries }.map { it.baseMinor } }
+        kotlinx.coroutines.runBlocking {
+            committer.saveAll(
+                listOf(first, second),
+                setOf("cash"),
+                emptyMap(),
+                bookingRates =
+                    mapOf(("USD" to first.date) to BigDecimal("50"), ("USD" to second.date) to BigDecimal("55")),
+            )
+        }
+        assertEquals(listOf(-25_000L, -27_500L), baseAmounts)
+    }
+
+    @Test fun missing_currency_rate_prevents_every_ledger_write() {
+        val draft =
+            VoiceParser
+                .parse(
+                    "spent 5 USD",
+                    ParserContext(emptyList(), emptyList(), defaultAccountId = "cash", today = LocalDate.parse("2026-10-19")),
+                ).single()
+        var writes = 0
+        val committer = VoiceDraftCommitter { writes += it.size }
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            kotlinx.coroutines.runBlocking { committer.saveAll(listOf(draft), setOf("cash"), emptyMap()) }
+        }
+        assertEquals(0, writes)
+    }
+
     @Test fun parser_drafts_post_to_fake_ledger_only_when_save_all_is_called() {
         val draft =
             VoiceParser

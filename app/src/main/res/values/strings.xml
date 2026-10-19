@@ -6,4 +6,7 @@
     <string name="route_unavailable">This screen is unavailable</string>
     <string name="route_unavailable_note">Return Home to continue.</string>
     <string name="return_home">Return Home</string>
+    <string name="p15_receivables">You are owed</string>
+    <string name="p15_payables">You owe</string>
+    <string name="p15_voice_missing_rate">No booking rate is available for %1$s on %2$s</string>
 </resources>

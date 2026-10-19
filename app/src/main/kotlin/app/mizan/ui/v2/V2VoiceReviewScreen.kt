@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -68,6 +69,7 @@ fun V2VoiceReviewScreen(
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val expenses by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
     val incomes by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
@@ -172,9 +174,11 @@ fun V2VoiceReviewScreen(
                     saving = true
                     scope.launch {
                         try {
-                            val rates =
-                                editedDrafts.map { it.currency }.distinct().associateWith { currency ->
-                                    repository.observeMarketRate(currency).first()?.egpPerUnit ?: BigDecimal.ONE
+                            val bookingRates =
+                                editedDrafts.map { it.currency to it.date }.distinct().associateWith { (currency, date) ->
+                                    requireNotNull(
+                                        repository.effectiveRate(currency, date),
+                                    ) { resources.getString(app.mizan.R.string.p15_voice_missing_rate, currency, date.toString()) }
                                 }
                             val knownPayees = repository.observePayees().first()
                             val payeeIds =
@@ -195,8 +199,9 @@ fun V2VoiceReviewScreen(
                                 VoiceDraftCommitter(repository::postAll).saveAll(
                                     editedDrafts.toList(),
                                     accounts.map { it.id }.toSet(),
-                                    rates,
+                                    emptyMap(),
                                     payeeIds,
+                                    bookingRates,
                                 )
                             editedDrafts.forEach { draft ->
                                 draft.payee?.let { payee ->
