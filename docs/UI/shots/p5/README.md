@@ -7,16 +7,13 @@ Captured from the API 37 Pixel_7_Pro AVD (1440 × 3120, 60 Hz target) using the 
 | State | Capture | Check |
 | --- | --- | --- |
 | Populated Records | [p5-records-current.png](p5-records-current.png) | All time, 5,000 count, Cairo day heading and transaction rows. |
-| Paging separator pass | [p5-records-paging-separators.png](p5-records-paging-separators.png) | Current APK, verified `5000 records`; day headers now enter through Paging separators rather than rebuilding groups from loaded rows. |
-| Release-like Records | [p5-release-records.png](p5-release-records.png) | Minified release APK, visually verified with exactly `5000 records`. |
-| Release scrolling | [p5-release-records-scrolled.png](p5-release-records-scrolled.png) | The same list after a real swipe; successive rows and amounts confirm the list moved. |
-| Empty search | [p5-empty-search-current.png](p5-empty-search-current.png) | Nonmatching search shows zero count, empty-state title/body and Add expense action. |
+| Empty search | [p5-empty-search-current.png](p5-empty-search-current.png) | Nonmatching search shows zero count and the empty state. |
 | Filters | [p5-filters-current.png](p5-filters-current.png) | Kind/account/category chips and the scrollable filter sheet. |
-| Period selector | [p5-period-selector-current.png](p5-period-selector-current.png) | Month/All/Custom selector and account scope. |
-| Day period | [p5-day-period-selected.png](p5-day-period-selected.png) | Selecting Day prepopulates its anchor with `2026-10-18`. |
-| Week period | [p5-week2.png](p5-week2.png) and [p5-week-applied.png](p5-week-applied.png) | Week anchor is present; Saturday-start week applies as `17 Oct – 23 Oct 2026`. |
+| Period selector | [p5-period-selector-current.png](p5-period-selector-current.png) | Period selector and account scope. |
+| Week period applied | [p5-week-applied.png](p5-week-applied.png) | Saturday-start week applies as `17 Oct – 23 Oct 2026`. |
 | Record detail | [p5-detail-current.png](p5-detail-current.png) | Amount, account bucket, booking rate, note, receipt action, edit, duplicate and delete. |
 | Swipe actions | [p5-swipe-current.png](p5-swipe-current.png) | Left swipe reveals Edit and Delete behind the record. |
+| Fixed date header | [p5-sticky-final-fixed.png](p5-sticky-final-fixed.png) | Pinned date header stays above the first row. |
 
 ## Automated checks and manual repro
 
