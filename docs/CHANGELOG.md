@@ -141,3 +141,7 @@
 ### P13 — Security
 
 - Native controls for device authentication, lock timeout, hidden amounts and protected Recents.
+
+### P13 — Backup
+
+- Encrypted local backup creation, daily scheduling, sharing, verified restore preview and local restore list; Drive setup is explicitly unavailable until configured.

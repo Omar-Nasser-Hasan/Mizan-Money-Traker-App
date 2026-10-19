@@ -150,7 +150,7 @@ private fun shareBackup(
     )
 }
 
-private fun restartApp(context: Context) {
+internal fun restartApp(context: Context) {
     val restart =
         PendingIntent.getActivity(
             context,
