@@ -153,3 +153,7 @@
 ### P13 — Data sources
 
 - Gold auto/manual selection, provider attribution and price history metadata; stocks and funds remain manual per the spike verdict.
+
+### P13 — Quick entry
+
+- Widget pinning and enable state, explicit online speech opt-in, lazy SMS permission and notification access guidance.
