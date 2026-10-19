@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#121316;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "light-accent-text": "#77591D", "account-pink": "#CE588B", "on-primary": "#2D291E", "surface-raised": "#34363A", "on-surface": "#e3e2e6", "warning": "#F0BD76", "on-primary-fixed-variant": "#55450e", "text": "#E9E6DE", "on-primary-container": "#5f4f18", "outline-variant": "#4b463a", "primary-container": "#d9c27f", "surface-container-highest": "#343538", "surface-variant": "#343538", "primary-fixed-dim": "#dcc582", "on-primary-fixed": "#231b00", "account-amber": "#AA7818", "account-blue": "#0785DB", "tertiary-fixed": "#81f6ea", "on-secondary-fixed": "#191c1f", "primary-fixed": "#f9e19b", "account-magenta": "#C45AAC", "on-secondary-fixed-variant": "#45474b", "error-container": "#93000a", "light-surface-raised": "#EBE6DA", "light-transfer": "#4C6378", "on-secondary-container": "#b7b8bd", "inverse-on-surface": "#2f3033", "light-surface": "#FFFCF5", "secondary-container": "#47494d", "on-secondary": "#2e3034", "on-surface-variant": "#cec6b5", "light-warning": "#875A15", "tertiary-fixed-dim": "#63d9ce", "tertiary": "#7ef3e7", "light-on-primary": "#FFF8E7", "surface-bright": "#38393c", "on-error": "#690005", "secondary": "#c5c6cb", "surface-dim": "#121316", "text-dim": "#BEB9AF", "on-tertiary-fixed": "#00201d", "surface": "#292A2D", "light-expense": "#B03A14", "surface-container-lowest": "#0d0e11", "account-teal": "#059093", "surface-container-high": "#292a2d", "light-income": "#0C7466", "accent-text": "#E6D29A", "tertiary-container": "#60d6cb", "light-investment": "#6F4A9E", "surface-container-low": "#1a1b1e", "on-background": "#e3e2e6", "on-tertiary-container": "#005b55", "light-text": "#2E2B25", "error": "#ffb4ab", "outline": "#5B5A54", "on-tertiary": "#003733", "account-red": "#DA535F", "account-olive": "#7A882F", "light-text-dim": "#5D574C", "investment": "#C0A5E8", "light-background": "#F5F2E9", "transfer": "#B5C7D8", "inverse-primary": "#6e5d24", "primary": "#f6de98", "account-violet": "#9A6EC2", "background-oled": "#000000", "on-error-container": "#ffdad6", "background": "#121316", "income": "#58CFC4", "expense": "#F4806E", "light-outline": "#938A78", "account-green": "#3A924F", "account-orange": "#CA642F", "light-primary": "#8B6D2B", "surface-container": "#1e2022", "secondary-fixed-dim": "#c5c6cb", "account-indigo": "#717BCB", "on-tertiary-fixed-variant": "#00504b", "inverse-surface": "#e3e2e6", "account-azure": "#188ABB", "secondary-fixed": "#e2e2e7", "surface-tint": "#dcc582" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-md": "0.75rem", "space-section": "2rem", "space-xl": "1.25rem", "space-xs": "0.25rem", "margin": "1.25rem", "gutter": "0.75rem", "space-sm": "0.5rem", "space-lg": "1rem", "space-xxl": "1.5rem" }, fontFamily: { "body": ["Manrope"], "body-small": ["Manrope"], "label-caps": ["Manrope"], "display-hero": ["Manrope"], "display-hero-mobile": ["Manrope"], "amount-medium": ["Manrope"], "keypad": ["Manrope"], "amount-large": ["Manrope"], "headline": ["Manrope"], "amount-small": ["Manrope"], "title": ["Manrope"] }, fontSize: { "body": ["15px", { lineHeight: "22px", fontWeight: "400" }], "body-small": ["13px", { lineHeight: "18px", fontWeight: "500" }], "label-caps": ["11px", { lineHeight: "14px", letterSpacing: "0.08em", fontWeight: "600" }], "display-hero": ["44px", { lineHeight: "46px", letterSpacing: "-0.02em", fontWeight: "500" }], "display-hero-mobile": ["36px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "500" }], "amount-medium": ["17px", { lineHeight: "20px", fontWeight: "600" }], "keypad": ["30px", { lineHeight: "30px", fontWeight: "500" }], "amount-large": ["28px", { lineHeight: "32px", fontWeight: "600" }], "headline": ["28px", { lineHeight: "32px", fontWeight: "500" }], "amount-small": ["14px", { lineHeight: "17px", fontWeight: "600" }], "title": ["18px", { lineHeight: "24px", fontWeight: "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background font-body text-text flex flex-col min-h-screen antialiased selection:bg-primary-container selection:text-on-primary"><header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between"><h1 class="font-headline text-headline text-text tracking-tight capitalize select-none">Home</h1><div class="flex items-center gap-space-xs"><button aria-label="Toggle balance visibility" class="w-11 h-11 flex items-center justify-center rounded-full text-text-dim hover:text-accent-text transition-colors" type="button"><span class="material-symbols-outlined text-[24px]">visibility</span></button><button aria-label="Settings" class="w-11 h-11 flex items-center justify-center rounded-full text-text-dim hover:text-accent-text transition-colors" type="button"><span class="material-symbols-outlined text-[24px]">settings</span></button></div></div></header><main class="flex flex-col relative w-full pt-16 pb-28 bg-background min-h-screen"><div class="flex flex-col w-full px-margin pb-10 gap-space-xl">
+<!-- 1. Net Worth Hero Card -->
+<section class="relative bg-surface rounded-[20px] p-5 border border-outline/40 overflow-hidden">
+<!-- Subtle champagne ambient glow in hero -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-1.5">
+<span class="font-body-small text-body-small text-text-dim lowercase tracking-normal">Net worth</span>
+<div class="flex items-baseline gap-1.5 text-text">
+<span class="font-body-small text-body-small text-text-dim">EGP</span>
+<span class="font-headline text-headline text-text tabular-nums tracking-tight">248,650</span>
+<span class="font-body text-body text-text-dim tabular-nums">.00</span>
+</div>
+<div class="flex items-center gap-2 pt-1 flex-wrap">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">Cash EGP 61,200.00</span>
+<span class="text-outline/60 text-xs">•</span>
+<div class="inline-flex items-center gap-1 text-income font-body-small text-body-small">
+<span class="material-symbols-outlined text-[16px] stroke-[1.75]">trending_up</span>
+<span class="tabular-nums">+ 6,420.00 vs same days last month</span>
+</div>
+</div>
+</div>
+<!-- 30-Day Sparkline -->
+<div class="w-full pt-4 mt-2">
+<svg class="w-full h-11 overflow-visible" fill="none" preserveaspectratio="none" viewbox="0 0 340 44">
+<path class="opacity-70" d="M0 38 C 30 36, 50 28, 80 30 C 110 32, 130 18, 170 22 C 210 26, 240 10, 280 14 C 310 17, 325 6, 340 4" stroke="#D9C27F" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"></path>
+<path d="M0 38 C 30 36, 50 28, 80 30 C 110 32, 130 18, 170 22 C 210 26, 240 10, 280 14 C 310 17, 325 6, 340 4 L 340 44 L 0 44 Z" fill="url(#sparkline-fade)"></path>
+<defs>
+<lineargradient gradientunits="userSpaceOnUse" id="sparkline-fade" x1="0" x2="0" y1="0" y2="44">
+<stop stop-color="#D9C27F" stop-opacity="0.16"></stop>
+<stop offset="100%" stop-color="#D9C27F" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</section>
+<!-- 2. Needs Attention Card -->
+<section class="bg-surface rounded-[20px] border border-outline/40 overflow-hidden divide-y divide-outline/40">
+<button class="w-full min-h-[48px] px-4 py-3 flex items-center justify-between gap-3 text-left active:bg-surface-raised/40 transition-colors" type="button">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-warning/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-warning text-[20px] stroke-[1.75]">warning</span>
+</div>
+<span class="font-body text-body text-text truncate">3 records need a category</span>
+</div>
+<span class="material-symbols-outlined text-text-dim text-[20px] shrink-0">chevron_right</span>
+</button>
+<button class="w-full min-h-[48px] px-4 py-3 flex items-center justify-between gap-3 text-left active:bg-surface-raised/40 transition-colors" type="button">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-warning/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-warning text-[20px] stroke-[1.75]">schedule</span>
+</div>
+<span class="font-body text-body text-text truncate">Gold prices are 26 h old</span>
+</div>
+<span class="material-symbols-outlined text-text-dim text-[20px] shrink-0">chevron_right</span>
+</button>
+</section>
+<!-- 3. Accounts Section -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-baseline gap-2">
+<h2 class="font-title text-title text-text">Accounts</h2>
+<span class="font-body-small text-body-small text-text-dim">3 total</span>
+</div>
+</div>
+<div class="flex gap-gutter overflow-x-auto pb-1 -mx-margin px-margin [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden">
+<!-- Card 1: Essential -->
+<div class="w-[156px] shrink-0 bg-surface rounded-[20px] p-3 border border-outline/40 flex flex-col justify-between h-[132px]">
+<div class="flex items-center justify-between">
+<div class="w-9 h-9 rounded-[10px] bg-[#267EB8]/[0.18] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#267EB8] text-[20px] stroke-[1.75]">account_balance</span>
+</div>
+<span class="px-2 py-0.5 rounded-[8px] bg-surface-raised font-label-caps text-label-caps text-text-dim">EGP</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body text-body text-text truncate">Essential</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums mt-0.5">EGP 4,240.00</span>
+</div>
+</div>
+<!-- Card 2: Fun -->
+<div class="w-[156px] shrink-0 bg-surface rounded-[20px] p-3 border border-outline/40 flex flex-col justify-between h-[132px]">
+<div class="flex items-center justify-between">
+<div class="w-9 h-9 rounded-[10px] bg-[#8A67CE]/[0.18] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#8A67CE] text-[20px] stroke-[1.75]">auto_awesome</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="px-1.5 py-0.5 rounded-[8px] bg-surface-raised font-label-caps text-[10px] text-text-dim">EGP</span>
+<span class="px-1.5 py-0.5 rounded-[8px] bg-surface-raised font-label-caps text-[10px] text-text-dim">USD</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-body text-body text-text truncate">Fun</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums mt-0.5">EGP 22,035.00</span>
+</div>
+</div>
+<!-- Card 3: Investment -->
+<div class="w-[156px] shrink-0 bg-surface rounded-[20px] p-3 border border-outline/40 flex flex-col justify-between h-[132px]">
+<div class="flex items-center justify-between">
+<div class="w-9 h-9 rounded-[10px] bg-[#A25FC0]/[0.18] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#A25FC0] text-[20px] stroke-[1.75]">query_stats</span>
+</div>
+<span class="px-2 py-0.5 rounded-[8px] bg-surface-raised font-label-caps text-label-caps text-text-dim">EGP</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body text-body text-text truncate">Investment</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums mt-0.5">EGP 34,925.00</span>
+</div>
+</div>
+<!-- Card 4: Add Account -->
+<button class="w-[156px] shrink-0 border border-dashed border-outline/50 rounded-[20px] p-3 flex flex-col items-center justify-center gap-2 h-[132px] active:bg-surface-raised/20 transition-colors" type="button">
+<div class="w-9 h-9 rounded-[10px] bg-surface-raised flex items-center justify-center">
+<span class="material-symbols-outlined text-text-dim text-[20px] stroke-[1.75]">add</span>
+</div>
+<span class="font-body-small text-body-small text-text-dim">Add account</span>
+</button>
+</div>
+</section>
+<!-- 4. This Month Card (Balance Beam) -->
+<section class="bg-surface rounded-[20px] p-5 border border-outline/40 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h2 class="font-title text-title text-text">This month</h2>
+<span class="font-body-small text-body-small text-text-dim">October 2026</span>
+</div>
+<!-- Beam amounts -->
+<div class="flex items-center justify-between text-body font-body-small pt-1">
+<div class="flex items-center gap-1.5 text-expense tabular-nums">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">arrow_downward</span>
+<span>− 18,240.00</span>
+</div>
+<div class="flex items-center gap-1.5 text-income tabular-nums">
+<span>+ 42,500.00</span>
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">arrow_upward</span>
+</div>
+</div>
+<!-- The Balance Beam -->
+<div class="relative w-full h-2 rounded-full bg-surface-raised flex overflow-hidden">
+<!-- Left side (Expense) scaled relative to max flow -->
+<div class="h-full bg-expense rounded-l-full" style="width: 30%;"></div>
+<!-- Center neutral spacer -->
+<div class="h-full bg-transparent flex-1"></div>
+<!-- Right side (Income) scaled relative to max flow -->
+<div class="h-full bg-income rounded-r-full" style="width: 70%;"></div>
+<!-- Center pivot hairline -->
+<div class="absolute left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-outline/70"></div>
+</div>
+<!-- Summary below beam -->
+<div class="flex flex-col items-center justify-center text-center pt-1">
+<div class="font-amount-medium text-amount-medium text-text tabular-nums">
+        Net <span class="text-income font-medium">+ 24,260.00</span>
+</div>
+<span class="font-body-small text-body-small text-text-dim mt-0.5 tabular-nums">+ 12% vs same days last month</span>
+</div>
+</section>
+<!-- 5. Budgets Section -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between px-1">
+<h2 class="font-title text-title text-text">Budgets</h2>
+<button class="min-h-[48px] px-2 flex items-center font-body-small text-body-small text-accent-text hover:text-primary transition-colors" type="button">See all</button>
+</div>
+<div class="bg-surface rounded-[20px] p-4 border border-outline/40 flex flex-col gap-5">
+<!-- Budget 1: Dining -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-body text-body text-text">Dining</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums">2,160.00 of 2,000.00</span>
+</div>
+<div class="relative w-full h-1.5 bg-surface-raised rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 bg-expense rounded-full" style="width: 100%;"></div>
+<!-- Today's pace tick -->
+<div class="absolute top-0 bottom-0 w-0.5 bg-primary z-10" style="left: 52%;"></div>
+</div>
+<div class="flex items-center gap-1.5 text-expense font-body-small text-body-small">
+<span class="material-symbols-outlined text-[16px] stroke-[1.75]">error</span>
+<span>Over</span>
+</div>
+</div>
+<!-- Budget 2: Fun -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-body text-body text-text">Fun</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums">3,200.00 of 5,000.00</span>
+</div>
+<div class="relative w-full h-1.5 bg-surface-raised rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 bg-warning rounded-full" style="width: 64%;"></div>
+<!-- Today's pace tick -->
+<div class="absolute top-0 bottom-0 w-0.5 bg-primary z-10" style="left: 52%;"></div>
+</div>
+<div class="flex items-center gap-1.5 text-warning font-body-small text-body-small">
+<span class="material-symbols-outlined text-[16px] stroke-[1.75]">warning</span>
+<span>Trending over</span>
+</div>
+</div>
+<!-- Budget 3: Groceries -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-body text-body text-text">Groceries</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums">1,520.00 of 4,000.00</span>
+</div>
+<div class="relative w-full h-1.5 bg-surface-raised rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 bg-text-dim rounded-full" style="width: 38%;"></div>
+<!-- Today's pace tick -->
+<div class="absolute top-0 bottom-0 w-0.5 bg-primary z-10" style="left: 52%;"></div>
+</div>
+<div class="flex items-center gap-1.5 text-text-dim font-body-small text-body-small">
+<span class="material-symbols-outlined text-[16px] stroke-[1.75]">check_circle</span>
+<span>On pace</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Coming Up Section -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between px-1">
+<h2 class="font-title text-title text-text">Next 7 days</h2>
+</div>
+<div class="bg-surface rounded-[20px] border border-outline/40 overflow-hidden divide-y divide-outline/40">
+<!-- Row 1: Internet bill -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-transfer/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-transfer text-[20px] stroke-[1.75]">calendar_today</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">Internet bill</span>
+<span class="font-body-small text-body-small text-text-dim">Sun 18 Oct</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-expense font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">remove</span>
+<span>420.00</span>
+</div>
+</div>
+<!-- Row 2: Seif repays you -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-income/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-income text-[20px] stroke-[1.75]">person</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">Seif repays you</span>
+<span class="font-body-small text-body-small text-text-dim">Tue 20 Oct</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-income font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">add</span>
+<span>100.00</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. Recent Section -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between px-1">
+<h2 class="font-title text-title text-text">Recent</h2>
+</div>
+<div class="bg-surface rounded-[20px] border border-outline/40 overflow-hidden divide-y divide-outline/40">
+<!-- Row 1: Dining & drinks -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-expense/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-expense text-[20px] stroke-[1.75]">restaurant</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">Dining &amp; drinks</span>
+<span class="font-body-small text-body-small text-text-dim">Yesterday</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-expense font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">remove</span>
+<span>280.00</span>
+</div>
+</div>
+<!-- Row 2: Specialty coffee -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-expense/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-expense text-[20px] stroke-[1.75]">local_cafe</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">Specialty coffee</span>
+<span class="font-body-small text-body-small text-text-dim">15 Oct</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-expense font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">remove</span>
+<span>195.00</span>
+</div>
+</div>
+<!-- Row 3: Zara autumn coat -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-expense/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-expense text-[20px] stroke-[1.75]">shopping_bag</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">Zara autumn coat</span>
+<span class="font-body-small text-body-small text-text-dim">14 Oct</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-expense font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">remove</span>
+<span>1,760.00</span>
+</div>
+</div>
+<!-- Row 4: Consulting retainer -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-income/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-income text-[20px] stroke-[1.75]">payments</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">Consulting retainer</span>
+<span class="font-body-small text-body-small text-text-dim">14 Oct</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-income font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] stroke-[1.75]">add</span>
+<span>42,500.00</span>
+</div>
+</div>
+<!-- Row 5: To liquidity vault (Transfer - no sign) -->
+<div class="h-16 px-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] bg-transfer/[0.18] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-transfer text-[20px] stroke-[1.75]">sync_alt</span>
+</div>
+<div class="flex flex-col truncate">
+<span class="font-body text-body text-text truncate">To liquidity vault</span>
+<span class="font-body-small text-body-small text-text-dim">12 Oct</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 text-text font-amount-medium text-amount-medium tabular-nums shrink-0">
+<span class="material-symbols-outlined text-[18px] text-transfer stroke-[1.75]">sync_alt</span>
+<span>2,000.00</span>
+</div>
+</div>
+<!-- Bottom action button -->
+<button class="w-full min-h-[48px] px-4 py-3 flex items-center justify-center font-body-small text-body-small text-accent-text hover:text-primary active:bg-surface-raised/40 transition-colors" type="button">
+        See all records
+      </button>
+</div>
+</section>
+</div></main><aside class="fixed right-margin bottom-[88px] z-50 pb-safe"><button aria-label="Add record" class="w-14 h-14 rounded-full bg-primary-container text-on-primary flex items-center justify-center transition-transform active:scale-95" type="button"><span class="material-symbols-outlined text-[28px] font-light">add</span></button></aside><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.06)]" data-active-classes="text-accent-text font-semibold"><div class="flex items-center justify-around h-16 px-gutter"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] h-12 transition-colors text-accent-text font-semibold" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">account_balance_wallet</span><span class="font-label-caps text-label-caps mt-0.5 tracking-wider">Home</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim transition-colors" data-path="records" href="#"><span class="material-symbols-outlined text-[22px]">receipt_long</span><span class="font-label-caps text-label-caps mt-0.5 tracking-wider">Records</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim transition-colors" data-path="stats" href="#"><span class="material-symbols-outlined text-[22px]">monitoring</span><span class="font-label-caps text-label-caps mt-0.5 tracking-wider">Stats</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim transition-colors" data-path="plan" href="#"><span class="material-symbols-outlined text-[22px]">pie_chart</span><span class="font-label-caps text-label-caps mt-0.5 tracking-wider">Plan</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim transition-colors" data-path="wealth" href="#"><span class="material-symbols-outlined text-[22px]">savings</span><span class="font-label-caps text-label-caps mt-0.5 tracking-wider">Wealth</span></a></div></nav></body></html>

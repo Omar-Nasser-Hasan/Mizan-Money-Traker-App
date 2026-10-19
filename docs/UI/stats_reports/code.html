@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-primary": "#3c2f00", "light-surface-raised": "#EBE6DA", "account-green": "#3A924F", "tertiary-fixed": "#81f6ea", "light-investment": "#6F4A9E", "on-primary-fixed": "#231b00", "secondary": "#c5c6cb", "light-text-dim": "#5D574C", "warning": "#F0BD76", "surface-container-high": "#292a2d", "on-tertiary-fixed": "#00201d", "account-azure": "#188ABB", "on-secondary-fixed-variant": "#45474b", "surface-container": "#1e2022", "text-dim": "#BEB9AF", "surface-variant": "#343538", "secondary-container": "#47494d", "light-surface": "#FFFCF5", "light-income": "#0C7466", "investment": "#C0A5E8", "tertiary": "#7ef3e7", "outline": "#5B5A54", "on-surface": "#e3e2e6", "text": "#E9E6DE", "error-container": "#93000a", "on-primary-fixed-variant": "#55450e", "light-warning": "#875A15", "surface-dim": "#121316", "surface-container-highest": "#343538", "on-secondary-fixed": "#191c1f", "account-red": "#DA535F", "inverse-on-surface": "#2f3033", "surface-tint": "#dcc582", "light-background": "#F5F2E9", "on-surface-variant": "#cec6b5", "background": "#121316", "account-amber": "#AA7818", "on-primary-container": "#5f4f18", "tertiary-fixed-dim": "#63d9ce", "on-error": "#690005", "surface": "#292A2D", "light-primary": "#8B6D2B", "light-accent-text": "#77591D", "on-tertiary-container": "#005b55", "on-background": "#e3e2e6", "outline-variant": "#4b463a", "secondary-fixed-dim": "#c5c6cb", "secondary-fixed": "#e2e2e7", "primary": "#f6de98", "account-magenta": "#C45AAC", "background-oled": "#000000", "income": "#58CFC4", "account-olive": "#7A882F", "account-teal": "#059093", "inverse-surface": "#e3e2e6", "surface-container-low": "#1a1b1e", "account-blue": "#0785DB", "account-indigo": "#717BCB", "surface-bright": "#38393c", "primary-container": "#d9c27f", "on-tertiary-fixed-variant": "#00504b", "transfer": "#B5C7D8", "inverse-primary": "#6e5d24", "surface-raised": "#34363A", "light-transfer": "#4C6378", "accent-text": "#E6D29A", "light-outline": "#938A78", "primary-fixed": "#f9e19b", "on-error-container": "#ffdad6", "account-violet": "#9A6EC2", "on-secondary-container": "#b7b8bd", "on-secondary": "#2e3034", "tertiary-container": "#60d6cb", "primary-fixed-dim": "#dcc582", "light-text": "#2E2B25", "account-orange": "#CA642F", "error": "#ffb4ab", "light-on-primary": "#FFF8E7", "surface-container-lowest": "#0d0e11", "light-expense": "#B03A14", "expense": "#F4806E", "on-tertiary": "#003733", "account-pink": "#CE588B" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-xs": "0.25rem", "gutter": "0.75rem", "space-xl": "1.25rem", "space-section": "2rem", "space-sm": "0.5rem", "space-xxl": "1.5rem", "margin": "1.25rem", "space-md": "0.75rem", "space-lg": "1rem" }, fontFamily: { "body-small": ["Manrope"], "label-caps": ["Manrope"], "headline": ["Manrope"], "amount-small": ["Manrope"], "title": ["Manrope"], "amount-large": ["Manrope"], "display-hero": ["Manrope"], "display-hero-mobile": ["Manrope"], "amount-medium": ["Manrope"], "keypad": ["Manrope"], "body": ["Manrope"] }, fontSize: { "body-small": ["13px", { lineHeight: "18px", fontWeight: "500" }], "label-caps": ["11px", { lineHeight: "14px", letterSpacing: "0.08em", fontWeight: "600" }], "headline": ["28px", { lineHeight: "32px", fontWeight: "500" }], "amount-small": ["14px", { lineHeight: "17px", fontWeight: "600" }], "title": ["18px", { lineHeight: "24px", fontWeight: "600" }], "amount-large": ["28px", { lineHeight: "32px", fontWeight: "600" }], "display-hero": ["44px", { lineHeight: "46px", letterSpacing: "-0.02em", fontWeight: "500" }], "display-hero-mobile": ["36px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "500" }], "amount-medium": ["17px", { lineHeight: "20px", fontWeight: "600" }], "keypad": ["30px", { lineHeight: "30px", fontWeight: "500" }], "body": ["15px", { lineHeight: "22px", fontWeight: "400" }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#121316;color:#E9E6DE;font-family:'Manrope',sans-serif;-webkit-tap-highlight-color:transparent;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background font-body text-body text-text flex flex-col min-h-screen antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 inset-x-0 z-50 bg-background/90 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.2)]"><div class="h-14 px-margin flex items-center justify-between"><h1 class="text-[22px] font-medium leading-[26px] tracking-tight text-text">Stats</h1><div class="flex items-center gap-space-xs"><button aria-label="Hide Amounts" class="w-11 h-11 flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-all" type="button"><span class="material-symbols-outlined text-[22px]">visibility</span></button><button aria-label="Settings" class="w-11 h-11 flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-all" type="button"><span class="material-symbols-outlined text-[22px]">settings</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-14 pb-20 bg-background flex-1"><div class="flex flex-col w-full pb-8">
+<!-- Horizontal Sub-Navigation Tab Bar -->
+<div class="w-full bg-surface-container/60 backdrop-blur-md sticky top-0 z-20">
+<div class="flex items-center overflow-x-auto no-scrollbar px-margin gap-space-lg h-11">
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap py-2 transition-colors" type="button">Cash flow</button>
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap py-2 transition-colors" type="button">Spending</button>
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap py-2 transition-colors" type="button">Balance</button>
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap py-2 transition-colors" type="button">Outlook</button>
+<div class="relative flex flex-col items-center py-2">
+<span class="font-body-small text-body-small text-accent-text font-semibold whitespace-nowrap">Reports</span>
+<div class="absolute bottom-0 inset-x-0 h-[2px] bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Filters & Controls Bar -->
+<div class="px-margin pt-space-md pb-space-xs flex items-center justify-between gap-space-sm">
+<!-- Month Selector Pill -->
+<div class="flex items-center bg-surface-raised rounded-full px-space-md h-9 shadow-sm">
+<button aria-label="Previous month" class="text-text-dim hover:text-text flex items-center justify-center p-1" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="flex items-center gap-1 px-1 font-body-small text-body-small text-text font-medium" type="button">
+<span>October 2026</span>
+<span class="material-symbols-outlined text-[14px] text-text-dim">arrow_drop_down</span>
+</button>
+<button aria-label="Next month" class="text-text-dim hover:text-text flex items-center justify-center p-1" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<!-- Account Selector Chip -->
+<button class="flex items-center gap-1.5 bg-surface-raised hover:bg-surface-variant active:scale-95 transition-all rounded-full px-space-md h-9 text-text shadow-sm" type="button">
+<span class="material-symbols-outlined text-[15px] text-accent-text">account_balance</span>
+<span class="font-body-small text-body-small font-medium">All accounts</span>
+<span class="material-symbols-outlined text-[14px] text-text-dim">arrow_drop_down</span>
+</button>
+</div>
+<!-- Cards Container -->
+<div class="flex flex-col gap-space-md px-margin pt-space-sm">
+<!-- Card 1: Cash Flow Table -->
+<section class="bg-surface rounded-[20px] p-space-lg shadow-sm">
+<!-- Card Header -->
+<div class="flex items-start justify-between mb-space-md">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Cash flow table</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Am I spending too much?</p>
+</div>
+<button aria-label="Share Cash Flow Table" class="w-8 h-8 rounded-full bg-surface-raised flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+<!-- Financial Comparison Table -->
+<div class="w-full">
+<!-- Table Column Headers -->
+<div class="grid grid-cols-12 pb-space-xs font-label-caps text-label-caps text-text-dim uppercase tracking-wider">
+<div class="col-span-5 text-left">Metric</div>
+<div class="col-span-3 text-right">Income</div>
+<div class="col-span-4 text-right">Expenses</div>
+</div>
+<!-- Row: Count -->
+<div class="grid grid-cols-12 py-2 items-center font-body-small text-body-small">
+<div class="col-span-5 text-text-dim font-medium">Count</div>
+<div class="col-span-3 text-right text-text tabular-nums font-medium">3</div>
+<div class="col-span-4 text-right text-text tabular-nums font-medium">21</div>
+</div>
+<!-- Row: Average per day -->
+<div class="grid grid-cols-12 py-2 items-center font-body-small text-body-small">
+<div class="col-span-5 text-text-dim font-medium truncate">Avg / day</div>
+<div class="col-span-3 text-right text-text tabular-nums text-[12px] font-medium leading-none">2,656<span class="text-[10px] text-text-dim">.25</span></div>
+<div class="col-span-4 text-right text-text tabular-nums text-[12px] font-medium leading-none">1,140<span class="text-[10px] text-text-dim">.00</span></div>
+</div>
+<!-- Row: Average per record -->
+<div class="grid grid-cols-12 py-2 items-center font-body-small text-body-small">
+<div class="col-span-5 text-text-dim font-medium truncate">Avg / record</div>
+<div class="col-span-3 text-right text-text tabular-nums text-[12px] font-medium leading-none">14,166<span class="text-[10px] text-text-dim">.67</span></div>
+<div class="col-span-4 text-right text-text tabular-nums text-[12px] font-medium leading-none">868<span class="text-[10px] text-text-dim">.57</span></div>
+</div>
+<!-- Row: Total -->
+<div class="grid grid-cols-12 py-2.5 items-center font-body text-body">
+<div class="col-span-5 text-text font-semibold">Total (EGP)</div>
+<div class="col-span-3 text-right text-income tabular-nums font-semibold text-[13px]">+42,500</div>
+<div class="col-span-4 text-right text-expense tabular-nums font-semibold text-[13px]">−18,240</div>
+</div>
+<!-- Net Row Highlight Box -->
+<div class="mt-space-xs bg-surface-raised rounded-xl p-space-md flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-income"></span>
+<span class="font-body-small text-body-small text-text font-semibold">Net cash flow</span>
+</div>
+<div class="text-right">
+<span class="font-amount-medium text-amount-medium text-income tabular-nums font-bold">+ 24,260.00</span>
+<span class="font-label-caps text-[10px] text-income/80 uppercase ml-1">EGP</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Card 2: Income and Expenses Book -->
+<section class="bg-surface rounded-[20px] p-space-lg shadow-sm">
+<!-- Card Header -->
+<div class="flex items-start justify-between mb-space-md">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Income &amp; expenses book</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Where did it come from and go?</p>
+</div>
+<button aria-label="Share Income and Expenses Book" class="w-8 h-8 rounded-full bg-surface-raised flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+<!-- Tree Hierarchy Container -->
+<div class="flex flex-col gap-space-md">
+<!-- Income Category Group -->
+<div class="flex flex-col">
+<!-- Group Summary Header -->
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-1.5">
+<span class="font-body-small text-body-small text-text font-semibold">Income</span>
+<span class="font-label-caps text-[10px] text-text-dim">(1 category)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded-full bg-income/10 text-income font-label-caps text-[10px] font-semibold">+12%</span>
+<span class="font-amount-small text-amount-small text-income tabular-nums font-semibold">+ 42,500.00 EGP</span>
+</div>
+</div>
+<!-- Child Row (Indented) -->
+<div class="flex items-center justify-between py-2 pl-3 hover:bg-surface-raised/40 rounded-xl transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-9 h-9 rounded-xl bg-income/15 text-income flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">work</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-small text-body-small text-text font-medium truncate">Salary and wages</span>
+<span class="font-label-caps text-[10px] text-text-dim">1 record · 100% of income</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-right flex-shrink-0 pl-2">
+<div class="flex flex-col items-end">
+<span class="font-amount-small text-amount-small text-income tabular-nums font-semibold">+ 42,500.00</span>
+<span class="font-label-caps text-[10px] text-income/80 tabular-nums">+12% vs last mo</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-dim/60">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Expenses Category Group -->
+<div class="flex flex-col pt-space-xs">
+<!-- Group Summary Header -->
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-1.5">
+<span class="font-body-small text-body-small text-text font-semibold">Expenses</span>
+<span class="font-label-caps text-[10px] text-text-dim">(5 categories)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded-full bg-expense/10 text-expense font-label-caps text-[10px] font-semibold">+14%</span>
+<span class="font-amount-small text-amount-small text-expense tabular-nums font-semibold">− 18,240.00 EGP</span>
+</div>
+</div>
+<!-- Expenses Child Rows -->
+<div class="flex flex-col divide-y divide-transparent">
+<!-- Child 1: Food and drinks -->
+<div class="flex items-center justify-between py-2 pl-3 hover:bg-surface-raised/40 rounded-xl transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-9 h-9 rounded-xl bg-[#8A67CE]/20 text-[#C0A5E8] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">restaurant</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-small text-body-small text-text font-medium truncate">Food and drinks</span>
+<span class="font-label-caps text-[10px] text-text-dim">34% · 8 records</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-right flex-shrink-0 pl-2">
+<div class="flex flex-col items-end">
+<span class="font-amount-small text-amount-small text-text tabular-nums font-semibold">− 6,120.00</span>
+<span class="font-label-caps text-[10px] text-expense tabular-nums font-semibold">+8%</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-dim/60">chevron_right</span>
+</div>
+</div>
+<!-- Child 2: Shopping & gear -->
+<div class="flex items-center justify-between py-2 pl-3 hover:bg-surface-raised/40 rounded-xl transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-9 h-9 rounded-xl bg-[#267EB8]/20 text-[#678FD0] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-small text-body-small text-text font-medium truncate">Shopping &amp; gear</span>
+<span class="font-label-caps text-[10px] text-text-dim">21% · 5 records</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-right flex-shrink-0 pl-2">
+<div class="flex flex-col items-end">
+<span class="font-amount-small text-amount-small text-text tabular-nums font-semibold">− 3,850.00</span>
+<span class="font-label-caps text-[10px] text-income tabular-nums font-semibold">−3%</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-dim/60">chevron_right</span>
+</div>
+</div>
+<!-- Child 3: Housing & bills -->
+<div class="flex items-center justify-between py-2 pl-3 hover:bg-surface-raised/40 rounded-xl transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-9 h-9 rounded-xl bg-[#159AB8]/20 text-[#35B2C4] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-small text-body-small text-text font-medium truncate">Housing &amp; bills</span>
+<span class="font-label-caps text-[10px] text-text-dim">18% · 2 records</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-right flex-shrink-0 pl-2">
+<div class="flex flex-col items-end">
+<span class="font-amount-small text-amount-small text-text tabular-nums font-semibold">− 3,200.00</span>
+<span class="font-label-caps text-[10px] text-text-dim tabular-nums">0%</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-dim/60">chevron_right</span>
+</div>
+</div>
+<!-- Child 4: Transportation -->
+<div class="flex items-center justify-between py-2 pl-3 hover:bg-surface-raised/40 rounded-xl transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-9 h-9 rounded-xl bg-[#35B2C4]/20 text-[#7ef3e7] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">directions_bus</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-small text-body-small text-text font-medium truncate">Transportation</span>
+<span class="font-label-caps text-[10px] text-text-dim">12% · 4 records</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-right flex-shrink-0 pl-2">
+<div class="flex flex-col items-end">
+<span class="font-amount-small text-amount-small text-text tabular-nums font-semibold">− 2,150.00</span>
+<span class="font-label-caps text-[10px] text-expense tabular-nums font-semibold">+15%</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-dim/60">chevron_right</span>
+</div>
+</div>
+<!-- Child 5: Vehicle & fuel -->
+<div class="flex items-center justify-between py-2 pl-3 hover:bg-surface-raised/40 rounded-xl transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-9 h-9 rounded-xl bg-[#CA642F]/20 text-[#F0BD76] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">local_gas_station</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-small text-body-small text-text font-medium truncate">Vehicle &amp; fuel</span>
+<span class="font-label-caps text-[10px] text-text-dim">9% · 2 records</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-right flex-shrink-0 pl-2">
+<div class="flex flex-col items-end">
+<span class="font-amount-small text-amount-small text-text tabular-nums font-semibold">− 920.00</span>
+<span class="font-label-caps text-[10px] text-income tabular-nums font-semibold">−5%</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-dim/60">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Card 3: Savings and Investing -->
+<section class="bg-surface rounded-[20px] p-space-lg shadow-sm">
+<!-- Card Header -->
+<div class="flex items-start justify-between mb-space-md">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Savings &amp; investing</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">How much am I putting away?</p>
+</div>
+<button aria-label="Share Savings and Investing" class="w-8 h-8 rounded-full bg-surface-raised flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+<!-- Two Metric Tiles Grid -->
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Tile Left: Savings rate -->
+<div class="bg-surface-raised rounded-xl p-space-md flex flex-col justify-between">
+<div>
+<div class="font-label-caps text-[11px] text-text-dim uppercase tracking-wider">Savings rate</div>
+<div class="font-headline text-headline text-text tabular-nums font-bold mt-1">57%</div>
+<div class="font-body-small text-[11px] text-income font-medium mt-0.5">+4% vs 6-mo avg</div>
+</div>
+<!-- 6-month Sparkline Curve SVG -->
+<div class="mt-3 w-full h-9 flex items-end">
+<svg class="w-full h-8 overflow-visible" fill="none" viewbox="0 0 100 32">
+<path d="M 0,26 C 18,24 35,22 52,16 C 68,11 82,8 96,4" stroke="#58CFC4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+<circle cx="96" cy="4" fill="#58CFC4" r="3"></circle>
+</svg>
+</div>
+</div>
+<!-- Tile Right: Invest rate -->
+<div class="bg-surface-raised rounded-xl p-space-md flex flex-col justify-between">
+<div>
+<div class="font-label-caps text-[11px] text-text-dim uppercase tracking-wider">Invest rate</div>
+<div class="font-headline text-headline text-text tabular-nums font-bold mt-1">23%</div>
+<div class="font-body-small text-[11px] text-accent-text font-medium mt-0.5">Target: 20%</div>
+</div>
+<!-- 6-month Sparkline Curve SVG (Violet) -->
+<div class="mt-3 w-full h-9 flex items-end">
+<svg class="w-full h-8 overflow-visible" fill="none" viewbox="0 0 100 32">
+<path d="M 0,18 C 20,17 38,20 54,15 C 70,10 82,14 96,12" stroke="#C0A5E8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+<circle cx="96" cy="12" fill="#C0A5E8" r="3"></circle>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<!-- Card 4: Debt to Income -->
+<section class="bg-surface rounded-[20px] p-space-lg shadow-sm">
+<!-- Card Header -->
+<div class="flex items-start justify-between mb-space-md">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Debt to income</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Is my debt load sustainable?</p>
+</div>
+<button aria-label="Share Debt to Income" class="w-8 h-8 rounded-full bg-surface-raised flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+<!-- Focused Stat Container -->
+<div class="bg-surface-raised rounded-xl p-space-md flex flex-col">
+<!-- Hero Metric -->
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-headline text-text tabular-nums font-bold">8%</span>
+<span class="font-body-small text-body-small text-text-dim">of income goes to debt payments</span>
+</div>
+<!-- Progress Gauge -->
+<div class="mt-3 relative w-full pt-1 pb-4">
+<!-- Track Background -->
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<!-- Active Fill (8%) -->
+<div class="h-full bg-income rounded-full" style="width: 8%;"></div>
+</div>
+<!-- Safe Ceiling Benchmark Marker (36%) -->
+<div class="absolute top-0 bottom-3 flex flex-col items-center" style="left: 36%;">
+<div class="w-0.5 h-3.5 bg-warning rounded-full"></div>
+<span class="absolute top-4 -translate-x-1/2 font-label-caps text-[9px] text-text-dim whitespace-nowrap">Safe ceiling 36%</span>
+</div>
+</div>
+<!-- Dim Footnote Caption -->
+<p class="font-body-small text-[12px] text-text-dim mt-1 leading-relaxed">
+          Well below healthy limit of 36%. Total monthly debt service: <span class="text-text font-semibold tabular-nums">EGP 3,400.00</span>.
+        </p>
+</div>
+</section>
+</div>
+</div></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/95 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.35)]" data-active-classes="text-accent-text font-semibold"><div class="flex justify-around items-center h-16 px-gutter"><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim hover:text-text transition-all" data-path="home" href="#"><span class="material-symbols-outlined text-[24px]">dashboard</span><span class="font-label-caps text-label-caps tracking-wider mt-0.5">Home</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim hover:text-text transition-all" data-path="records" href="#"><span class="material-symbols-outlined text-[24px]">receipt_long</span><span class="font-label-caps text-label-caps tracking-wider mt-0.5">Records</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] h-12 transition-all text-accent-text font-semibold" data-path="stats" href="#"><span class="material-symbols-outlined text-[24px]">bar_chart</span><span class="font-label-caps text-label-caps tracking-wider mt-0.5">Stats</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim hover:text-text transition-all" data-path="plan" href="#"><span class="material-symbols-outlined text-[24px]">pie_chart</span><span class="font-label-caps text-label-caps tracking-wider mt-0.5">Plan</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-text-dim hover:text-text transition-all" data-path="wealth" href="#"><span class="material-symbols-outlined text-[24px]">account_balance_wallet</span><span class="font-label-caps text-label-caps tracking-wider mt-0.5">Wealth</span></a></div><div class="w-full flex justify-center pb-2"><div class="w-28 h-1 rounded-full bg-outline/40"></div></div></nav></body></html>

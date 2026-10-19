@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "account-pink": "#CE588B", "expense": "#F4806E", "light-background": "#F5F2E9", "inverse-primary": "#6e5d24", "surface-bright": "#38393c", "secondary": "#c5c6cb", "secondary-container": "#47494d", "account-amber": "#AA7818", "account-blue": "#0785DB", "primary-fixed": "#f9e19b", "light-investment": "#6F4A9E", "on-surface": "#e3e2e6", "on-secondary-fixed-variant": "#45474b", "light-transfer": "#4C6378", "on-secondary-fixed": "#191c1f", "on-primary": "#2D291E", "surface-container": "#1e2022", "on-secondary": "#2e3034", "light-surface": "#FFFCF5", "text": "#E9E6DE", "tertiary-fixed-dim": "#63d9ce", "on-secondary-container": "#b7b8bd", "on-surface-variant": "#cec6b5", "transfer": "#B5C7D8", "light-warning": "#875A15", "inverse-surface": "#e3e2e6", "tertiary-fixed": "#81f6ea", "inverse-on-surface": "#2f3033", "outline": "#5B5A54", "secondary-fixed": "#e2e2e7", "background-oled": "#000000", "on-tertiary-fixed-variant": "#00504b", "surface-dim": "#121316", "surface-raised": "#34363A", "primary": "#f6de98", "light-expense": "#B03A14", "on-error": "#690005", "on-tertiary": "#003733", "account-red": "#DA535F", "light-income": "#0C7466", "account-magenta": "#C45AAC", "account-teal": "#059093", "surface-container-high": "#292a2d", "investment": "#C0A5E8", "account-orange": "#CA642F", "error-container": "#93000a", "text-dim": "#BEB9AF", "light-surface-raised": "#EBE6DA", "on-background": "#e3e2e6", "tertiary-container": "#60d6cb", "accent-text": "#E6D29A", "account-indigo": "#717BCB", "surface-container-highest": "#343538", "light-text": "#2E2B25", "on-tertiary-fixed": "#00201d", "on-primary-fixed": "#231b00", "account-olive": "#7A882F", "on-primary-container": "#5f4f18", "income": "#58CFC4", "on-tertiary-container": "#005b55", "outline-variant": "#4b463a", "surface-container-low": "#1a1b1e", "secondary-fixed-dim": "#c5c6cb", "tertiary": "#7ef3e7", "error": "#ffb4ab", "surface-variant": "#343538", "surface-container-lowest": "#0d0e11", "surface": "#292A2D", "primary-fixed-dim": "#dcc582", "warning": "#F0BD76", "primary-container": "#d9c27f", "on-primary-fixed-variant": "#55450e", "account-violet": "#9A6EC2", "light-outline": "#938A78", "on-error-container": "#ffdad6", "account-green": "#3A924F", "light-on-primary": "#FFF8E7", "light-text-dim": "#5D574C", "light-accent-text": "#77591D", "light-primary": "#8B6D2B", "surface-tint": "#dcc582", "background": "#121316", "account-azure": "#188ABB" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-xxl": "1.5rem", "space-md": "0.75rem", "space-section": "2rem", "space-xs": "0.25rem", "space-xl": "1.25rem", "space-lg": "1rem", "space-sm": "0.5rem", "margin": "1.25rem", "gutter": "0.75rem" }, fontFamily: { "amount-large": ["Manrope"], "title": ["Manrope"], "amount-small": ["Manrope"], "keypad": ["Manrope"], "headline": ["Manrope"], "body": ["Manrope"], "label-caps": ["Manrope"], "display-hero-mobile": ["Manrope"], "amount-medium": ["Manrope"], "display-hero": ["Manrope"], "body-small": ["Manrope"] }, fontSize: { "amount-large": ["28px", { lineHeight: "32px", fontWeight: "600" }], "title": ["18px", { lineHeight: "24px", fontWeight: "600" }], "amount-small": ["14px", { lineHeight: "17px", fontWeight: "600" }], "keypad": ["30px", { lineHeight: "30px", fontWeight: "500" }], "headline": ["28px", { lineHeight: "32px", fontWeight: "500" }], "body": ["15px", { lineHeight: "22px", fontWeight: "400" }], "label-caps": ["11px", { lineHeight: "14px", letterSpacing: "0.08em", fontWeight: "600" }], "display-hero-mobile": ["36px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "500" }], "amount-medium": ["17px", { lineHeight: "20px", fontWeight: "600" }], "display-hero": ["44px", { lineHeight: "46px", letterSpacing: "-0.02em", fontWeight: "500" }], "body-small": ["13px", { lineHeight: "18px", fontWeight: "500" }] } } } };</script><style>@layer base { html, body { width: 100%; min-height: 100%; margin: 0; padding: 0; background-color: #121316; } body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; } * { -ms-overflow-style: none; scrollbar-width: none; }</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-text font-body text-body min-h-screen flex flex-col relative selection:bg-primary-container selection:text-on-primary-container"><main class="flex-1 flex flex-col relative w-full bg-background pt-safe pb-safe"><div class="flex flex-col w-full text-text font-body pb-12 select-none">
+<!-- Top Onboarding Navigation & Status Header -->
+<header class="w-full px-5 pt-3 pb-4 flex flex-col gap-5">
+<div class="flex items-center justify-between w-full h-8">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">balance</span>
+<span class="font-label-caps text-label-caps text-text-dim tracking-widest uppercase">Mizan Vault</span>
+</div>
+<!-- 4-step Progress Indicator (Step 3 active) -->
+<div aria-label="Step 3 of 4" class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="w-5 h-2 rounded-full bg-primary-container"></span>
+<span class="w-2 h-2 rounded-full bg-surface-raised"></span>
+</div>
+</div>
+<!-- Title & Context -->
+<div class="flex flex-col gap-1.5">
+<h1 class="font-headline text-headline text-text tracking-tight">Pick your categories</h1>
+<p class="font-body text-body text-text-dim leading-snug">Untick what you don't need. Everything stays editable later.</p>
+</div>
+</header>
+<!-- Controls Bar: Search & Batch Selectors -->
+<section class="px-5 mb-5 flex flex-col gap-3">
+<div class="relative w-full flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-dim text-xl pointer-events-none">search</span>
+<input class="w-full h-14 pl-11 pr-4 bg-surface-raised text-text placeholder:text-text-dim font-body text-body rounded-xl outline-none focus:bg-surface-bright transition-colors" id="category-search" placeholder="Search categories..." type="search"/>
+</div>
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-text-dim uppercase tracking-wider">Active</span>
+<span class="font-amount-small text-amount-small text-primary" id="global-counter">27 Selected</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="font-body-small text-body-small text-accent-text hover:text-primary transition-colors py-1 cursor-pointer" id="btn-select-all" type="button">Select all</button>
+<span class="text-surface-raised">•</span>
+<button class="font-body-small text-body-small text-text-dim hover:text-text transition-colors py-1 cursor-pointer" id="btn-clear-all" type="button">Clear</button>
+</div>
+</div>
+</section>
+<!-- Category List Accordions -->
+<main class="px-5 flex flex-col gap-3 mb-6">
+<!-- 1. Food and Drinks (EXPANDED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="food">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-food" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-on-primary text-base select-none">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-expense/15 text-expense flex-shrink-0">
+<span class="material-symbols-outlined text-xl">restaurant</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Food and drinks</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">5 of 5 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 rotate-180 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<!-- Subcategory items -->
+<div class="subcategory-panel flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Groceries</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-food" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Restaurants &amp; dining</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-food" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Cafés &amp; coffee</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-food" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Delivery &amp; takeout</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-food" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Snacks &amp; bakery</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-food" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 2. Shopping (PARTIAL / INDETERMINATE) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="shopping">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input class="parent-checkbox sr-only" data-target="group-shopping" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-on-primary text-base font-bold">remove</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-account-blue/15 text-account-blue flex-shrink-0">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Shopping</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">3 of 6 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Clothing &amp; apparel</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-shopping" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Electronics &amp; gadgets</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-shopping" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Home &amp; garden</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-shopping" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text-dim">Beauty &amp; personal care</span>
+<input class="child-checkbox sr-only" data-parent="group-shopping" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center">
+<span class="material-symbols-outlined text-transparent text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text-dim">Gifts &amp; donations</span>
+<input class="child-checkbox sr-only" data-parent="group-shopping" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center">
+<span class="material-symbols-outlined text-transparent text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text-dim">Stationery &amp; tools</span>
+<input class="child-checkbox sr-only" data-parent="group-shopping" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center">
+<span class="material-symbols-outlined text-transparent text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 3. Housing (COLLAPSED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="housing">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-housing" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-account-amber/15 text-warning flex-shrink-0">
+<span class="material-symbols-outlined text-xl">home</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Housing</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">4 of 4 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Rent &amp; mortgage</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-housing" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Water &amp; electricity</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-housing" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Maintenance &amp; repairs</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-housing" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Property taxes</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-housing" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 4. Transportation (COLLAPSED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="transportation">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-transportation" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-account-teal/15 text-income flex-shrink-0">
+<span class="material-symbols-outlined text-xl">directions_transit</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Transportation</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">3 of 3 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Public transit &amp; subway</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-transportation" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Taxi &amp; ride-sharing</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-transportation" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Intercity trains &amp; bus</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-transportation" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 5. Vehicle (COLLAPSED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="vehicle">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-vehicle" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-account-indigo/15 text-account-indigo flex-shrink-0">
+<span class="material-symbols-outlined text-xl">directions_car</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Vehicle</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">4 of 4 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Fuel &amp; charging</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-vehicle" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Auto insurance</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-vehicle" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Parking &amp; tolls</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-vehicle" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Vehicle maintenance</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-vehicle" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 6. Life and Entertainment (COLLAPSED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="entertainment">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-entertainment" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-account-violet/15 text-investment flex-shrink-0">
+<span class="material-symbols-outlined text-xl">sports_esports</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Life and entertainment</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">5 of 5 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Movies &amp; events</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-entertainment" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Subscriptions &amp; streaming</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-entertainment" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Hobbies &amp; crafts</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-entertainment" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Sports &amp; fitness</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-entertainment" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Vacation &amp; travel</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-entertainment" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 7. Communication and PC (COLLAPSED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="comm">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-comm" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-transfer/15 text-transfer flex-shrink-0">
+<span class="material-symbols-outlined text-xl">laptop_mac</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Communication and PC</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">3 of 3 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Mobile plan</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-comm" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Home fiber internet</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-comm" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Software &amp; cloud</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-comm" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+<!-- 8. Financial Expenses (COLLAPSED) -->
+<article class="category-group bg-surface rounded-xl overflow-hidden transition-all duration-200" data-group="finance">
+<div class="min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none category-header">
+<div class="flex items-center gap-3.5 min-w-0">
+<label class="relative flex items-center justify-center w-6 h-6 cursor-pointer" onclick="event.stopPropagation()">
+<input checked="" class="parent-checkbox sr-only" data-target="group-finance" type="checkbox"/>
+<div class="checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-account-red/15 text-account-red flex-shrink-0">
+<span class="material-symbols-outlined text-xl">account_balance</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text truncate">Financial expenses</span>
+<span class="font-body-small text-body-small text-text-dim group-counter tabular-nums">4 of 4 selected</span>
+</div>
+</div>
+<button aria-label="Toggle category items" class="w-8 h-8 flex items-center justify-center text-text-dim transition-transform duration-200 toggle-chevron" type="button">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+</div>
+<div class="subcategory-panel hidden flex flex-col bg-surface-container-high px-4 divide-y divide-surface-raised/40">
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Taxes &amp; state fees</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-finance" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Bank fees &amp; commissions</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-finance" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Loan interest</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-finance" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between py-3.5 pl-9 cursor-pointer subcategory-row">
+<span class="font-body text-body text-text">Fines &amp; penalties</span>
+<input checked="" class="child-checkbox sr-only" data-parent="group-finance" type="checkbox"/>
+<div class="child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-base">check</span>
+</div>
+</label>
+</div>
+</article>
+</main>
+<!-- Security / App Lock Card -->
+<section class="px-5 mb-8">
+<div class="bg-surface rounded-xl p-4 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3.5 min-w-0">
+<div class="w-9 h-9 rounded-full bg-surface-raised flex items-center justify-center text-accent-text flex-shrink-0">
+<span class="material-symbols-outlined text-xl">fingerprint</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-title text-text">Lock the app</span>
+<span class="font-body-small text-body-small text-text-dim truncate">Use your fingerprint, face or PIN</span>
+</div>
+</div>
+<!-- Android M3 Switch Component -->
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" id="biometric-toggle" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-raised peer-focus:outline-none rounded-full peer peer-checked:bg-primary-container transition-colors duration-200 ease-in-out"></div>
+<div class="absolute left-1 top-1 w-5 h-5 bg-text-dim rounded-full transition-all duration-200 ease-in-out peer-checked:translate-x-5 peer-checked:bg-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] opacity-0 peer-checked:opacity-100 transition-opacity">check</span>
+</div>
+</label>
+</div>
+</section>
+<!-- Bottom Floating Execution Area -->
+<footer class="mt-auto px-5 pt-2 pb-6 flex flex-col gap-3">
+<button class="w-full h-[52px] rounded-[20px] bg-primary-container text-on-primary font-amount-medium text-amount-medium hover:bg-primary-fixed transition-colors flex items-center justify-center shadow-none active:scale-[0.99] cursor-pointer" id="btn-finish" type="button">
+      Finish setup
+    </button>
+</footer>
+</div>
+<script>
+  (function initCategoryManager() {
+    const groups = document.querySelectorAll('.category-group');
+    const globalCounter = document.getElementById('global-counter');
+    const selectAllBtn = document.getElementById('btn-select-all');
+    const clearAllBtn = document.getElementById('btn-clear-all');
+    const searchInput = document.getElementById('category-search');
+
+    function updateGroupState(group) {
+      const childBoxes = group.querySelectorAll('.child-checkbox');
+      const parentBox = group.querySelector('.parent-checkbox');
+      const counterText = group.querySelector('.group-counter');
+      const parentVisual = group.querySelector('.parent-checkbox + .checkbox-visual');
+      const parentIcon = parentVisual.querySelector('.material-symbols-outlined');
+
+      const total = childBoxes.length;
+      let checkedCount = 0;
+      childBoxes.forEach(box => {
+        if (box.checked) checkedCount++;
+      });
+
+      if (counterText) {
+        counterText.textContent = checkedCount + ' of ' + total + ' selected';
+      }
+
+      if (checkedCount === total) {
+        parentBox.checked = true;
+        parentBox.indeterminate = false;
+        parentVisual.className = 'checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center transition-colors';
+        parentIcon.textContent = 'check';
+        parentIcon.className = 'material-symbols-outlined text-on-primary text-base';
+      } else if (checkedCount === 0) {
+        parentBox.checked = false;
+        parentBox.indeterminate = false;
+        parentVisual.className = 'checkbox-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center transition-colors';
+        parentIcon.textContent = '';
+        parentIcon.className = 'material-symbols-outlined text-transparent text-base';
+      } else {
+        parentBox.checked = false;
+        parentBox.indeterminate = true;
+        parentVisual.className = 'checkbox-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center transition-colors';
+        parentIcon.textContent = 'remove';
+        parentIcon.className = 'material-symbols-outlined text-on-primary text-base font-bold';
+      }
+      updateGlobalCount();
+    }
+
+    function updateGlobalCount() {
+      const allChildren = document.querySelectorAll('.child-checkbox');
+      let totalActive = 0;
+      allChildren.forEach(c => {
+        if (c.checked) totalActive++;
+      });
+      if (globalCounter) {
+        globalCounter.textContent = totalActive + ' Selected';
+      }
+    }
+
+    groups.forEach(group => {
+      const header = group.querySelector('.category-header');
+      const panel = group.querySelector('.subcategory-panel');
+      const chevron = group.querySelector('.toggle-chevron');
+      const parentBox = group.querySelector('.parent-checkbox');
+      const childBoxes = group.querySelectorAll('.child-checkbox');
+
+      // Expand/Collapse accordion
+      header.addEventListener('click', () => {
+        const isClosed = panel.classList.contains('hidden');
+        if (isClosed) {
+          panel.classList.remove('hidden');
+          chevron.classList.add('rotate-180');
+        } else {
+          panel.classList.add('hidden');
+          chevron.classList.remove('rotate-180');
+        }
+      });
+
+      // Parent toggle clicks
+      parentBox.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const shouldCheck = parentBox.checked;
+        childBoxes.forEach(child => {
+          child.checked = shouldCheck;
+          const visual = child.nextElementSibling;
+          const icon = visual.querySelector('.material-symbols-outlined');
+          const label = child.previousElementSibling;
+          if (shouldCheck) {
+            visual.className = 'child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center';
+            icon.className = 'material-symbols-outlined text-on-primary text-base';
+            label.className = 'font-body text-body text-text';
+          } else {
+            visual.className = 'child-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center';
+            icon.className = 'material-symbols-outlined text-transparent text-base';
+            label.className = 'font-body text-body text-text-dim';
+          }
+        });
+        updateGroupState(group);
+      });
+
+      // Child toggle clicks
+      childBoxes.forEach(child => {
+        child.addEventListener('change', () => {
+          const visual = child.nextElementSibling;
+          const icon = visual.querySelector('.material-symbols-outlined');
+          const label = child.previousElementSibling;
+          if (child.checked) {
+            visual.className = 'child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center';
+            icon.className = 'material-symbols-outlined text-on-primary text-base';
+            label.className = 'font-body text-body text-text';
+          } else {
+            visual.className = 'child-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center';
+            icon.className = 'material-symbols-outlined text-transparent text-base';
+            label.className = 'font-body text-body text-text-dim';
+          }
+          updateGroupState(group);
+        });
+      });
+    });
+
+    // Batch Actions
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', () => {
+        document.querySelectorAll('.child-checkbox').forEach(c => {
+          c.checked = true;
+          const visual = c.nextElementSibling;
+          visual.className = 'child-visual w-5 h-5 rounded bg-primary-container flex items-center justify-center';
+          visual.querySelector('.material-symbols-outlined').className = 'material-symbols-outlined text-on-primary text-base';
+          c.previousElementSibling.className = 'font-body text-body text-text';
+        });
+        groups.forEach(g => updateGroupState(g));
+      });
+    }
+
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => {
+        document.querySelectorAll('.child-checkbox').forEach(c => {
+          c.checked = false;
+          const visual = c.nextElementSibling;
+          visual.className = 'child-visual w-5 h-5 rounded bg-surface-raised flex items-center justify-center';
+          visual.querySelector('.material-symbols-outlined').className = 'material-symbols-outlined text-transparent text-base';
+          c.previousElementSibling.className = 'font-body text-body text-text-dim';
+        });
+        groups.forEach(g => updateGroupState(g));
+      });
+    }
+
+    // Category In-page Filter Search
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        groups.forEach(group => {
+          const parentName = group.querySelector('.font-title').textContent.toLowerCase();
+          const subLabels = Array.from(group.querySelectorAll('.subcategory-row span')).map(s => s.textContent.toLowerCase());
+          const match = parentName.includes(query) || subLabels.some(l => l.includes(query));
+          
+          if (query === '') {
+            group.classList.remove('hidden');
+          } else if (match) {
+            group.classList.remove('hidden');
+            const panel = group.querySelector('.subcategory-panel');
+            const chevron = group.querySelector('.toggle-chevron');
+            if (panel) {
+              panel.classList.remove('hidden');
+              if (chevron) chevron.classList.add('rotate-180');
+            }
+          } else {
+            group.classList.add('hidden');
+          }
+        });
+      });
+    }
+
+    // Micro-interaction on finish button
+    const finishBtn = document.getElementById('btn-finish');
+    if (finishBtn) {
+      finishBtn.addEventListener('click', () => {
+        finishBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-xl">progress_activity</span>';
+        setTimeout(() => {
+          finishBtn.textContent = 'Preferences saved';
+        }, 600);
+      });
+    }
+  })();
+</script></main><div class="fixed bottom-0 inset-x-0 pointer-events-none flex justify-center items-center pb-2 z-50"><div class="w-32 h-1 bg-surface-raised rounded-full opacity-60"></div></div></body></html>

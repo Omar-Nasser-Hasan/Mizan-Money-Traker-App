@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#121316;}body{overscroll-behavior:none;font-family:'Manrope',sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "error": "#ffb4ab", "secondary-fixed": "#e2e2e7", "on-secondary-fixed": "#191c1f", "inverse-on-surface": "#2f3033", "account-blue": "#0785DB", "light-expense": "#B03A14", "account-violet": "#9A6EC2", "on-secondary-fixed-variant": "#45474b", "on-primary-container": "#5f4f18", "primary-fixed": "#f9e19b", "surface-tint": "#dcc582", "light-investment": "#6F4A9E", "surface-container": "#1e2022", "text-dim": "#BEB9AF", "on-primary": "#2D291E", "on-error-container": "#ffdad6", "surface-container-low": "#1a1b1e", "surface-raised": "#34363A", "secondary-container": "#47494d", "surface-dim": "#121316", "primary-fixed-dim": "#dcc582", "on-primary-fixed": "#231b00", "account-red": "#DA535F", "outline-variant": "#4b463a", "account-magenta": "#C45AAC", "primary-container": "#d9c27f", "account-orange": "#CA642F", "outline": "#5B5A54", "surface": "#292A2D", "surface-bright": "#38393c", "on-secondary": "#2e3034", "light-surface": "#FFFCF5", "inverse-primary": "#6e5d24", "on-secondary-container": "#b7b8bd", "light-primary": "#8B6D2B", "on-surface-variant": "#cec6b5", "light-background": "#F5F2E9", "account-indigo": "#717BCB", "account-amber": "#AA7818", "account-olive": "#7A882F", "on-primary-fixed-variant": "#55450e", "surface-container-lowest": "#0d0e11", "on-background": "#e3e2e6", "expense": "#F4806E", "error-container": "#93000a", "tertiary": "#7ef3e7", "secondary": "#c5c6cb", "tertiary-container": "#60d6cb", "light-text": "#2E2B25", "light-text-dim": "#5D574C", "primary": "#f6de98", "inverse-surface": "#e3e2e6", "on-tertiary-fixed-variant": "#00504b", "accent-text": "#E6D29A", "light-on-primary": "#FFF8E7", "income": "#58CFC4", "on-tertiary-fixed": "#00201d", "investment": "#C0A5E8", "account-green": "#3A924F", "background-oled": "#000000", "secondary-fixed-dim": "#c5c6cb", "light-surface-raised": "#EBE6DA", "text": "#E9E6DE", "account-azure": "#188ABB", "on-tertiary-container": "#005b55", "surface-variant": "#343538", "light-warning": "#875A15", "surface-container-high": "#292a2d", "warning": "#F0BD76", "light-income": "#0C7466", "light-outline": "#938A78", "on-surface": "#e3e2e6", "transfer": "#B5C7D8", "background": "#121316", "light-transfer": "#4C6378", "tertiary-fixed": "#81f6ea", "on-error": "#690005", "surface-container-highest": "#343538", "light-accent-text": "#77591D", "account-teal": "#059093", "on-tertiary": "#003733", "tertiary-fixed-dim": "#63d9ce", "account-pink": "#CE588B" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xs": "0.25rem", "space-xxl": "1.5rem", "space-md": "0.75rem", "space-xl": "1.25rem", "space-sm": "0.5rem", "margin": "1.25rem", "space-section": "2rem", "space-lg": "1rem", "gutter": "0.75rem" }, "fontFamily": { "amount-large": ["Manrope"], "amount-small": ["Manrope"], "display-hero": ["Manrope"], "label-caps": ["Manrope"], "body-small": ["Manrope"], "title": ["Manrope"], "amount-medium": ["Manrope"], "body": ["Manrope"], "headline": ["Manrope"], "display-hero-mobile": ["Manrope"], "keypad": ["Manrope"] }, "fontSize": { "amount-large": ["28px", { "lineHeight": "32px", "fontWeight": "600" }], "amount-small": ["14px", { "lineHeight": "17px", "fontWeight": "600" }], "display-hero": ["44px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "body-small": ["13px", { "lineHeight": "18px", "fontWeight": "500" }], "title": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "amount-medium": ["17px", { "lineHeight": "20px", "fontWeight": "600" }], "body": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "headline": ["28px", { "lineHeight": "32px", "fontWeight": "500" }], "display-hero-mobile": ["36px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "keypad": ["30px", { "lineHeight": "30px", "fontWeight": "500" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-text min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-background/85 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.24)]"><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Close" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-dim hover:text-text active:bg-surface-raised transition-colors focus:outline-none" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">close</span></button><h1 class="font-title text-title text-text tracking-tight">New Goal</h1></div><div class="flex items-center gap-space-md"><button class="h-9 px-space-md flex items-center justify-center rounded-full bg-primary-container text-on-primary-container hover:bg-primary font-body-small text-body-small tracking-normal transition-colors active:scale-95" id="header-save-action" type="button"><span class="font-semibold">Save</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-14 pb-safe bg-background px-margin"><div class="flex flex-col w-full pb-8">
+<!-- Subtle Page Indicator / Meta Header Subtitle -->
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-caps text-label-caps uppercase text-text-dim tracking-wider">Goal Architecture</span>
+<span class="font-label-caps text-label-caps uppercase text-accent-text tracking-widest font-semibold">Step 1 of 1</span>
+</div>
+<!-- Form Stack -->
+<div class="flex flex-col gap-3">
+<!-- 1. Goal Identity: Name & Visual Emblem -->
+<div class="w-full bg-surface rounded-xl p-4 flex flex-col gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps text-label-caps uppercase text-text-dim" for="goal-name">Goal name</label>
+<div class="flex items-center justify-between bg-surface-raised rounded-lg px-3.5 h-12">
+<input class="bg-transparent text-text font-body text-body font-medium w-full focus:outline-none placeholder:text-text-dim/50" id="goal-name" type="text" value="Travel"/>
+<span class="material-symbols-outlined text-text-dim text-[18px] shrink-0 ml-2">edit</span>
+</div>
+</div>
+<!-- Icon & Color Customizer -->
+<div class="flex flex-col gap-3 pt-1">
+<div class="flex flex-col gap-2">
+<span class="font-label-caps text-label-caps uppercase text-text-dim">Emblem</span>
+<!-- 8 Outline Icons Horizontal Scrollable Row -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1" style="-webkit-overflow-scrolling: touch;">
+<!-- Selected Travel/Flight -->
+<button aria-label="Travel" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">flight</span>
+</button>
+<button aria-label="Shield" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+</button>
+<button aria-label="Laptop" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">laptop_mac</span>
+</button>
+<button aria-label="Car" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</button>
+<button aria-label="House" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">home</span>
+</button>
+<button aria-label="Education" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">school</span>
+</button>
+<button aria-label="Umbrella" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">umbrella</span>
+</button>
+<button aria-label="Gift" class="w-10 h-10 rounded-full bg-surface-raised text-text-dim hover:text-text flex items-center justify-center shrink-0 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">featured_seasonal_and_gifts</span>
+</button>
+</div>
+</div>
+<!-- 12 Color Palette Swatches -->
+<div class="flex flex-col gap-2">
+<span class="font-label-caps text-label-caps uppercase text-text-dim">Palette tone</span>
+<div class="flex items-center gap-2 overflow-x-auto pb-1" style="-webkit-overflow-scrolling: touch;">
+<button aria-label="Palette 1" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #4775D1;" type="button"></button>
+<button aria-label="Palette 2" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #267EB8;" type="button"></button>
+<button aria-label="Palette 3" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #159AB8;" type="button"></button>
+<button aria-label="Palette 4" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #35B2C4;" type="button"></button>
+<button aria-label="Palette 5" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #678FD0;" type="button"></button>
+<!-- Selected Swatch -->
+<button aria-label="Palette 6 selected" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center shadow-[0_0_0_2px_#121316,0_0_0_4px_#D9C27F] active:scale-90" style="background-color: #8A67CE;" type="button">
+<span class="material-symbols-outlined text-[14px] text-white font-bold">check</span>
+</button>
+<button aria-label="Palette 7" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #A548B2;" type="button"></button>
+<button aria-label="Palette 8" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #C044AC;" type="button"></button>
+<button aria-label="Palette 9" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #D1539B;" type="button"></button>
+<button aria-label="Palette 10" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #D478B6;" type="button"></button>
+<button aria-label="Palette 11" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #596FD0;" type="button"></button>
+<button aria-label="Palette 12" class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center active:scale-90" style="background-color: #A25FC0;" type="button"></button>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Target Capital & Timeline -->
+<div class="grid grid-cols-1 gap-2.5">
+<!-- Target Amount Card -->
+<div class="w-full bg-surface rounded-xl p-4 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps uppercase text-text-dim">Target amount</span>
+<span class="font-body-small text-body-small text-accent-text">Precision vault</span>
+</div>
+<div class="flex items-baseline justify-between bg-surface-raised rounded-lg px-4 py-3">
+<div class="flex items-baseline gap-2">
+<span class="font-amount-large text-amount-large text-text font-semibold tracking-tight" style="font-variant-numeric: tabular-nums;">100,000.00</span>
+<span class="font-amount-small text-amount-small text-text-dim tracking-wide font-medium">EGP</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-text-dim hover:text-text transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calculate</span>
+</button>
+</div>
+</div>
+<!-- Target Date Card -->
+<div class="w-full bg-surface rounded-xl p-4 flex items-center justify-between cursor-pointer active:bg-surface-bright transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-raised flex items-center justify-center text-text-dim">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase text-text-dim">Target horizon</span>
+<span class="font-amount-medium text-amount-medium text-text mt-0.5" style="font-variant-numeric: tabular-nums;">31 Aug 2028</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-text-dim">
+<span class="font-body-small text-body-small">4.3 yrs</span>
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- 3. Linked Funding Sources -->
+<div class="w-full bg-surface rounded-xl p-4 flex flex-col gap-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-title text-title text-text">Funding sources</span>
+<span class="w-2 h-2 rounded-full bg-income"></span>
+</div>
+<button class="font-body-small text-body-small text-accent-text font-semibold active:opacity-75 flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Add source</span>
+</button>
+</div>
+<!-- Source List -->
+<div class="flex flex-col gap-3">
+<!-- Row 1: Investment Account (100%) -->
+<div class="bg-surface-raised rounded-lg p-3 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-account-violet/20 flex items-center justify-center text-account-violet shrink-0">
+<span class="material-symbols-outlined text-[18px]">account_balance</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body text-body text-text font-medium leading-none">Investment account</span>
+<span class="font-body-small text-body-small text-text-dim mt-1">Direct portfolio flow</span>
+</div>
+</div>
+<span class="font-amount-medium text-amount-medium text-accent-text font-semibold" style="font-variant-numeric: tabular-nums;">100%</span>
+</div>
+<!-- Custom Slider Bar -->
+<div class="relative w-full h-1.5 bg-surface rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-full bg-primary-container rounded-full"></div>
+</div>
+</div>
+<!-- Row 2: Gold 21K Coins (0%) -->
+<div class="bg-surface-raised rounded-lg p-3 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-account-amber/20 flex items-center justify-center text-account-amber shrink-0">
+<span class="material-symbols-outlined text-[18px]">monetization_on</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body text-body text-text font-medium leading-none">Gold 21K coins</span>
+<span class="font-body-small text-body-small text-text-dim mt-1">Physical bullion reserve</span>
+</div>
+</div>
+<span class="font-amount-medium text-amount-medium text-text-dim font-semibold" style="font-variant-numeric: tabular-nums;">0%</span>
+</div>
+<!-- Custom Slider Bar (Zero state) -->
+<div class="relative w-full h-1.5 bg-surface rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-0 bg-primary-container rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Helper Rule Sentence -->
+<div class="flex items-start gap-1.5 pt-0.5">
+<span class="material-symbols-outlined text-text-dim text-[15px] shrink-0 mt-0.5">info</span>
+<p class="font-body-small text-body-small text-text-dim leading-tight">A source can feed several goals up to 100% in total allocation.</p>
+</div>
+</div>
+<!-- 4. Manual Contribution -->
+<div class="w-full bg-surface rounded-xl p-4 flex flex-col gap-2">
+<span class="font-label-caps text-label-caps uppercase text-text-dim">One-time initial deposit</span>
+<div class="flex items-center justify-between bg-surface-raised rounded-lg px-3.5 h-12">
+<input class="bg-transparent text-text font-body text-body w-full focus:outline-none placeholder:text-text-dim/60" placeholder="Add a manual contribution" type="text"/>
+<span class="font-amount-small text-amount-small text-text-dim ml-2 shrink-0">EGP</span>
+</div>
+</div>
+<!-- 5. Velocity & Pacing Preview Card -->
+<div class="w-full bg-surface rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps uppercase text-accent-text tracking-wider">Projection model</span>
+<span class="font-label-caps text-label-caps uppercase text-text-dim">Linear baseline</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline text-headline text-text font-semibold" style="font-variant-numeric: tabular-nums;">2,070.00</span>
+<span class="font-amount-small text-amount-small text-text-dim">EGP / month</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-dim">
+<span class="material-symbols-outlined text-income text-[16px]">trending_up</span>
+<p class="font-body-small text-body-small">Estimated finish <span class="text-text font-medium">Jan 2029</span> with current linked pacing</p>
+</div>
+</div>
+<!-- Segmented Micro Progress Track -->
+<div class="w-full grid grid-cols-4 gap-1 pt-1">
+<div class="h-1 bg-primary-container rounded-full"></div>
+<div class="h-1 bg-surface-raised rounded-full"></div>
+<div class="h-1 bg-surface-raised rounded-full"></div>
+<div class="h-1 bg-surface-raised rounded-full"></div>
+</div>
+</div>
+<!-- 6. Bottom Execution Button -->
+<div class="pt-3">
+<button class="w-full h-[52px] rounded-[20px] bg-primary-container text-on-primary-container font-body text-body font-semibold flex items-center justify-center gap-2 active:scale-[0.99] transition-transform" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+<span>Save goal</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  // Sync top app shell action with main save action
+  const headerSave = document.getElementById('header-save-action');
+  if (headerSave) {
+    headerSave.addEventListener('click', () => {
+      const btn = document.querySelector('button:has(span:contains("Save goal"))') || document.querySelector('button.bg-primary-container');
+      if (btn) btn.click();
+    });
+  }
+</script></main></body></html>

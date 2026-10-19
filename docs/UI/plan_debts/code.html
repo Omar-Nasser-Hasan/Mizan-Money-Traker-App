@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<title>Plan   Debts - Mizan</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface": "#292A2D",
+          "account-magenta": "#C45AAC",
+          "background-oled": "#000000",
+          "primary-fixed-dim": "#dcc582",
+          "light-text": "#2E2B25",
+          "tertiary-fixed": "#81f6ea",
+          "primary-fixed": "#f9e19b",
+          "account-teal": "#059093",
+          "light-outline": "#938A78",
+          "secondary-fixed": "#e2e2e7",
+          "outline-variant": "#4b463a",
+          "surface-container-low": "#1a1b1e",
+          "account-blue": "#0785DB",
+          "on-secondary-container": "#b7b8bd",
+          "light-text-dim": "#5D574C",
+          "outline": "#5B5A54",
+          "on-primary-fixed": "#231b00",
+          "secondary": "#c5c6cb",
+          "on-tertiary-container": "#005b55",
+          "light-investment": "#6F4A9E",
+          "inverse-surface": "#e3e2e6",
+          "on-primary-container": "#5f4f18",
+          "surface-container-lowest": "#0d0e11",
+          "light-expense": "#B03A14",
+          "light-surface-raised": "#EBE6DA",
+          "on-secondary-fixed": "#191c1f",
+          "on-background": "#e3e2e6",
+          "light-primary": "#8B6D2B",
+          "on-secondary-fixed-variant": "#45474b",
+          "account-red": "#DA535F",
+          "secondary-container": "#47494d",
+          "surface-container-highest": "#343538",
+          "light-background": "#F5F2E9",
+          "warning": "#F0BD76",
+          "account-olive": "#7A882F",
+          "inverse-primary": "#6e5d24",
+          "primary-container": "#d9c27f",
+          "tertiary-fixed-dim": "#63d9ce",
+          "on-secondary": "#2e3034",
+          "income": "#58CFC4",
+          "light-accent-text": "#77591D",
+          "on-surface-variant": "#cec6b5",
+          "account-pink": "#CE588B",
+          "inverse-on-surface": "#2f3033",
+          "transfer": "#B5C7D8",
+          "surface-dim": "#121316",
+          "expense": "#F4806E",
+          "text-dim": "#BEB9AF",
+          "secondary-fixed-dim": "#c5c6cb",
+          "light-surface": "#FFFCF5",
+          "light-warning": "#875A15",
+          "text": "#E9E6DE",
+          "on-primary-fixed-variant": "#55450e",
+          "background": "#121316",
+          "account-indigo": "#717BCB",
+          "on-surface": "#e3e2e6",
+          "investment": "#C0A5E8",
+          "on-tertiary-fixed-variant": "#00504b",
+          "surface-bright": "#38393c",
+          "account-amber": "#AA7818",
+          "on-error-container": "#ffdad6",
+          "account-green": "#3A924F",
+          "on-error": "#690005",
+          "surface-raised": "#34363A",
+          "light-income": "#0C7466",
+          "on-tertiary-fixed": "#00201d",
+          "error-container": "#93000a",
+          "light-on-primary": "#FFF8E7",
+          "surface-container": "#1e2022",
+          "on-tertiary": "#003733",
+          "light-transfer": "#4C6378",
+          "surface-variant": "#343538",
+          "surface-container-high": "#292a2d",
+          "error": "#ffb4ab",
+          "account-orange": "#CA642F",
+          "on-primary": "#3c2f00",
+          "account-azure": "#188ABB",
+          "surface-tint": "#dcc582",
+          "primary": "#f6de98",
+          "account-violet": "#9A6EC2",
+          "tertiary": "#7ef3e7",
+          "tertiary-container": "#60d6cb",
+          "accent-text": "#E6D29A"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-xl": "1.25rem",
+          "margin": "1.25rem",
+          "space-xs": "0.25rem",
+          "space-lg": "1rem",
+          "space-md": "0.75rem",
+          "space-section": "2rem",
+          "gutter": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-xxl": "1.5rem"
+        },
+        "fontFamily": {
+          "body": ["Manrope", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
+<style>
+  @layer base {
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #121316;
+      color: #E9E6DE;
+      font-family: 'Manrope', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      overscroll-behavior: none;
+    }
+    .pt-safe {
+      padding-top: max(env(safe-area-inset-top, 0px), 12px);
+    }
+    .pb-safe {
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+    }
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .material-symbols-outlined.fill-1 {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text min-h-screen flex flex-col justify-between selection:bg-primary-container/30 selection:text-text">
+<!-- Top App Bar (Android 22px medium, transparent bg, 16dp px) -->
+<header class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-xl pt-safe">
+<div class="h-14 px-4 flex items-center justify-between">
+<h1 class="text-[22px] font-medium text-text tracking-tight">Plan   Debts</h1>
+<div class="flex items-center gap-1">
+<button aria-label="Toggle visibility" class="w-11 h-11 flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-all rounded-full" type="button">
+<span class="material-symbols-outlined text-[22px]">visibility</span>
+</button>
+<button aria-label="Settings" class="w-11 h-11 flex items-center justify-center text-text-dim hover:text-text active:scale-95 transition-all rounded-full" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content (Exact match pt-14, 20px padding, safe space for bottom nav + FAB) -->
+<main class="flex-1 w-full pt-14 pb-28 px-5 flex flex-col gap-4"><div class="flex flex-col w-full pb-8">
+<!-- Segmented Segment Switcher (Plan Subsections) -->
+<div class="w-full bg-surface-container rounded-xl p-1 mb-3 flex items-center justify-between">
+<button class="flex-1 py-2 text-center rounded-lg text-text-dim text-body-small font-medium hover:text-text transition-colors" type="button">
+      Budgets
+    </button>
+<button class="flex-1 py-2 text-center rounded-lg text-text-dim text-body-small font-medium hover:text-text transition-colors" type="button">
+      Planned
+    </button>
+<button class="flex-1 py-2 text-center rounded-lg text-text-dim text-body-small font-medium hover:text-text transition-colors" type="button">
+      Goals
+    </button>
+<button class="flex-1 py-2 text-center rounded-lg bg-surface-raised text-accent-text font-semibold text-body-small shadow-sm transition-all" type="button">
+      Debts
+    </button>
+</div>
+<!-- Status Tabs: Active vs Closed -->
+<div class="flex items-center gap-6 px-1 mb-4">
+<button class="relative pb-2 text-text font-amount-small text-amount-small flex flex-col items-center group" type="button">
+<span>Active</span>
+<span class="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-full"></span>
+</button>
+<button class="relative pb-2 text-text-dim font-amount-small text-amount-small hover:text-text transition-colors" type="button">
+<span>Closed</span>
+</button>
+</div>
+<!-- Balance Summary Card -->
+<div class="w-full bg-surface rounded-[20px] p-5 flex items-stretch justify-between mb-6 shadow-sm">
+<!-- You are owed -->
+<div class="flex-1 pr-3 flex flex-col justify-center">
+<span class="text-text-dim text-body-small mb-1 tracking-tight">You are owed</span>
+<div class="flex items-baseline gap-1 text-income font-amount-large text-amount-large tabular-nums">
+<span class="text-amount-medium font-semibold text-income">+</span>
+<span class="text-income font-amount-large text-amount-large">350</span>
+<span class="text-amount-small font-normal text-income opacity-80">.00</span>
+<span class="text-[11px] font-normal tracking-wide text-income/70 ml-0.5">EGP</span>
+</div>
+</div>
+<!-- Vertical Hairline Divider -->
+<div class="w-[1px] bg-outline/20 self-stretch my-1"></div>
+<!-- You owe -->
+<div class="flex-1 pl-4 flex flex-col justify-center">
+<span class="text-text-dim text-body-small mb-1 tracking-tight">You owe</span>
+<div class="flex items-baseline gap-1 text-text-dim font-amount-large text-amount-large tabular-nums">
+<span class="text-text-dim font-amount-large text-amount-large">0</span>
+<span class="text-amount-small font-normal text-text-dim opacity-70">.00</span>
+<span class="text-[11px] font-normal tracking-wide text-text-dim/60 ml-0.5">EGP</span>
+</div>
+</div>
+</div>
+<!-- Section: Owed to you -->
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex items-center justify-between px-1">
+<h2 class="text-text text-title font-title">Owed to you</h2>
+<span class="text-text-dim text-label-caps font-label-caps uppercase tracking-wider">2 Records</span>
+</div>
+<!-- Card 1: Seif -->
+<div class="w-full bg-surface rounded-[20px] p-4 flex flex-col gap-3.5 transition-colors">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<!-- Tinted initial avatar (#267EB8 tint) -->
+<div class="w-10 h-10 rounded-xl bg-account-blue/20 text-account-blue flex items-center justify-center font-amount-medium text-amount-medium select-none">
+            S
+          </div>
+<div class="flex flex-col">
+<span class="text-text font-title text-[16px] leading-tight">Seif</span>
+<span class="text-text-dim text-body-small mt-0.5 line-clamp-1">Dinner split &amp; groceries</span>
+</div>
+</div>
+<!-- Total amount flush right -->
+<div class="flex flex-col items-end">
+<div class="flex items-baseline gap-0.5 text-income font-amount-medium text-amount-medium tabular-nums">
+<span class="text-[13px] font-semibold text-income">+</span>
+<span class="text-income font-amount-medium text-amount-medium">100</span>
+<span class="text-[12px] font-normal text-income opacity-80">.00</span>
+<span class="text-[10px] font-normal text-income/70 ml-0.5">EGP</span>
+</div>
+<span class="text-text-dim text-[11px] font-medium mt-0.5">0% repaid</span>
+</div>
+</div>
+<!-- Repayment Progress Bar (0% state) -->
+<div class="w-full h-1.5 rounded-full bg-surface-raised overflow-hidden">
+<div class="h-full bg-income rounded-full" style="width: 0%;"></div>
+</div>
+<!-- Meta and Action Footer -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<!-- Overdue Badge -->
+<span class="px-2 py-0.5 rounded-md bg-expense/15 text-expense text-[11px] font-semibold tracking-tight">
+            Overdue
+          </span>
+<span class="text-text-dim text-body-small font-normal">Due 9 Jul 2026</span>
+</div>
+<button class="min-h-[44px] -my-2 flex items-center gap-1 text-accent-text hover:text-primary text-body-small font-semibold transition-colors" type="button">
+<span>Add repayment</span>
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Essam -->
+<div class="w-full bg-surface rounded-[20px] p-4 flex flex-col gap-3.5 transition-colors">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<!-- Tinted initial avatar (#8A67CE tint) -->
+<div class="w-10 h-10 rounded-xl bg-account-violet/20 text-account-violet flex items-center justify-center font-amount-medium text-amount-medium select-none">
+            E
+          </div>
+<div class="flex flex-col">
+<span class="text-text font-title text-[16px] leading-tight">Essam</span>
+<span class="text-text-dim text-body-small mt-0.5 line-clamp-1">Concert tickets advance</span>
+</div>
+</div>
+<!-- Total outstanding balance -->
+<div class="flex flex-col items-end">
+<div class="flex items-baseline gap-0.5 text-income font-amount-medium text-amount-medium tabular-nums">
+<span class="text-[13px] font-semibold text-income">+</span>
+<span class="text-income font-amount-medium text-amount-medium">200</span>
+<span class="text-[12px] font-normal text-income opacity-80">.00</span>
+<span class="text-[10px] font-normal text-income/70 ml-0.5">EGP</span>
+</div>
+<span class="text-text-dim text-[11px] font-medium mt-0.5">of 250.00 EGP</span>
+</div>
+</div>
+<!-- Progress Track & Breakdown -->
+<div class="flex flex-col gap-1.5">
+<div class="w-full h-1.5 rounded-full bg-surface-raised overflow-hidden">
+<div class="h-full bg-income rounded-full" style="width: 20%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-text-dim tabular-nums">
+<span>50.00 EGP repaid</span>
+<span>200.00 EGP remaining</span>
+</div>
+</div>
+<!-- Meta and Action Footer -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<!-- Overdue Badge -->
+<span class="px-2 py-0.5 rounded-md bg-expense/15 text-expense text-[11px] font-semibold tracking-tight">
+            Overdue
+          </span>
+<span class="text-text-dim text-body-small font-normal">Due 18 May 2026</span>
+</div>
+<button class="min-h-[44px] -my-2 flex items-center gap-1 text-accent-text hover:text-primary text-body-small font-semibold transition-colors" type="button">
+<span>Add repayment</span>
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Section: You owe -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between px-1">
+<h2 class="text-text text-title font-title">You owe</h2>
+<span class="text-text-dim text-label-caps font-label-caps uppercase tracking-wider">0 Records</span>
+</div>
+<!-- Understated Empty State -->
+<div class="w-full bg-surface rounded-[20px] py-7 px-4 flex items-center justify-center text-center">
+<p class="text-text-dim text-body font-body">
+        Nothing borrowed right now
+      </p>
+</div>
+</div>
+</div></main>
+<!-- Floating Action Button (60dp, #D9C27F champagne fill, dark icon, positioned 16dp above 72dp nav bar) -->
+<a aria-label="Add transaction" class="fixed right-5 bottom-[88px] z-50 w-[60px] h-[60px] rounded-full bg-primary-container text-[#2D291E] flex items-center justify-center shadow-[0_4px_20px_rgba(217,194,127,0.25)] active:scale-95 transition-transform" data-path="add-record" href="#">
+<span class="material-symbols-outlined text-[30px] font-light">add</span>
+</a>
+<!-- Bottom Navigation Bar (72dp height, surface background, subtle shadow border) -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface shadow-[0_-1px_0_rgba(91,90,84,0.15)] pb-safe" data-active-classes="text-accent-text font-semibold">
+<div class="h-[72px] flex items-center justify-around px-2 max-w-md mx-auto">
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-text-dim hover:text-text transition-colors min-w-[44px] min-h-[44px]" data-path="home" href="#">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<span class="text-[11px] font-medium mt-1 tracking-tight">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-text-dim hover:text-text transition-colors min-w-[44px] min-h-[44px]" data-path="records" href="#">
+<span class="material-symbols-outlined text-[24px]">receipt_long</span>
+<span class="text-[11px] font-medium mt-1 tracking-tight">Records</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-text-dim hover:text-text transition-colors min-w-[44px] min-h-[44px]" data-path="stats" href="#">
+<span class="material-symbols-outlined text-[24px]">donut_large</span>
+<span class="text-[11px] font-medium mt-1 tracking-tight">Stats</span>
+</a>
+<!-- Plan Tab Destination (active by default for plan pages) -->
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-accent-text hover:text-text transition-colors min-w-[44px] min-h-[44px]" data-path="plan" href="#">
+<div class="px-3.5 py-0.5 rounded-full bg-primary-container/20 flex items-center justify-center mb-0.5">
+<span class="material-symbols-outlined fill-1 text-[22px] text-accent-text">pie_chart</span>
+</div>
+<span class="text-[11px] font-semibold text-accent-text tracking-tight">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-text-dim hover:text-text transition-colors min-w-[44px] min-h-[44px]" data-path="wealth" href="#">
+<span class="material-symbols-outlined text-[24px]">account_balance</span>
+<span class="text-[11px] font-medium mt-1 tracking-tight">Wealth</span>
+</a>
+</div>
+</nav>
+</body></html>

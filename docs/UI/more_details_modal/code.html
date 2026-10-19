@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "account-amber": "#AA7818", "surface-bright": "#38393c", "on-primary": "#3c2f00", "light-background": "#F5F2E9", "primary-container": "#d9c27f", "account-indigo": "#717BCB", "on-secondary-fixed": "#191c1f", "light-investment": "#6F4A9E", "light-accent-text": "#77591D", "text": "#E9E6DE", "on-secondary-fixed-variant": "#45474b", "background-oled": "#000000", "secondary": "#c5c6cb", "light-on-primary": "#FFF8E7", "on-tertiary-container": "#005b55", "tertiary-fixed": "#81f6ea", "on-tertiary": "#003733", "outline": "#5B5A54", "account-azure": "#188ABB", "surface-tint": "#dcc582", "inverse-primary": "#6e5d24", "primary-fixed-dim": "#dcc582", "inverse-on-surface": "#2f3033", "on-primary-fixed": "#231b00", "on-primary-fixed-variant": "#55450e", "on-error": "#690005", "account-orange": "#CA642F", "text-dim": "#BEB9AF", "tertiary-fixed-dim": "#63d9ce", "accent-text": "#E6D29A", "account-green": "#3A924F", "account-teal": "#059093", "error": "#ffb4ab", "light-surface": "#FFFCF5", "on-tertiary-fixed": "#00201d", "account-olive": "#7A882F", "light-transfer": "#4C6378", "expense": "#F4806E", "on-surface": "#e3e2e6", "account-violet": "#9A6EC2", "surface": "#292A2D", "on-primary-container": "#5f4f18", "tertiary-container": "#60d6cb", "light-warning": "#875A15", "on-secondary": "#2e3034", "primary": "#f6de98", "income": "#58CFC4", "surface-raised": "#34363A", "surface-dim": "#121316", "account-red": "#DA535F", "investment": "#C0A5E8", "light-primary": "#8B6D2B", "primary-fixed": "#f9e19b", "account-blue": "#0785DB", "surface-container": "#1e2022", "secondary-fixed": "#e2e2e7", "inverse-surface": "#e3e2e6", "secondary-container": "#47494d", "error-container": "#93000a", "surface-container-lowest": "#0d0e11", "on-background": "#e3e2e6", "light-text-dim": "#5D574C", "light-outline": "#938A78", "light-text": "#2E2B25", "on-secondary-container": "#b7b8bd", "surface-container-highest": "#343538", "secondary-fixed-dim": "#c5c6cb", "background": "#121316", "on-surface-variant": "#cec6b5", "warning": "#F0BD76", "transfer": "#B5C7D8", "light-income": "#0C7466", "outline-variant": "#4b463a", "surface-container-low": "#1a1b1e", "on-error-container": "#ffdad6", "light-surface-raised": "#EBE6DA", "tertiary": "#7ef3e7", "surface-variant": "#343538", "light-expense": "#B03A14", "on-tertiary-fixed-variant": "#00504b", "surface-container-high": "#292a2d", "account-magenta": "#C45AAC", "account-pink": "#CE588B" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "gutter": "0.75rem", "space-section": "2rem", "space-md": "0.75rem", "space-lg": "1rem", "space-xxl": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-xl": "1.25rem", "margin": "1.25rem" }, fontFamily: { "label-caps": ["Manrope"], "amount-small": ["Manrope"], "body": ["Manrope"], "keypad": ["Manrope"], "amount-medium": ["Manrope"], "headline": ["Manrope"], "display-hero": ["Manrope"], "title": ["Manrope"], "body-small": ["Manrope"], "display-hero-mobile": ["Manrope"], "amount-large": ["Manrope"] }, fontSize: { "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "amount-small": ["14px", { "lineHeight": "17px", "fontWeight": "600" }], "body": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "keypad": ["30px", { "lineHeight": "30px", "fontWeight": "500" }], "amount-medium": ["17px", { "lineHeight": "20px", "fontWeight": "600" }], "headline": ["28px", { "lineHeight": "32px", "fontWeight": "500" }], "display-hero": ["44px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "title": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "body-small": ["13px", { "lineHeight": "18px", "fontWeight": "500" }], "display-hero-mobile": ["36px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "amount-large": ["28px", { "lineHeight": "32px", "fontWeight": "600" }] } } } }</script><style>@layer base{html,body{width:100vw;min-height:100vh;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-black/60 font-body text-text min-h-screen flex flex-col justify-end"><div aria-label="Dismiss sheet" class="flex-1 w-full" onclick="history.back()"></div><div class="w-full h-[751px] max-h-[751px] bg-surface-raised rounded-t-[28px] flex flex-col overflow-hidden pb-safe"><div class="w-full flex flex-col items-center pt-space-md pb-space-sm flex-shrink-0 cursor-grab active:cursor-grabbing"><div class="w-9 h-1 rounded-full bg-outline/60"></div><div class="w-full px-margin pt-space-sm flex items-center justify-between"><h2 class="font-title text-title text-text">New Transaction</h2><button aria-label="Close sheet" class="w-11 h-11 -mr-2 flex items-center justify-center text-text-dim hover:text-text transition-colors rounded-full active:bg-surface-variant" onclick="history.back()"><span class="material-symbols-outlined text-[20px]">close</span></button></div></div><main class="flex-1 flex flex-col relative w-full overflow-y-auto px-margin bg-surface-raised"><div class="flex flex-col w-full pb-6 select-none">
+<!-- Interactive Form Body inside the Sheet Shell -->
+<form class="flex flex-col gap-5 pt-1" id="details-form" onsubmit="event.preventDefault();">
+<!-- 1. Note Field -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase" for="transaction-note">Note</label>
+<div class="relative w-full rounded-xl bg-surface-raised p-3 min-h-[76px] transition-all focus-within:bg-surface-variant">
+<textarea class="w-full bg-transparent text-text font-body text-body resize-none placeholder:text-text-dim/50 focus:outline-none" id="transaction-note" placeholder="Add a note" rows="2">Dinner with team after quarterly review sprint</textarea>
+</div>
+</div>
+<!-- 2. Labels -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase">Labels</span>
+<span class="font-body-small text-body-small text-text-dim/60">2 assigned</span>
+</div>
+<div class="flex flex-wrap items-center gap-2 pt-0.5">
+<!-- Work Tag -->
+<span class="inline-flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-lg bg-surface-raised text-text font-body-small text-body-small">
+<span>Work</span>
+<button aria-label="Remove Work label" class="w-4 h-4 rounded-full flex items-center justify-center text-text-dim hover:text-text hover:bg-surface-variant transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</span>
+<!-- Shared Tag -->
+<span class="inline-flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-lg bg-surface-raised text-text font-body-small text-body-small">
+<span>Shared</span>
+<button aria-label="Remove Shared label" class="w-4 h-4 rounded-full flex items-center justify-center text-text-dim hover:text-text hover:bg-surface-variant transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</span>
+<!-- Add Tag Action -->
+<button class="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg bg-surface-raised/40 hover:bg-surface-raised text-text-dim hover:text-accent-text font-body-small text-body-small transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Add label</span>
+</button>
+</div>
+</div>
+<!-- 3. Payee Field -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase" for="payee-input">Payee</label>
+<div class="relative flex items-center h-12 px-3.5 rounded-xl bg-surface-raised focus-within:bg-surface-variant transition-all">
+<span class="material-symbols-outlined text-[18px] text-text-dim mr-2.5">storefront</span>
+<input class="flex-1 bg-transparent text-text font-body text-body font-medium focus:outline-none placeholder:text-text-dim/40" id="payee-input" placeholder="Enter merchant or recipient" type="text" value="Cairo Kitchen"/>
+<button class="text-text-dim hover:text-text p-1" onclick="document.getElementById('payee-input').value=''" type="button">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+</button>
+</div>
+<!-- Payee Quick Suggestions -->
+<div class="flex items-center gap-2 pt-1 overflow-x-auto">
+<span class="font-body-small text-body-small text-text-dim/60 mr-0.5">Frequent:</span>
+<button class="h-7 px-3 rounded-full bg-surface-raised hover:bg-surface-variant text-text font-body-small text-body-small transition-colors whitespace-nowrap" onclick="document.getElementById('payee-input').value='Cairo Kitchen'" type="button">
+          Cairo Kitchen
+        </button>
+<button class="h-7 px-3 rounded-full bg-surface-raised/60 hover:bg-surface-raised text-text-dim font-body-small text-body-small transition-colors whitespace-nowrap" onclick="document.getElementById('payee-input').value='Cilantro'" type="button">
+          Cilantro
+        </button>
+<button class="h-7 px-3 rounded-full bg-surface-raised/60 hover:bg-surface-raised text-text-dim font-body-small text-body-small transition-colors whitespace-nowrap" onclick="document.getElementById('payee-input').value='Gourmet Market'" type="button">
+          Gourmet Market
+        </button>
+</div>
+</div>
+<!-- 4. Payment Type -->
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase">Payment type</span>
+<div class="flex flex-wrap gap-2 pt-0.5" id="payment-methods">
+<!-- Cash (Selected) -->
+<button class="h-9 px-3.5 rounded-full bg-primary-container text-on-primary font-body-small text-body-small font-semibold flex items-center gap-1.5 transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span>Cash</span>
+</button>
+<!-- Debit card -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">credit_card</span>
+<span>Debit card</span>
+</button>
+<!-- Credit card -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">credit_score</span>
+<span>Credit card</span>
+</button>
+<!-- Bank transfer -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">account_balance</span>
+<span>Bank transfer</span>
+</button>
+<!-- Mobile wallet -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">smartphone</span>
+<span>Mobile wallet</span>
+</button>
+<!-- InstaPay -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span>InstaPay</span>
+</button>
+<!-- Other -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors" type="button">
+<span>Other</span>
+</button>
+</div>
+</div>
+<!-- 5. Status (Segmented Pill) -->
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase">Status</span>
+<div class="h-11 p-1 bg-surface-raised rounded-xl flex items-center relative" id="status-segment">
+<button class="flex-1 h-full rounded-lg bg-surface text-text font-body-small text-body-small font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-income"></span>
+<span>Cleared</span>
+</button>
+<button class="flex-1 h-full rounded-lg text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center justify-center transition-colors" type="button">
+<span>Uncleared</span>
+</button>
+<button class="flex-1 h-full rounded-lg text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center justify-center transition-colors" type="button">
+<span>Reconciled</span>
+</button>
+</div>
+</div>
+<!-- 6. Date & Time Pair -->
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase">Date &amp; time</span>
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Date Selector -->
+<button class="h-12 px-3.5 rounded-xl bg-surface-raised hover:bg-surface-variant flex items-center justify-between text-left transition-colors" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-accent-text">calendar_today</span>
+<span class="font-amount-small text-amount-small text-text tracking-tight truncate">16 Oct 2026</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-text-dim/60">unfold_more</span>
+</button>
+<!-- Time Selector -->
+<button class="h-12 px-3.5 rounded-xl bg-surface-raised hover:bg-surface-variant flex items-center justify-between text-left transition-colors" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-accent-text">schedule</span>
+<span class="font-amount-small text-amount-small text-text tracking-tight truncate">03:46 AM</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-text-dim/60">unfold_more</span>
+</button>
+</div>
+</div>
+<!-- 7. Receipts Section -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-text-dim tracking-wider uppercase">Receipts</span>
+<span class="font-body-small text-body-small text-text-dim/60">2 files attached</span>
+</div>
+<div class="flex items-center gap-2.5 pt-1 overflow-x-auto">
+<!-- Attached Receipt 1 -->
+<div class="relative w-16 h-16 rounded-xl bg-surface-raised overflow-hidden flex-shrink-0 group">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A clean, matte macro flatlay photograph of a dining itemized receipt paper with warm typography on obsidian surface background, high contrast, elegant financial record mood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW5CcZXu2J79sUq03mivgSI6dKabeNVrh7tWfdUiTQj0zV-Rhy_N0hCs3mIxUywrho0mHUNnnoCi9hHe9CUjwZDoT2yRbmsH4HZga4bTaurDRb4bA5X00qyKGS6M7Uh5od1cGQeRasBHwCQXyWHTeP6lK2s7_zikxCc5I3aWDezg8j9ao45JvgcLMxZE6k-AD_tJ-aEGkwP6XqPP9LpGWEgwY4PlPWVVSg-ud6wxoY"/>
+<div class="absolute inset-0 bg-surface/20"></div>
+<button aria-label="Remove receipt 1" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-surface-raised/90 text-text hover:text-error flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[12px]">close</span>
+</button>
+<div class="absolute bottom-1 left-1 px-1 rounded bg-black/60 font-label-caps text-[9px] text-text-dim">
+            JPG
+          </div>
+</div>
+<!-- Attached Receipt 2 -->
+<div class="relative w-16 h-16 rounded-xl bg-surface-raised overflow-hidden flex-shrink-0 group">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Macro photography of an electronic transaction slip terminal receipt showing stamped transaction code, dark minimalist background, warm muted ambient tones, precision fintech aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhUibObsUkzVpatDcXYxqHar0Cg0DAstM4eAuVquLh7SPoXR6H0MiP25bd7s8YpPc9HwVxmm5dHAGUgL8U_jFKDmBs_8OSbYxRWYsrtKEhD187iduyvRDDCExSB5VsxGoYKh5bbcnCz05LoZ3tIjfrKdDpA0PodC0jpDdUrJHGqutYNzHcu-gxtKbS7tplTMkvzVSforFHBW2B5cLIRkw5DG9Qhjjr9j4DtAbesR9q"/>
+<div class="absolute inset-0 bg-surface/20"></div>
+<button aria-label="Remove receipt 2" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-surface-raised/90 text-text hover:text-error flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[12px]">close</span>
+</button>
+<div class="absolute bottom-1 left-1 px-1 rounded bg-black/60 font-label-caps text-[9px] text-text-dim">
+            PNG
+          </div>
+</div>
+<!-- Add Receipt Slot -->
+<button class="w-16 h-16 rounded-xl bg-surface-raised/40 hover:bg-surface-raised text-text-dim hover:text-accent-text flex flex-col items-center justify-center gap-1 flex-shrink-0 transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">add_a_photo</span>
+<span class="font-label-caps text-[9px] tracking-wide">ADD</span>
+</button>
+</div>
+</div>
+<!-- Done Action Button (Primary Jewel Finish) -->
+<div class="pt-3 pb-2">
+<button class="w-full h-[52px] rounded-[20px] bg-primary-container active:bg-accent-text text-on-primary font-title text-body font-semibold tracking-wide flex items-center justify-center gap-2 transition-transform active:scale-[0.99]" onclick="history.back()" type="button">
+<span class="material-symbols-outlined text-[20px]">check</span>
+<span>Save changes</span>
+</button>
+</div>
+</form>
+</div>
+<script>
+  // Simple micro-interactions for segment toggling
+  document.addEventListener('DOMContentLoaded', () => {
+    const paymentButtons = document.querySelectorAll('#payment-methods button');
+    paymentButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        paymentButtons.forEach(b => {
+          b.className = 'h-9 px-3.5 rounded-full bg-surface-raised hover:bg-surface-variant text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center gap-1.5 transition-colors';
+        });
+        btn.className = 'h-9 px-3.5 rounded-full bg-primary-container text-on-primary font-body-small text-body-small font-semibold flex items-center gap-1.5 transition-all';
+      });
+    });
+
+    const statusButtons = document.querySelectorAll('#status-segment button');
+    statusButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        statusButtons.forEach(b => {
+          b.className = 'flex-1 h-full rounded-lg text-text-dim hover:text-text font-body-small text-body-small font-medium flex items-center justify-center transition-colors';
+        });
+        btn.className = 'flex-1 h-full rounded-lg bg-surface text-text font-body-small text-body-small font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all';
+      });
+    });
+  });
+</script></main></div></body></html>

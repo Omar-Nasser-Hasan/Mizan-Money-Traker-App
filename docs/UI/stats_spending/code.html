@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "account-pink": "#CE588B", "light-investment": "#6F4A9E", "on-secondary-fixed": "#191c1f", "light-background": "#F5F2E9", "light-accent-text": "#77591D", "light-warning": "#875A15", "light-income": "#0C7466", "on-tertiary-fixed-variant": "#00504b", "primary-container": "#d9c27f", "primary-fixed": "#f9e19b", "light-primary": "#8B6D2B", "surface-container-low": "#1a1b1e", "account-magenta": "#C45AAC", "surface-raised": "#34363A", "outline": "#5B5A54", "light-on-primary": "#FFF8E7", "surface-variant": "#343538", "on-background": "#e3e2e6", "account-violet": "#9A6EC2", "secondary-fixed-dim": "#c5c6cb", "investment": "#C0A5E8", "surface-container-highest": "#343538", "outline-variant": "#4b463a", "tertiary-fixed-dim": "#63d9ce", "primary-fixed-dim": "#dcc582", "on-primary-fixed": "#231b00", "background": "#121316", "light-outline": "#938A78", "account-blue": "#0785DB", "surface-dim": "#121316", "inverse-on-surface": "#2f3033", "secondary-container": "#47494d", "light-text": "#2E2B25", "on-primary-fixed-variant": "#55450e", "tertiary": "#7ef3e7", "expense": "#F4806E", "error-container": "#93000a", "inverse-surface": "#e3e2e6", "secondary-fixed": "#e2e2e7", "account-red": "#DA535F", "transfer": "#B5C7D8", "on-secondary": "#2e3034", "light-text-dim": "#5D574C", "light-expense": "#B03A14", "on-tertiary-fixed": "#00201d", "account-amber": "#AA7818", "tertiary-fixed": "#81f6ea", "on-primary": "#2D291E", "primary": "#f6de98", "account-teal": "#059093", "surface-container-high": "#292a2d", "tertiary-container": "#60d6cb", "light-surface-raised": "#EBE6DA", "surface": "#292A2D", "inverse-primary": "#6e5d24", "income": "#58CFC4", "on-secondary-container": "#b7b8bd", "accent-text": "#E6D29A", "account-indigo": "#717BCB", "account-azure": "#188ABB", "surface-container-lowest": "#0d0e11", "surface-container": "#1e2022", "surface-bright": "#38393c", "surface-tint": "#dcc582", "light-transfer": "#4C6378", "text": "#E9E6DE", "text-dim": "#BEB9AF", "on-secondary-fixed-variant": "#45474b", "on-error": "#690005", "account-green": "#3A924F", "on-surface": "#e3e2e6", "secondary": "#c5c6cb", "account-orange": "#CA642F", "on-tertiary": "#003733", "error": "#ffb4ab", "on-error-container": "#ffdad6", "light-surface": "#FFFCF5", "on-tertiary-container": "#005b55", "on-primary-container": "#5f4f18", "warning": "#F0BD76", "account-olive": "#7A882F", "background-oled": "#000000", "on-surface-variant": "#cec6b5" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "gutter": "0.75rem", "space-sm": "0.5rem", "space-xl": "1.25rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-section": "2rem", "space-lg": "1rem", "space-xxl": "1.5rem", "margin": "1.25rem" }, fontFamily: { "display-hero": ["Manrope"], "title": ["Manrope"], "amount-medium": ["Manrope"], "headline": ["Manrope"], "amount-large": ["Manrope"], "label-caps": ["Manrope"], "amount-small": ["Manrope"], "body-small": ["Manrope"], "body": ["Manrope"], "keypad": ["Manrope"], "display-hero-mobile": ["Manrope"] }, fontSize: { "display-hero": ["44px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "title": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "amount-medium": ["17px", { "lineHeight": "20px", "fontWeight": "600" }], "headline": ["28px", { "lineHeight": "32px", "fontWeight": "500" }], "amount-large": ["28px", { "lineHeight": "32px", "fontWeight": "600" }], "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "amount-small": ["14px", { "lineHeight": "17px", "fontWeight": "600" }], "body-small": ["13px", { "lineHeight": "18px", "fontWeight": "500" }], "body": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "keypad": ["30px", { "lineHeight": "30px", "fontWeight": "500" }], "display-hero-mobile": ["36px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500" }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior:none;background-color:#121316;color:#e3e2e6;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background font-body text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-background/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-space-lg flex items-center justify-between"><h1 class="font-title text-title text-on-surface tracking-tight">Stats</h1><div class="flex items-center gap-space-xs"><button aria-label="Toggle visibility" class="w-11 h-11 flex items-center justify-center rounded-full text-text-dim hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">visibility</span></button><button aria-label="Settings" class="w-11 h-11 flex items-center justify-center rounded-full text-text-dim hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">settings</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-24 bg-background"><div class="flex flex-col w-full pb-8">
+<!-- Sub-navigation Tabs -->
+<div class="w-full bg-surface-container-low px-margin pt-1">
+<div class="flex items-center space-x-6 overflow-x-auto no-scrollbar py-2">
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap transition-colors pb-2" type="button">Cash flow</button>
+<div class="relative flex flex-col items-center">
+<button class="font-title text-[15px] leading-5 text-accent-text whitespace-nowrap pb-2.5 font-semibold" type="button">Spending</button>
+<span class="absolute bottom-0 inset-x-0 h-0.5 bg-primary-container rounded-full"></span>
+</div>
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap transition-colors pb-2" type="button">Balance</button>
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap transition-colors pb-2" type="button">Outlook</button>
+<button class="font-body-small text-body-small text-text-dim hover:text-text whitespace-nowrap transition-colors pb-2" type="button">Reports</button>
+</div>
+</div>
+<!-- Compact Period & Account Filters -->
+<div class="px-margin pt-4 pb-2 flex items-center justify-between gap-space-sm">
+<!-- Date Cycle Pill -->
+<div class="flex items-center bg-surface-raised rounded-full px-2 py-1 shadow-sm">
+<button aria-label="Previous month" class="w-7 h-7 flex items-center justify-center text-text-dim hover:text-text rounded-full transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="flex items-center gap-1 px-2 py-0.5 text-text hover:text-accent-text transition-colors">
+<span class="font-title text-[13px] leading-tight font-medium tracking-tight">October 2026</span>
+<span class="material-symbols-outlined text-[14px] text-text-dim">arrow_drop_down</span>
+</button>
+<button aria-label="Next month" class="w-7 h-7 flex items-center justify-center text-text-dim hover:text-text rounded-full transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<!-- Account Selector Chip -->
+<button class="flex items-center gap-1.5 bg-surface-raised hover:bg-surface-variant px-3 py-1.5 rounded-full shadow-sm text-text transition-all">
+<span class="w-2 h-2 rounded-full bg-accent-text"></span>
+<span class="font-body-small text-body-small font-medium">All accounts</span>
+<span class="material-symbols-outlined text-[16px] text-text-dim">arrow_drop_down</span>
+</button>
+</div>
+<!-- Main Scrollable Section -->
+<div class="px-margin flex flex-col gap-3 pt-2">
+<!-- CARD 1: Spending Breakdown & Donut -->
+<section class="bg-surface rounded-[20px] p-5 shadow-sm relative overflow-hidden">
+<!-- Card Header -->
+<div class="flex items-start justify-between">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Spending</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Where does my money go?</p>
+</div>
+<button aria-label="Share card insight" class="w-8 h-8 flex items-center justify-center rounded-full text-text-dim hover:text-text hover:bg-surface-raised transition-colors">
+<span class="material-symbols-outlined text-[19px]">ios_share</span>
+</button>
+</div>
+<!-- Hero Total & Pace -->
+<div class="mt-4 flex flex-col">
+<div class="flex items-baseline space-x-1.5">
+<span class="font-label-caps text-label-caps text-text-dim uppercase tracking-wider">EGP</span>
+<span class="font-amount-large text-amount-large text-text tracking-tight tabular-nums">18,240<span class="text-text-dim text-lg">.00</span></span>
+</div>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-expense text-[16px]">trending_up</span>
+<span class="font-body-small text-body-small text-expense font-medium">+14% vs same days last month</span>
+</div>
+</div>
+<!-- Segmented Switcher -->
+<div class="mt-5 p-1 bg-surface-container rounded-xl flex items-center">
+<button class="flex-1 py-1.5 text-center rounded-lg bg-surface-raised shadow-sm text-accent-text font-title text-[13px] font-semibold transition-all" type="button">Categories</button>
+<button class="flex-1 py-1.5 text-center rounded-lg text-text-dim hover:text-text font-title text-[13px] font-medium transition-all" type="button">Labels</button>
+</div>
+<!-- Interactive Donut Chart Area -->
+<div class="relative my-6 flex items-center justify-center">
+<svg class="w-56 h-56 transform -rotate-90" viewbox="0 0 200 200">
+<circle cx="100" cy="100" fill="none" r="76" stroke="#1e2022" stroke-width="26"></circle>
+<!-- 1: Food & Drinks 34% (stroke-dasharray="162.4 477.5") -->
+<circle class="transition-all duration-300 hover:opacity-85" cx="100" cy="100" fill="none" r="76" stroke="#8A67CE" stroke-dasharray="162.4 477.5" stroke-dashoffset="0" stroke-linecap="butt" stroke-width="26"></circle>
+<!-- 2: Shopping & Gear 21% (stroke-dasharray="100.3 477.5") offset -162.4 -->
+<circle class="transition-all duration-300 hover:opacity-85" cx="100" cy="100" fill="none" r="76" stroke="#267EB8" stroke-dasharray="100.3 477.5" stroke-dashoffset="-162.4" stroke-linecap="butt" stroke-width="26"></circle>
+<!-- 3: Housing & Bills 18% (stroke-dasharray="86.0 477.5") offset -262.7 -->
+<circle class="transition-all duration-300 hover:opacity-85" cx="100" cy="100" fill="none" r="76" stroke="#35B2C4" stroke-dasharray="86.0 477.5" stroke-dashoffset="-262.7" stroke-linecap="butt" stroke-width="26"></circle>
+<!-- 4: Transport & Fuel 12% (stroke-dasharray="57.3 477.5") offset -348.7 -->
+<circle class="transition-all duration-300 hover:opacity-85" cx="100" cy="100" fill="none" r="76" stroke="#A548B2" stroke-dasharray="57.3 477.5" stroke-dashoffset="-348.7" stroke-linecap="butt" stroke-width="26"></circle>
+<!-- 5: Entertainment & Fun 9% (stroke-dasharray="43.0 477.5") offset -406.0 -->
+<circle class="transition-all duration-300 hover:opacity-85" cx="100" cy="100" fill="none" r="76" stroke="#D1539B" stroke-dasharray="43.0 477.5" stroke-dashoffset="-406.0" stroke-linecap="butt" stroke-width="26"></circle>
+<!-- 6: Health & Personal 6% (stroke-dasharray="28.7 477.5") offset -449.0 -->
+<circle class="transition-all duration-300 hover:opacity-85" cx="100" cy="100" fill="none" r="76" stroke="#CA642F" stroke-dasharray="28.7 477.5" stroke-dashoffset="-449.0" stroke-linecap="butt" stroke-width="26"></circle>
+</svg>
+<!-- Donut Core -->
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-headline text-[22px] leading-tight text-text font-semibold tracking-tight tabular-nums">18,240</span>
+<span class="font-label-caps text-[10px] text-text-dim tracking-widest uppercase mt-0.5">EGP TOTAL</span>
+</div>
+</div>
+<!-- Category Legend Breakdown Rows -->
+<div class="flex flex-col divide-y divide-surface-raised/40">
+<!-- Item 1 -->
+<div class="py-2.5 flex items-center justify-between hover:bg-surface-raised/30 px-1 rounded-lg transition-colors">
+<div class="flex items-center space-x-2.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #8A67CE;"></span>
+<span class="font-title text-[14px] text-text truncate">Food and drinks</span>
+</div>
+<div class="flex items-center space-x-3 text-right shrink-0">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">34%</span>
+<span class="font-title text-[14px] text-text tabular-nums">6,120<span class="text-xs text-text-dim">.00</span></span>
+<span class="font-label-caps text-label-caps text-expense tabular-nums w-10 text-right">+8%</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="py-2.5 flex items-center justify-between hover:bg-surface-raised/30 px-1 rounded-lg transition-colors">
+<div class="flex items-center space-x-2.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #267EB8;"></span>
+<span class="font-title text-[14px] text-text truncate">Shopping &amp; gear</span>
+</div>
+<div class="flex items-center space-x-3 text-right shrink-0">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">21%</span>
+<span class="font-title text-[14px] text-text tabular-nums">3,850<span class="text-xs text-text-dim">.00</span></span>
+<span class="font-label-caps text-label-caps text-income tabular-nums w-10 text-right">−3%</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="py-2.5 flex items-center justify-between hover:bg-surface-raised/30 px-1 rounded-lg transition-colors">
+<div class="flex items-center space-x-2.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #35B2C4;"></span>
+<span class="font-title text-[14px] text-text truncate">Housing &amp; bills</span>
+</div>
+<div class="flex items-center space-x-3 text-right shrink-0">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">18%</span>
+<span class="font-title text-[14px] text-text tabular-nums">3,200<span class="text-xs text-text-dim">.00</span></span>
+<span class="font-label-caps text-label-caps text-text-dim tabular-nums w-10 text-right">0%</span>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="py-2.5 flex items-center justify-between hover:bg-surface-raised/30 px-1 rounded-lg transition-colors">
+<div class="flex items-center space-x-2.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #A548B2;"></span>
+<span class="font-title text-[14px] text-text truncate">Transport &amp; fuel</span>
+</div>
+<div class="flex items-center space-x-3 text-right shrink-0">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">12%</span>
+<span class="font-title text-[14px] text-text tabular-nums">2,150<span class="text-xs text-text-dim">.00</span></span>
+<span class="font-label-caps text-label-caps text-expense tabular-nums w-10 text-right">+15%</span>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="py-2.5 flex items-center justify-between hover:bg-surface-raised/30 px-1 rounded-lg transition-colors">
+<div class="flex items-center space-x-2.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #D1539B;"></span>
+<span class="font-title text-[14px] text-text truncate">Entertainment &amp; fun</span>
+</div>
+<div class="flex items-center space-x-3 text-right shrink-0">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">9%</span>
+<span class="font-title text-[14px] text-text tabular-nums">1,680<span class="text-xs text-text-dim">.00</span></span>
+<span class="font-label-caps text-label-caps text-expense tabular-nums w-10 text-right">+4%</span>
+</div>
+</div>
+<!-- Item 6 -->
+<div class="py-2.5 flex items-center justify-between hover:bg-surface-raised/30 px-1 rounded-lg transition-colors">
+<div class="flex items-center space-x-2.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #CA642F;"></span>
+<span class="font-title text-[14px] text-text truncate">Health &amp; personal</span>
+</div>
+<div class="flex items-center space-x-3 text-right shrink-0">
+<span class="font-body-small text-body-small text-text-dim tabular-nums">6%</span>
+<span class="font-title text-[14px] text-text tabular-nums">1,240<span class="text-xs text-text-dim">.00</span></span>
+<span class="font-label-caps text-label-caps text-income tabular-nums w-10 text-right">−5%</span>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-2 text-center">
+<span class="font-body-small text-[11px] text-text-dim/80">Labels overlap · Tap any segment to isolate</span>
+</div>
+</section>
+<!-- CARD 2: Top Payees -->
+<section class="bg-surface rounded-[20px] p-5 shadow-sm">
+<div class="flex items-start justify-between">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Top payees</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Who received the most?</p>
+</div>
+<button aria-label="Share card insight" class="w-8 h-8 flex items-center justify-center rounded-full text-text-dim hover:text-text hover:bg-surface-raised transition-colors">
+<span class="material-symbols-outlined text-[19px]">ios_share</span>
+</button>
+</div>
+<div class="mt-5 space-y-4">
+<!-- Payee 1 -->
+<div>
+<div class="flex justify-between items-baseline mb-1.5">
+<span class="font-title text-[14px] text-text">Carrefour Hypermarket</span>
+<span class="font-title text-[13px] text-text tabular-nums">3,420<span class="text-xs text-text-dim">.00</span> <span class="text-text-dim text-[11px]">EGP</span></span>
+</div>
+<div class="w-full bg-surface-raised h-2 rounded-full overflow-hidden flex items-center">
+<div class="bg-[#4775D1] h-full rounded-full" style="width: 19%;"></div>
+</div>
+<span class="font-body-small text-[11px] text-text-dim mt-1 block">19% of monthly spend</span>
+</div>
+<!-- Payee 2 -->
+<div>
+<div class="flex justify-between items-baseline mb-1.5">
+<span class="font-title text-[14px] text-text">Sharaf DG Electronics</span>
+<span class="font-title text-[13px] text-text tabular-nums">3,200<span class="text-xs text-text-dim">.00</span> <span class="text-text-dim text-[11px]">EGP</span></span>
+</div>
+<div class="w-full bg-surface-raised h-2 rounded-full overflow-hidden flex items-center">
+<div class="bg-[#267EB8] h-full rounded-full" style="width: 18%;"></div>
+</div>
+<span class="font-body-small text-[11px] text-text-dim mt-1 block">18% of monthly spend</span>
+</div>
+<!-- Payee 3 -->
+<div>
+<div class="flex justify-between items-baseline mb-1.5">
+<span class="font-title text-[14px] text-text">Amazon Egypt</span>
+<span class="font-title text-[13px] text-text tabular-nums">2,200<span class="text-xs text-text-dim">.00</span> <span class="text-text-dim text-[11px]">EGP</span></span>
+</div>
+<div class="w-full bg-surface-raised h-2 rounded-full overflow-hidden flex items-center">
+<div class="bg-[#159AB8] h-full rounded-full" style="width: 12%;"></div>
+</div>
+<span class="font-body-small text-[11px] text-text-dim mt-1 block">12% of monthly spend</span>
+</div>
+<!-- Payee 4 -->
+<div>
+<div class="flex justify-between items-baseline mb-1.5">
+<span class="font-title text-[14px] text-text">Total Energies Gas</span>
+<span class="font-title text-[13px] text-text tabular-nums">1,450<span class="text-xs text-text-dim">.00</span> <span class="text-text-dim text-[11px]">EGP</span></span>
+</div>
+<div class="w-full bg-surface-raised h-2 rounded-full overflow-hidden flex items-center">
+<div class="bg-[#678FD0] h-full rounded-full" style="width: 8%;"></div>
+</div>
+<span class="font-body-small text-[11px] text-text-dim mt-1 block">8% of monthly spend</span>
+</div>
+<!-- Payee 5 -->
+<div>
+<div class="flex justify-between items-baseline mb-1.5">
+<span class="font-title text-[14px] text-text">Cairo Kitchen</span>
+<span class="font-title text-[13px] text-text tabular-nums">1,180<span class="text-xs text-text-dim">.00</span> <span class="text-text-dim text-[11px]">EGP</span></span>
+</div>
+<div class="w-full bg-surface-raised h-2 rounded-full overflow-hidden flex items-center">
+<div class="bg-[#8A67CE] h-full rounded-full" style="width: 6%;"></div>
+</div>
+<span class="font-body-small text-[11px] text-text-dim mt-1 block">6% of monthly spend</span>
+</div>
+</div>
+</section>
+<!-- CARD 3: Weekday Profile -->
+<section class="bg-surface rounded-[20px] p-5 shadow-sm">
+<div class="flex items-start justify-between">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Weekday profile</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Which days are most active?</p>
+</div>
+<button aria-label="Share card insight" class="w-8 h-8 flex items-center justify-center rounded-full text-text-dim hover:text-text hover:bg-surface-raised transition-colors">
+<span class="material-symbols-outlined text-[19px]">ios_share</span>
+</button>
+</div>
+<!-- Weekly Chart Visualization -->
+<div class="mt-6 flex flex-col">
+<!-- Bars Container -->
+<div class="h-44 w-full flex items-end justify-between relative px-2">
+<!-- Average guideline dotted line -->
+<div class="absolute left-0 right-0 top-[45%] flex items-center pointer-events-none">
+<div class="w-full border-t border-dashed border-outline-variant/60"></div>
+<span class="text-[10px] font-label-caps text-text-dim absolute right-0 -top-4 bg-surface px-1">Avg 2,605</span>
+</div>
+<!-- Sat: 2,100 EGP (45%) -->
+<div class="flex flex-col items-center flex-1 z-10">
+<div class="w-6 bg-surface-raised hover:bg-secondary-container transition-colors rounded-t-md" style="height: 64px;"></div>
+<span class="font-body-small text-[12px] text-text-dim mt-2">Sat</span>
+</div>
+<!-- Sun: 1,840 EGP (39%) -->
+<div class="flex flex-col items-center flex-1 z-10">
+<div class="w-6 bg-surface-raised hover:bg-secondary-container transition-colors rounded-t-md" style="height: 54px;"></div>
+<span class="font-body-small text-[12px] text-text-dim mt-2">Sun</span>
+</div>
+<!-- Mon: 2,420 EGP (51%) -->
+<div class="flex flex-col items-center flex-1 z-10">
+<div class="w-6 bg-surface-raised hover:bg-secondary-container transition-colors rounded-t-md" style="height: 74px;"></div>
+<span class="font-body-small text-[12px] text-text-dim mt-2">Mon</span>
+</div>
+<!-- Tue: 1,980 EGP (42%) -->
+<div class="flex flex-col items-center flex-1 z-10">
+<div class="w-6 bg-surface-raised hover:bg-secondary-container transition-colors rounded-t-md" style="height: 60px;"></div>
+<span class="font-body-small text-[12px] text-text-dim mt-2">Tue</span>
+</div>
+<!-- Wed: 2,340 EGP (50%) -->
+<div class="flex flex-col items-center flex-1 z-10">
+<div class="w-6 bg-surface-raised hover:bg-secondary-container transition-colors rounded-t-md" style="height: 72px;"></div>
+<span class="font-body-small text-[12px] text-text-dim mt-2">Wed</span>
+</div>
+<!-- Thu: HIGHEST 4,680 EGP (100%) Highlighted with Champagne -->
+<div class="flex flex-col items-center flex-1 z-10">
+<span class="text-[10px] font-semibold text-accent-text tabular-nums mb-1">4,680</span>
+<div class="w-6 bg-primary-container rounded-t-md shadow-sm" style="height: 126px;"></div>
+<span class="font-body-small text-[12px] text-accent-text font-semibold mt-2">Thu</span>
+</div>
+<!-- Fri: 2,880 EGP (61%) -->
+<div class="flex flex-col items-center flex-1 z-10">
+<div class="w-6 bg-surface-raised hover:bg-secondary-container transition-colors rounded-t-md" style="height: 86px;"></div>
+<span class="font-body-small text-[12px] text-text-dim mt-2">Fri</span>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between text-text-dim text-[12px]">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+            Peak spending day: <strong class="text-text font-medium">Thursday</strong>
+</span>
+<span class="font-body-small text-body-small text-text-dim tabular-nums">26% of weekly total</span>
+</div>
+</div>
+</section>
+<!-- CARD 4: Largest Individual Expenses -->
+<section class="bg-surface rounded-[20px] p-5 shadow-sm">
+<div class="flex items-start justify-between">
+<div>
+<h2 class="font-title text-title text-text tracking-tight">Largest expenses</h2>
+<p class="font-body-small text-body-small text-text-dim mt-0.5">Top individual transactions</p>
+</div>
+<button aria-label="Share card insight" class="w-8 h-8 flex items-center justify-center rounded-full text-text-dim hover:text-text hover:bg-surface-raised transition-colors">
+<span class="material-symbols-outlined text-[19px]">ios_share</span>
+</button>
+</div>
+<!-- Ledger Rows List -->
+<div class="mt-4 flex flex-col space-y-1">
+<!-- Transaction 1 -->
+<div class="h-16 flex items-center justify-between px-2 -mx-2 rounded-xl hover:bg-surface-raised/40 transition-colors">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#267EB8]/20">
+<span class="material-symbols-outlined text-[20px] text-[#267EB8]">monitor</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[14px] text-text font-semibold truncate">Sharaf DG</span>
+<span class="font-body-small text-body-small text-text-dim truncate">Laptop monitor &amp; dock · 16 Oct</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-2">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums">− 3,200<span class="text-xs">.00</span></span>
+<span class="block font-label-caps text-[10px] text-text-dim">EGP</span>
+</div>
+</div>
+<!-- Transaction 2 -->
+<div class="h-16 flex items-center justify-between px-2 -mx-2 rounded-xl hover:bg-surface-raised/40 transition-colors">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#267EB8]/20">
+<span class="material-symbols-outlined text-[20px] text-[#267EB8]">coffee_maker</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[14px] text-text font-semibold truncate">Amazon Egypt</span>
+<span class="font-body-small text-body-small text-text-dim truncate">Coffee machine · 11 Oct</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-2">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums">− 2,200<span class="text-xs">.00</span></span>
+<span class="block font-label-caps text-[10px] text-text-dim">EGP</span>
+</div>
+</div>
+<!-- Transaction 3 -->
+<div class="h-16 flex items-center justify-between px-2 -mx-2 rounded-xl hover:bg-surface-raised/40 transition-colors">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#8A67CE]/20">
+<span class="material-symbols-outlined text-[20px] text-[#8A67CE]">shopping_basket</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[14px] text-text font-semibold truncate">Spinneys</span>
+<span class="font-body-small text-body-small text-text-dim truncate">Monthly pantry stock · 14 Oct</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-2">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums">− 1,450<span class="text-xs">.00</span></span>
+<span class="block font-label-caps text-[10px] text-text-dim">EGP</span>
+</div>
+</div>
+<!-- Transaction 4 -->
+<div class="h-16 flex items-center justify-between px-2 -mx-2 rounded-xl hover:bg-surface-raised/40 transition-colors">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#8A67CE]/20">
+<span class="material-symbols-outlined text-[20px] text-[#8A67CE]">local_grocery_store</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[14px] text-text font-semibold truncate">Carrefour</span>
+<span class="font-body-small text-body-small text-text-dim truncate">Weekly groceries · 08 Oct</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-2">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums">− 1,120<span class="text-xs">.00</span></span>
+<span class="block font-label-caps text-[10px] text-text-dim">EGP</span>
+</div>
+</div>
+<!-- Transaction 5 -->
+<div class="h-16 flex items-center justify-between px-2 -mx-2 rounded-xl hover:bg-surface-raised/40 transition-colors">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#A548B2]/20">
+<span class="material-symbols-outlined text-[20px] text-[#A548B2]">local_gas_station</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[14px] text-text font-semibold truncate">Total Energies</span>
+<span class="font-body-small text-body-small text-text-dim truncate">Full tank &amp; wash · 05 Oct</span>
+</div>
+</div>
+<div class="text-right shrink-0 pl-2">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums">− 950<span class="text-xs">.00</span></span>
+<span class="block font-label-caps text-[10px] text-text-dim">EGP</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.06)]" data-active-classes="text-accent-text font-semibold"><div class="flex justify-around items-center h-[72px] px-space-sm"><a class="flex flex-col items-center justify-center gap-1 w-16 h-12 text-text-dim hover:text-on-surface transition-all" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">account_balance</span><span class="font-label-caps text-label-caps">Home</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-12 text-text-dim hover:text-on-surface transition-all" data-path="records" href="#"><span class="material-symbols-outlined text-[22px]">receipt_long</span><span class="font-label-caps text-label-caps">Records</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-12 text-text-dim hover:text-on-surface transition-all" data-path="stats" href="#"><span class="material-symbols-outlined text-[22px]">query_stats</span><span class="font-label-caps text-label-caps">Stats</span><div class="w-1 h-1 rounded-full bg-primary -mt-0.5"></div></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-12 text-text-dim hover:text-on-surface transition-all" data-path="plan" href="#"><span class="material-symbols-outlined text-[22px]">pie_chart</span><span class="font-label-caps text-label-caps">Plan</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-12 text-text-dim hover:text-on-surface transition-all" data-path="wealth" href="#"><span class="material-symbols-outlined text-[22px]">account_balance_wallet</span><span class="font-label-caps text-label-caps">Wealth</span></a></div></nav></body></html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-primary": "#2D291E", "surface-container": "#1e2022", "light-primary": "#8B6D2B", "light-text": "#2E2B25", "on-primary-container": "#5f4f18", "outline": "#5B5A54", "surface-container-low": "#1a1b1e", "transfer": "#B5C7D8", "light-accent-text": "#77591D", "account-olive": "#7A882F", "primary": "#f6de98", "inverse-on-surface": "#2f3033", "primary-fixed-dim": "#dcc582", "account-blue": "#0785DB", "on-primary-fixed": "#231b00", "on-surface-variant": "#cec6b5", "account-indigo": "#717BCB", "secondary-fixed-dim": "#c5c6cb", "outline-variant": "#4b463a", "on-secondary-fixed": "#191c1f", "background": "#121316", "light-text-dim": "#5D574C", "on-error": "#690005", "tertiary-container": "#60d6cb", "light-warning": "#875A15", "account-azure": "#188ABB", "on-secondary-fixed-variant": "#45474b", "inverse-surface": "#e3e2e6", "account-violet": "#9A6EC2", "surface-container-highest": "#343538", "on-secondary": "#2e3034", "on-primary-fixed-variant": "#55450e", "secondary": "#c5c6cb", "on-tertiary-fixed": "#00201d", "background-oled": "#000000", "light-expense": "#B03A14", "light-income": "#0C7466", "income": "#58CFC4", "account-amber": "#AA7818", "primary-fixed": "#f9e19b", "warning": "#F0BD76", "light-outline": "#938A78", "secondary-container": "#47494d", "accent-text": "#E6D29A", "expense": "#F4806E", "light-background": "#F5F2E9", "surface-dim": "#121316", "secondary-fixed": "#e2e2e7", "account-green": "#3A924F", "text-dim": "#BEB9AF", "light-transfer": "#4C6378", "tertiary": "#7ef3e7", "surface-container-lowest": "#0d0e11", "account-pink": "#CE588B", "on-error-container": "#ffdad6", "tertiary-fixed": "#81f6ea", "tertiary-fixed-dim": "#63d9ce", "error": "#ffb4ab", "account-magenta": "#C45AAC", "on-surface": "#e3e2e6", "account-orange": "#CA642F", "light-surface-raised": "#EBE6DA", "surface": "#292A2D", "surface-container-high": "#292a2d", "surface-tint": "#dcc582", "surface-bright": "#38393c", "on-tertiary-container": "#005b55", "light-surface": "#FFFCF5", "on-secondary-container": "#b7b8bd", "on-background": "#e3e2e6", "light-on-primary": "#FFF8E7", "error-container": "#93000a", "inverse-primary": "#6e5d24", "primary-container": "#d9c27f", "light-investment": "#6F4A9E", "account-red": "#DA535F", "surface-raised": "#34363A", "investment": "#C0A5E8", "on-tertiary-fixed-variant": "#00504b", "text": "#E9E6DE", "account-teal": "#059093", "surface-variant": "#343538", "on-tertiary": "#003733" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "gutter": "0.75rem", "space-section": "2rem", "space-xxl": "1.5rem", "margin": "1.25rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-lg": "1rem", "space-xl": "1.25rem", "space-md": "0.75rem" }, fontFamily: { "body-small": ["Manrope"], "headline": ["Manrope"], "amount-small": ["Manrope"], "amount-large": ["Manrope"], "body": ["Manrope"], "display-hero-mobile": ["Manrope"], "keypad": ["Manrope"], "display-hero": ["Manrope"], "label-caps": ["Manrope"], "amount-medium": ["Manrope"], "title": ["Manrope"] }, fontSize: { "body-small": ["13px", { "lineHeight": "18px", "fontWeight": "500" }], "headline": ["28px", { "lineHeight": "32px", "fontWeight": "500" }], "amount-small": ["14px", { "lineHeight": "17px", "fontWeight": "600" }], "amount-large": ["28px", { "lineHeight": "32px", "fontWeight": "600" }], "body": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "display-hero-mobile": ["36px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "keypad": ["30px", { "lineHeight": "30px", "fontWeight": "500" }], "display-hero": ["44px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "amount-medium": ["17px", { "lineHeight": "20px", "fontWeight": "600" }], "title": ["18px", { "lineHeight": "24px", "fontWeight": "600" }] } } } };</script><style>@layer base { html, body { min-height: 100%; margin: 0; padding: 0; background-color: #121316; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); } .pt-safe { padding-top: env(safe-area-inset-top, 24px); } } ::-webkit-scrollbar { display: none; }</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-on-surface font-body text-body min-h-screen flex flex-col relative antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-background/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Go back" class="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-text-dim hover:text-on-surface hover:bg-surface-raised active:scale-95 transition-all" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-title text-title text-text tracking-tight">Templates</h1></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="flex-1 w-full bg-background pt-14 pb-safe flex flex-col px-margin"><div class="flex flex-col w-full pb-6 space-y-space-section select-none">
+<!-- SECTION 1: Income splits -->
+<section class="flex flex-col w-full">
+<div class="flex items-center justify-between pb-space-sm">
+<h2 class="font-title text-[16px] leading-[22px] font-semibold text-text tracking-tight">Income splits</h2>
+<span class="text-label-caps uppercase tracking-wider text-text-dim">Allocation presets</span>
+</div>
+<div class="flex flex-col space-y-space-md">
+<!-- Split Card 1: Standard 10 / 40 / 50 -->
+<div class="w-full bg-surface rounded-[20px] p-space-lg flex flex-col gap-space-md active:scale-[0.99] transition-all cursor-pointer relative" role="button" tabindex="0">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-title text-[16px] leading-[22px] font-semibold text-text">Standard 10 / 40 / 50</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-raised text-accent-text text-label-caps uppercase tracking-wider font-semibold">
+              Default
+            </span>
+</div>
+<span class="material-symbols-outlined text-text-dim text-[20px]">chevron_right</span>
+</div>
+<!-- 3-Segment Budget Track -->
+<div class="w-full h-[6px] rounded-full bg-surface-raised flex overflow-hidden gap-[2px]">
+<div class="h-full bg-investment rounded-l-full" style="width: 10%;"></div>
+<div class="h-full bg-account-blue" style="width: 40%;"></div>
+<div class="h-full bg-income rounded-r-full" style="width: 50%;"></div>
+</div>
+<!-- Legend breakdown -->
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 font-body-small text-body-small text-text-dim">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-investment"></span>
+<span>10% Investments</span>
+</div>
+<span class="text-outline/60">·</span>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-account-blue"></span>
+<span>40% Needs</span>
+</div>
+<span class="text-outline/60">·</span>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-income"></span>
+<span>50% Discretionary</span>
+</div>
+</div>
+</div>
+<!-- Split Card 2: Lean 5 / 25 / 70 -->
+<div class="w-full bg-surface rounded-[20px] p-space-lg flex flex-col gap-space-md active:scale-[0.99] transition-all cursor-pointer" role="button" tabindex="0">
+<div class="flex items-center justify-between">
+<span class="font-title text-[16px] leading-[22px] font-semibold text-text">Lean 5 / 25 / 70</span>
+<span class="material-symbols-outlined text-text-dim text-[20px]">chevron_right</span>
+</div>
+<!-- 3-Segment Budget Track -->
+<div class="w-full h-[6px] rounded-full bg-surface-raised flex overflow-hidden gap-[2px]">
+<div class="h-full bg-investment rounded-l-full" style="width: 5%;"></div>
+<div class="h-full bg-account-blue" style="width: 25%;"></div>
+<div class="h-full bg-income rounded-r-full" style="width: 70%;"></div>
+</div>
+<!-- Legend breakdown -->
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 font-body-small text-body-small text-text-dim">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-investment"></span>
+<span>5% Investments</span>
+</div>
+<span class="text-outline/60">·</span>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-account-blue"></span>
+<span>25% Needs</span>
+</div>
+<span class="text-outline/60">·</span>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-income"></span>
+<span>70% Vault</span>
+</div>
+</div>
+</div>
+<!-- Action: New Split Button -->
+<button class="w-full h-[52px] rounded-[16px] bg-surface/50 hover:bg-surface-raised text-text-dim hover:text-text flex items-center justify-center gap-space-sm font-title text-[15px] active:scale-[0.98] transition-all" style="outline: 1px dashed rgba(91, 90, 84, 0.4); outline-offset: -1px;" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>New split</span>
+</button>
+</div>
+</section>
+<!-- SECTION 2: Income sources -->
+<section class="flex flex-col w-full">
+<div class="flex items-center justify-between pb-space-sm">
+<h2 class="font-title text-[16px] leading-[22px] font-semibold text-text tracking-tight">Income sources</h2>
+<span class="text-label-caps uppercase tracking-wider text-text-dim">Rules active</span>
+</div>
+<!-- Grouped Surface Card -->
+<div class="w-full bg-surface rounded-[20px] overflow-hidden flex flex-col">
+<!-- Row 1: Main job -->
+<div class="w-full min-h-[64px] px-space-lg py-space-sm flex items-center justify-between hover:bg-surface-raised/40 active:bg-surface-raised transition-colors cursor-pointer" role="button" tabindex="0">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-[36px] h-[36px] rounded-[10px] bg-income/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-income text-[20px]" style="font-variation-settings: 'FILL' 1;">work</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[15px] leading-[20px] font-semibold text-text truncate">Main job</span>
+<div class="flex items-center gap-1.5 font-body-small text-body-small text-text-dim">
+<span>Standard split</span>
+<span class="text-outline/60">·</span>
+<span class="text-accent-text font-medium">10 / 40 / 50</span>
+</div>
+</div>
+</div>
+<div class="flex items-center pl-space-sm shrink-0">
+<span class="material-symbols-outlined text-text-dim text-[20px]">chevron_right</span>
+</div>
+</div>
+<!-- Hairline divider via subtle tonal shift -->
+<div class="w-full h-[1px] bg-outline/20"></div>
+<!-- Row 2: Freelance -->
+<div class="w-full min-h-[64px] px-space-lg py-space-sm flex items-center justify-between hover:bg-surface-raised/40 active:bg-surface-raised transition-colors cursor-pointer" role="button" tabindex="0">
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-[36px] h-[36px] rounded-[10px] bg-income/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-income text-[20px]" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[15px] leading-[20px] font-semibold text-text truncate">Freelance</span>
+<div class="flex items-center gap-1.5 font-body-small text-body-small text-text-dim">
+<span>Lean split</span>
+<span class="text-outline/60">·</span>
+<span class="text-accent-text font-medium">5 / 25 / 70</span>
+</div>
+</div>
+</div>
+<div class="flex items-center pl-space-sm shrink-0">
+<span class="material-symbols-outlined text-text-dim text-[20px]">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: Record templates -->
+<section class="flex flex-col w-full space-y-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-title text-[16px] leading-[22px] font-semibold text-text tracking-tight">Record templates</h2>
+<span class="text-label-caps uppercase tracking-wider text-text-dim">Quick log</span>
+</div>
+<!-- Grouped Surface Card -->
+<div class="w-full bg-surface rounded-[20px] overflow-hidden flex flex-col">
+<!-- Template Row 1: Coffee -->
+<div class="w-full min-h-[68px] px-space-lg py-space-sm flex items-center justify-between hover:bg-surface-raised/40 active:bg-surface-raised transition-colors cursor-pointer group" role="button" tabindex="0">
+<div class="flex items-center gap-space-md min-w-0 pr-2">
+<div class="w-[36px] h-[36px] rounded-[10px] bg-expense/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-expense text-[20px]" style="font-variation-settings: 'FILL' 1;">local_cafe</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[15px] leading-[20px] font-semibold text-text truncate">Coffee</span>
+<div class="flex items-center gap-1.5 font-body-small text-body-small text-text-dim truncate">
+<span class="w-2 h-2 rounded-full bg-account-indigo shrink-0"></span>
+<span class="truncate">Fun · Food &amp; drinks</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 text-right">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums tracking-tight">− 45.00 <span class="font-body-small text-[12px] text-text-dim">EGP</span></span>
+<span class="material-symbols-outlined text-text-dim text-[18px] group-hover:text-text transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Hairline divider -->
+<div class="w-full h-[1px] bg-outline/20"></div>
+<!-- Template Row 2: Taxi to work -->
+<div class="w-full min-h-[68px] px-space-lg py-space-sm flex items-center justify-between hover:bg-surface-raised/40 active:bg-surface-raised transition-colors cursor-pointer group" role="button" tabindex="0">
+<div class="flex items-center gap-space-md min-w-0 pr-2">
+<div class="w-[36px] h-[36px] rounded-[10px] bg-expense/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-expense text-[20px]" style="font-variation-settings: 'FILL' 1;">local_taxi</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[15px] leading-[20px] font-semibold text-text truncate">Taxi to work</span>
+<div class="flex items-center gap-1.5 font-body-small text-body-small text-text-dim truncate">
+<span class="w-2 h-2 rounded-full bg-account-blue shrink-0"></span>
+<span class="truncate">Essential · Transportation</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 text-right">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums tracking-tight">− 80.00 <span class="font-body-small text-[12px] text-text-dim">EGP</span></span>
+<span class="material-symbols-outlined text-text-dim text-[18px] group-hover:text-text transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Hairline divider -->
+<div class="w-full h-[1px] bg-outline/20"></div>
+<!-- Template Row 3: Gym -->
+<div class="w-full min-h-[68px] px-space-lg py-space-sm flex items-center justify-between hover:bg-surface-raised/40 active:bg-surface-raised transition-colors cursor-pointer group" role="button" tabindex="0">
+<div class="flex items-center gap-space-md min-w-0 pr-2">
+<div class="w-[36px] h-[36px] rounded-[10px] bg-expense/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-expense text-[20px]" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-title text-[15px] leading-[20px] font-semibold text-text truncate">Gym</span>
+<div class="flex items-center gap-1.5 font-body-small text-body-small text-text-dim truncate">
+<span class="w-2 h-2 rounded-full bg-account-indigo shrink-0"></span>
+<span class="truncate">Fun · Life &amp; entertainment</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 text-right">
+<span class="font-amount-medium text-amount-medium text-expense tabular-nums tracking-tight">− 600.00 <span class="font-body-small text-[12px] text-text-dim">EGP</span></span>
+<span class="material-symbols-outlined text-text-dim text-[18px] group-hover:text-text transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Action: New Template Button -->
+<button class="w-full h-[52px] rounded-[16px] bg-surface/50 hover:bg-surface-raised text-text-dim hover:text-text flex items-center justify-center gap-space-sm font-title text-[15px] active:scale-[0.98] transition-all" style="outline: 1px dashed rgba(91, 90, 84, 0.4); outline-offset: -1px;" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>New template</span>
+</button>
+</section>
+</div><div class="w-full flex justify-center py-space-sm"><div class="w-32 h-1 rounded-full bg-outline/40"></div></div></main></body></html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#121316;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary": "#003733", "account-indigo": "#717BCB", "error": "#ffb4ab", "on-primary": "#3c2f00", "surface-variant": "#343538", "on-surface": "#e3e2e6", "on-tertiary-container": "#005b55", "light-accent-text": "#77591D", "account-green": "#3A924F", "light-text": "#2E2B25", "on-error": "#690005", "on-primary-fixed": "#231b00", "text": "#E9E6DE", "on-error-container": "#ffdad6", "on-surface-variant": "#cec6b5", "background": "#121316", "tertiary-fixed": "#81f6ea", "on-tertiary-fixed": "#00201d", "account-pink": "#CE588B", "surface-container-high": "#292a2d", "primary-container": "#d9c27f", "transfer": "#B5C7D8", "primary-fixed-dim": "#dcc582", "on-primary-container": "#5f4f18", "account-red": "#DA535F", "light-transfer": "#4C6378", "light-expense": "#B03A14", "accent-text": "#E6D29A", "light-income": "#0C7466", "on-primary-fixed-variant": "#55450e", "surface-container-low": "#1a1b1e", "surface-bright": "#38393c", "account-olive": "#7A882F", "outline": "#5B5A54", "on-secondary": "#2e3034", "inverse-primary": "#6e5d24", "account-blue": "#0785DB", "light-warning": "#875A15", "surface-container-highest": "#343538", "account-magenta": "#C45AAC", "on-secondary-fixed-variant": "#45474b", "investment": "#C0A5E8", "account-azure": "#188ABB", "account-amber": "#AA7818", "light-surface-raised": "#EBE6DA", "inverse-on-surface": "#2f3033", "on-secondary-container": "#b7b8bd", "surface-tint": "#dcc582", "secondary-fixed-dim": "#c5c6cb", "error-container": "#93000a", "expense": "#F4806E", "secondary": "#c5c6cb", "account-orange": "#CA642F", "on-tertiary-fixed-variant": "#00504b", "surface": "#292A2D", "light-primary": "#8B6D2B", "light-investment": "#6F4A9E", "light-surface": "#FFFCF5", "account-violet": "#9A6EC2", "tertiary-fixed-dim": "#63d9ce", "light-on-primary": "#FFF8E7", "surface-container": "#1e2022", "inverse-surface": "#e3e2e6", "background-oled": "#000000", "on-background": "#e3e2e6", "text-dim": "#BEB9AF", "account-teal": "#059093", "light-background": "#F5F2E9", "warning": "#F0BD76", "surface-raised": "#34363A", "primary-fixed": "#f9e19b", "primary": "#f6de98", "tertiary-container": "#60d6cb", "secondary-fixed": "#e2e2e7", "income": "#58CFC4", "surface-container-lowest": "#0d0e11", "secondary-container": "#47494d", "tertiary": "#7ef3e7", "surface-dim": "#121316", "outline-variant": "#4b463a", "light-outline": "#938A78", "light-text-dim": "#5D574C", "on-secondary-fixed": "#191c1f" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-section": "2rem", "space-lg": "1rem", "space-md": "0.75rem", "gutter": "0.75rem", "margin": "1.25rem", "space-xs": "0.25rem", "space-xxl": "1.5rem", "space-xl": "1.25rem" }, "fontFamily": { "display-hero": ["Manrope"], "amount-medium": ["Manrope"], "display-hero-mobile": ["Manrope"], "keypad": ["Manrope"], "amount-large": ["Manrope"], "amount-small": ["Manrope"], "label-caps": ["Manrope"], "headline": ["Manrope"], "body-small": ["Manrope"], "title": ["Manrope"], "body": ["Manrope"] }, "fontSize": { "display-hero": ["44px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "amount-medium": ["17px", { "lineHeight": "20px", "fontWeight": "600" }], "display-hero-mobile": ["36px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "keypad": ["30px", { "lineHeight": "30px", "fontWeight": "500" }], "amount-large": ["28px", { "lineHeight": "32px", "fontWeight": "600" }], "amount-small": ["14px", { "lineHeight": "17px", "fontWeight": "600" }], "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "headline": ["28px", { "lineHeight": "32px", "fontWeight": "500" }], "body-small": ["13px", { "lineHeight": "18px", "fontWeight": "500" }], "title": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "body": ["15px", { "lineHeight": "22px", "fontWeight": "400" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-text font-body text-body min-h-screen flex flex-col relative selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-background/85 backdrop-blur-xl"><div class="h-16 px-margin flex items-center justify-between"><h1 class="font-title text-title text-text tracking-tight flex items-center">Wealth</h1><div class="flex items-center gap-space-xs"><button aria-label="Toggle balance visibility" class="w-11 h-11 flex items-center justify-center text-text-dim hover:text-text active:text-primary transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">visibility</span></button><button aria-label="Settings" class="w-11 h-11 flex items-center justify-center text-text-dim hover:text-text active:text-primary transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">settings</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 px-margin bg-background min-h-screen"><div class="flex flex-col w-full pb-8">
+<!-- Top Ambient Glow Field (Disciplined champagne radial diffusion) -->
+<div class="relative w-full overflow-hidden rounded-[20px] bg-surface mb-3" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.45);">
+<div class="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-primary/10 blur-[54px]"></div>
+<div class="relative px-5 pt-5 pb-4">
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-caps text-label-caps text-text-dim tracking-[0.1em] uppercase">Net Worth</span>
+<span class="font-label-caps text-label-caps text-income bg-income/10 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-income"></span>
+          +4.7% MoM
+        </span>
+</div>
+<!-- Primary Net Worth Figure -->
+<div class="flex items-baseline gap-1.5 text-text my-1 tracking-tight">
+<span class="font-body-small text-body-small text-text-dim">EGP</span>
+<span class="font-display-hero-mobile text-display-hero-mobile font-semibold tabular-nums tracking-tight">248,650</span>
+<span class="font-headline text-headline text-text-dim tabular-nums">.00</span>
+</div>
+</div>
+<!-- Tonal Hairline Separation -->
+<div class="h-[1px] w-full bg-outline/40"></div>
+<!-- Dual Column Split: Cash vs Holdings -->
+<div class="grid grid-cols-2 divide-x divide-outline/40 bg-surface-container-low/40">
+<div class="px-5 py-3.5 flex flex-col">
+<span class="font-label-caps text-label-caps text-text-dim uppercase tracking-wider mb-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-account-blue"></span> Cash
+        </span>
+<div class="font-amount-medium text-amount-medium text-text tabular-nums flex items-baseline gap-1">
+<span>61,200.00</span>
+<span class="font-label-caps text-[10px] text-text-dim font-normal">EGP</span>
+</div>
+</div>
+<div class="px-5 py-3.5 flex flex-col">
+<span class="font-label-caps text-label-caps text-text-dim uppercase tracking-wider mb-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-text"></span> Holdings
+        </span>
+<div class="font-amount-medium text-amount-medium text-text tabular-nums flex items-baseline gap-1">
+<span>187,450.00</span>
+<span class="font-label-caps text-[10px] text-text-dim font-normal">EGP</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Asset Allocation Section -->
+<div class="rounded-[20px] bg-surface p-5 mb-3" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.45);">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-title text-title text-text">Asset allocation</h2>
+<span class="font-label-caps text-label-caps text-text-dim uppercase tracking-wider">Live split</span>
+</div>
+<div class="flex items-center justify-between gap-4">
+<!-- Donut Chart (Total circumference for r=50 is 314.159) -->
+<!-- Cash: 24.6% -> 77.3 | Gold: 60.9% -> 191.3 | Stocks: 9.7% -> 30.5 | Funds: 4.8% -> 15.1 -->
+<div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 120 120">
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#1a1b1e" stroke-width="15"></circle>
+<!-- Cash segment (24.6%) -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#267EB8" stroke-dasharray="77.3 236.9" stroke-dashoffset="0" stroke-linecap="round" stroke-width="15"></circle>
+<!-- Gold segment (60.9%) -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#D9C27F" stroke-dasharray="191.3 122.9" stroke-dashoffset="-79.3" stroke-linecap="round" stroke-width="15"></circle>
+<!-- Stocks segment (9.7%) -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#C0A5E8" stroke-dasharray="30.5 283.7" stroke-dashoffset="-272.6" stroke-linecap="round" stroke-width="15"></circle>
+<!-- Funds segment (4.8%) -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#35B2C4" stroke-dasharray="15.1 299.1" stroke-dashoffset="-305.1" stroke-linecap="round" stroke-width="15"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-amount-large text-amount-large text-text font-bold leading-none tabular-nums">75%</span>
+<span class="font-label-caps text-[10px] text-text-dim uppercase tracking-wider mt-1">Invested</span>
+</div>
+</div>
+<!-- Segment Legend -->
+<div class="flex-1 flex flex-col gap-2 min-w-0">
+<!-- Gold -->
+<div class="flex flex-col">
+<div class="flex items-center justify-between text-body-small">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-2 h-2 rounded-full bg-primary-container shrink-0"></span>
+<span class="font-medium text-text truncate">Gold</span>
+</span>
+<span class="font-medium text-text-dim text-[12px] tabular-nums">60.9%</span>
+</div>
+<span class="font-amount-small text-[12px] text-text-dim tabular-nums pl-3.5">151,300.00 EGP</span>
+</div>
+<!-- Cash -->
+<div class="flex flex-col">
+<div class="flex items-center justify-between text-body-small">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-2 h-2 rounded-full bg-[#267EB8] shrink-0"></span>
+<span class="font-medium text-text truncate">Cash</span>
+</span>
+<span class="font-medium text-text-dim text-[12px] tabular-nums">24.6%</span>
+</div>
+<span class="font-amount-small text-[12px] text-text-dim tabular-nums pl-3.5">61,200.00 EGP</span>
+</div>
+<!-- Stocks -->
+<div class="flex flex-col">
+<div class="flex items-center justify-between text-body-small">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-2 h-2 rounded-full bg-[#C0A5E8] shrink-0"></span>
+<span class="font-medium text-text truncate">Stocks</span>
+</span>
+<span class="font-medium text-text-dim text-[12px] tabular-nums">9.7%</span>
+</div>
+<span class="font-amount-small text-[12px] text-text-dim tabular-nums pl-3.5">24,150.00 EGP</span>
+</div>
+<!-- Funds -->
+<div class="flex flex-col">
+<div class="flex items-center justify-between text-body-small">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-2 h-2 rounded-full bg-[#35B2C4] shrink-0"></span>
+<span class="font-medium text-text truncate">Funds</span>
+</span>
+<span class="font-medium text-text-dim text-[12px] tabular-nums">4.8%</span>
+</div>
+<span class="font-amount-small text-[12px] text-text-dim tabular-nums pl-3.5">12,000.00 EGP</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Holdings Filter Pills -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 mb-2 scrollbar-none" id="holdingsFilterGroup">
+<button class="h-9 px-4 rounded-lg bg-surface-raised text-primary-container font-semibold text-[13px] tracking-wide shrink-0 transition-colors" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.45);" type="button">All (4)</button>
+<button class="h-9 px-3.5 rounded-lg bg-surface text-text-dim hover:text-text font-medium text-[13px] tracking-wide shrink-0 transition-colors" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.35);" type="button">Gold</button>
+<button class="h-9 px-3.5 rounded-lg bg-surface text-text-dim hover:text-text font-medium text-[13px] tracking-wide shrink-0 transition-colors" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.35);" type="button">Stocks</button>
+<button class="h-9 px-3.5 rounded-lg bg-surface text-text-dim hover:text-text font-medium text-[13px] tracking-wide shrink-0 transition-colors" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.35);" type="button">Funds</button>
+<button class="h-9 px-3.5 rounded-lg bg-surface text-text-dim hover:text-text font-medium text-[13px] tracking-wide shrink-0 transition-colors" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.35);" type="button">Other</button>
+</div>
+<!-- Holdings Ledger Card -->
+<div class="rounded-[20px] bg-surface overflow-hidden mb-3" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.45);">
+<!-- Item 1: Gold 21K coins -->
+<div class="p-4 flex items-center justify-between gap-3 active:bg-surface-raised/40 transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-[#C0A5E8]/18 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-[#C0A5E8]">toll</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body text-body font-semibold text-text truncate">Gold 21K coins</span>
+<span class="font-body-small text-body-small text-text-dim">41 g</span>
+</div>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-amount-medium text-amount-medium text-text tabular-nums">112,400.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span></span>
+<span class="font-body-small text-[12px] text-income font-medium tabular-nums">+ 9,800.00 (+9.5%)</span>
+</div>
+</div>
+<div class="h-[1px] w-full bg-outline/35 ml-16"></div>
+<!-- Item 2: Gold 24K bars -->
+<div class="p-4 flex items-center justify-between gap-3 active:bg-surface-raised/40 transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-[#D9C27F]/18 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-[#D9C27F]">view_in_ar</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body text-body font-semibold text-text truncate">Gold 24K bars</span>
+<span class="font-body-small text-body-small text-text-dim">10 g</span>
+</div>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-amount-medium text-amount-medium text-text tabular-nums">38,900.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span></span>
+<span class="font-body-small text-[12px] text-income font-medium tabular-nums">+ 2,100.00</span>
+</div>
+</div>
+<div class="h-[1px] w-full bg-outline/35 ml-16"></div>
+<!-- Item 3: COMI (CIB) -->
+<div class="p-4 flex items-center justify-between gap-3 active:bg-surface-raised/40 transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-[#C0A5E8]/18 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-[#C0A5E8]">trending_up</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-body text-body font-semibold text-text truncate">COMI (CIB)</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-small text-body-small text-text-dim">150 shares</span>
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-warning bg-warning/10 px-1.5 py-0.2 rounded">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span>
+              26 h old
+            </span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-amount-medium text-amount-medium text-text tabular-nums">24,150.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span></span>
+<span class="font-body-small text-[12px] text-expense font-medium tabular-nums">− 640.00</span>
+</div>
+</div>
+<div class="h-[1px] w-full bg-outline/35 ml-16"></div>
+<!-- Item 4: Money-market fund -->
+<div class="p-4 flex items-center justify-between gap-3 active:bg-surface-raised/40 transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-xl bg-[#35B2C4]/18 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-[#35B2C4]">account_balance</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body text-body font-semibold text-text truncate">Money-market fund</span>
+<span class="font-body-small text-body-small text-text-dim">Bank Misr</span>
+</div>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-amount-medium text-amount-medium text-text tabular-nums">12,000.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span></span>
+<span class="font-body-small text-[12px] text-income font-medium tabular-nums">+ 120.00</span>
+</div>
+</div>
+</div>
+<!-- Action: Secondary Sync / Update Prices -->
+<button class="w-full h-[52px] rounded-[20px] bg-surface-raised text-text active:scale-[0.99] hover:bg-surface-bright flex items-center justify-center gap-2 mb-4 font-semibold text-[15px] transition-all" id="updatePricesBtn" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.45);" type="button">
+<span class="material-symbols-outlined text-[20px] text-accent-text" id="refreshIcon">sync</span>
+<span>Update prices</span>
+</button>
+<!-- Accounts By Type Section -->
+<div class="rounded-[20px] bg-surface p-5" style="box-shadow: inset 0 0 0 1px rgba(91, 90, 84, 0.45);">
+<div class="flex items-center justify-between mb-3">
+<h3 class="font-title text-title text-text">Accounts by type</h3>
+<span class="font-label-caps text-label-caps text-text-dim uppercase tracking-wider">3 Wallets</span>
+</div>
+<div class="flex flex-col divide-y divide-outline/35">
+<!-- Cash (Essential) -->
+<div class="py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-2.5 rounded-full bg-[#267EB8]"></span>
+<div class="flex flex-col">
+<span class="font-body text-body font-semibold text-text">Cash</span>
+<span class="font-body-small text-[12px] text-text-dim">Essential reserve</span>
+</div>
+</div>
+<div class="font-amount-medium text-amount-medium text-text tabular-nums">
+          4,240.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span>
+</div>
+</div>
+<!-- General (Fun) -->
+<div class="py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-2.5 rounded-full bg-[#8A67CE]"></span>
+<div class="flex flex-col">
+<span class="font-body text-body font-semibold text-text">General</span>
+<span class="font-body-small text-[12px] text-text-dim">Discretionary / Fun</span>
+</div>
+</div>
+<div class="font-amount-medium text-amount-medium text-text tabular-nums">
+          22,035.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span>
+</div>
+</div>
+<!-- Investment Vault -->
+<div class="py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-2.5 rounded-full bg-[#A25FC0]"></span>
+<div class="flex flex-col">
+<span class="font-body text-body font-semibold text-text">Investment</span>
+<span class="font-body-small text-[12px] text-text-dim">Primary brokerage vault</span>
+</div>
+</div>
+<div class="font-amount-medium text-amount-medium text-text tabular-nums">
+          34,925.00 <span class="font-label-caps text-[11px] font-normal text-text-dim">EGP</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const updateBtn = document.getElementById('updatePricesBtn');
+    const refreshIcon = document.getElementById('refreshIcon');
+    if (updateBtn && refreshIcon) {
+      updateBtn.addEventListener('click', function() {
+        refreshIcon.classList.add('animate-spin');
+        updateBtn.disabled = true;
+        setTimeout(() => {
+          refreshIcon.classList.remove('animate-spin');
+          updateBtn.disabled = false;
+        }, 1200);
+      });
+    }
+
+    // Gentle pill filter switching micro-state
+    const filterButtons = document.querySelectorAll('#holdingsFilterGroup button');
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => {
+          b.className = 'h-9 px-3.5 rounded-lg bg-surface text-text-dim hover:text-text font-medium text-[13px] tracking-wide shrink-0 transition-colors';
+          b.style.boxShadow = 'inset 0 0 0 1px rgba(91, 90, 84, 0.35)';
+        });
+        btn.className = 'h-9 px-4 rounded-lg bg-surface-raised text-primary-container font-semibold text-[13px] tracking-wide shrink-0 transition-colors';
+        btn.style.boxShadow = 'inset 0 0 0 1px rgba(91, 90, 84, 0.45)';
+      });
+    });
+  })();
+</script></main><aside class="fixed right-margin bottom-[88px] z-50 pb-safe pointer-events-none"><button aria-label="Add Transaction" class="pointer-events-auto w-[60px] h-[60px] rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.36)] hover:bg-primary active:scale-95 transition-all" type="button"><span class="material-symbols-outlined text-[28px] font-light">add</span></button></aside><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]" data-active-classes="text-accent-text font-medium [&amp;_span.indicator-pill]:bg-surface-raised [&amp;_span.material-symbols-outlined]:[font-variation-settings:'FILL'_1]"><div class="flex justify-around items-center h-16 px-space-xs"><a class="flex-1 flex flex-col items-center justify-center py-space-xs min-h-[44px] text-text-dim hover:text-text transition-colors" data-path="home" href="#"><span class="indicator-pill px-3 py-0.5 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[22px]">home</span></span><span class="font-label-caps text-label-caps uppercase mt-1 tracking-wider">Home</span></a><a class="flex-1 flex flex-col items-center justify-center py-space-xs min-h-[44px] text-text-dim hover:text-text transition-colors" data-path="records" href="#"><span class="indicator-pill px-3 py-0.5 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[22px]">receipt_long</span></span><span class="font-label-caps text-label-caps uppercase mt-1 tracking-wider">Records</span></a><a class="flex-1 flex flex-col items-center justify-center py-space-xs min-h-[44px] text-text-dim hover:text-text transition-colors" data-path="stats" href="#"><span class="indicator-pill px-3 py-0.5 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[22px]">monitoring</span></span><span class="font-label-caps text-label-caps uppercase mt-1 tracking-wider">Stats</span></a><a class="flex-1 flex flex-col items-center justify-center py-space-xs min-h-[44px] text-text-dim hover:text-text transition-colors" data-path="plan" href="#"><span class="indicator-pill px-3 py-0.5 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[22px]">pie_chart</span></span><span class="font-label-caps text-label-caps uppercase mt-1 tracking-wider">Plan</span></a><a aria-current="page" class="flex-1 flex flex-col items-center justify-center py-space-xs min-h-[44px] transition-colors text-accent-text font-medium [&amp;_span.indicator-pill]:bg-surface-raised [&amp;_span.material-symbols-outlined]:[font-variation-settings:'FILL'_1]" data-path="wealth" href="#"><span class="indicator-pill px-3 py-0.5 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[22px]">account_balance</span></span><span class="font-label-caps text-label-caps uppercase mt-1 tracking-wider">Wealth</span></a></div></nav></body></html>

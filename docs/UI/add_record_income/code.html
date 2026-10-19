@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#121316;color:#e3e2e6;}body{overscroll-behavior:none;font-family:'Manrope',sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"account-pink":"#CE588B","error":"#ffb4ab","transfer":"#B5C7D8","surface-variant":"#343538","outline":"#5B5A54","light-surface":"#FFFCF5","surface-bright":"#38393c","on-secondary":"#2e3034","account-azure":"#188ABB","text":"#E9E6DE","on-surface-variant":"#cec6b5","light-income":"#0C7466","on-error":"#690005","surface-tint":"#dcc582","secondary-container":"#47494d","inverse-primary":"#6e5d24","account-olive":"#7A882F","surface":"#292A2D","light-background":"#F5F2E9","light-text":"#2E2B25","light-transfer":"#4C6378","primary":"#f6de98","error-container":"#93000a","secondary":"#c5c6cb","on-tertiary-fixed-variant":"#00504b","account-red":"#DA535F","inverse-surface":"#e3e2e6","light-text-dim":"#5D574C","account-magenta":"#C45AAC","on-tertiary":"#003733","light-accent-text":"#77591D","on-primary-fixed":"#231b00","investment":"#C0A5E8","surface-container-high":"#292a2d","light-on-primary":"#FFF8E7","surface-container-lowest":"#0d0e11","inverse-on-surface":"#2f3033","on-secondary-container":"#b7b8bd","background-oled":"#000000","primary-fixed":"#f9e19b","account-teal":"#059093","on-primary":"#3c2f00","surface-container-highest":"#343538","on-secondary-fixed-variant":"#45474b","accent-text":"#E6D29A","warning":"#F0BD76","account-green":"#3A924F","tertiary-fixed-dim":"#63d9ce","primary-container":"#d9c27f","on-background":"#e3e2e6","on-surface":"#e3e2e6","text-dim":"#BEB9AF","secondary-fixed-dim":"#c5c6cb","light-warning":"#875A15","on-tertiary-container":"#005b55","tertiary":"#7ef3e7","account-blue":"#0785DB","secondary-fixed":"#e2e2e7","account-indigo":"#717BCB","light-surface-raised":"#EBE6DA","surface-raised":"#34363A","tertiary-container":"#60d6cb","surface-container-low":"#1a1b1e","account-orange":"#CA642F","account-violet":"#9A6EC2","background":"#121316","income":"#58CFC4","expense":"#F4806E","on-secondary-fixed":"#191c1f","account-amber":"#AA7818","surface-container":"#1e2022","outline-variant":"#4b463a","surface-dim":"#121316","on-primary-fixed-variant":"#55450e","tertiary-fixed":"#81f6ea","light-primary":"#8B6D2B","light-investment":"#6F4A9E","on-primary-container":"#5f4f18","light-expense":"#B03A14","on-error-container":"#ffdad6","light-outline":"#938A78","on-tertiary-fixed":"#00201d","primary-fixed-dim":"#dcc582"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-xl":"1.25rem",gutter:"0.75rem",margin:"1.25rem","space-section":"2rem","space-lg":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-xxl":"1.5rem","space-md":"0.75rem"},fontFamily:{"keypad":["Manrope"],"amount-medium":["Manrope"],"display-hero-mobile":["Manrope"],"display-hero":["Manrope"],"title":["Manrope"],"headline":["Manrope"],"body-small":["Manrope"],"body":["Manrope"],"amount-small":["Manrope"],"amount-large":["Manrope"],"label-caps":["Manrope"]},fontSize:{"keypad":["30px",{lineHeight:"30px",fontWeight:"500"}],"amount-medium":["17px",{lineHeight:"20px",fontWeight:"600"}],"display-hero-mobile":["36px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"500"}],"display-hero":["44px",{lineHeight:"46px",letterSpacing:"-0.02em",fontWeight:"500"}],"title":["18px",{lineHeight:"24px",fontWeight:"600"}],"headline":["28px",{lineHeight:"32px",fontWeight:"500"}],"body-small":["13px",{lineHeight:"18px",fontWeight:"500"}],"body":["15px",{lineHeight:"22px",fontWeight:"400"}],"amount-small":["14px",{lineHeight:"17px",fontWeight:"600"}],"amount-large":["28px",{lineHeight:"32px",fontWeight:"600"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"600"}]}}}</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background font-body text-body text-on-surface min-h-screen flex flex-col antialiased selection:bg-primary selection:text-on-primary"><header class="fixed top-0 w-full z-50 pt-safe bg-background/80 backdrop-blur-xl"><div class="flex flex-col h-20"><div class="h-6 px-margin flex items-center justify-between text-body-small font-body-small text-text-dim tracking-tight select-none"><span>9:41</span><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px]">signal_cellular_4_bar</span><span class="material-symbols-outlined text-[15px]">wifi</span><span class="material-symbols-outlined text-[15px]">battery_full</span></div></div><div class="flex-1 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Close" class="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-text hover:text-primary active:scale-95 transition-transform duration-150 focus:outline-none" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">close</span></button><h1 class="font-title text-title text-text tracking-tight truncate max-w-[200px]">Add Transaction</h1></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-20 pb-safe bg-background"><div class="flex flex-col w-full select-none justify-between pb-4">
+<!-- Top Segmented Switcher (Income Selected) -->
+<div class="px-margin pt-2 pb-3 flex items-center justify-center relative">
+<div class="bg-surface p-1 rounded-full flex items-center gap-1 shadow-sm">
+<button class="bg-surface-raised text-text font-body-small text-body-small px-4 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all duration-150 active:scale-95" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-income inline-block"></span>
+<span class="font-semibold text-text">Income</span>
+</button>
+<button class="text-text-dim hover:text-text font-body-small text-body-small px-3.5 py-1.5 rounded-full transition-colors active:scale-95" type="button">
+        Expense
+      </button>
+<button class="text-text-dim hover:text-text font-body-small text-body-small px-3.5 py-1.5 rounded-full transition-colors active:scale-95" type="button">
+        Transfer
+      </button>
+</div>
+</div>
+<!-- Hero Amount Area -->
+<div class="flex flex-col items-center justify-center pt-2 pb-4 px-margin relative">
+<!-- Ambient subtle champagne glow behind figures -->
+<div class="absolute w-48 h-20 bg-primary/5 rounded-full blur-2xl pointer-events-none -z-10"></div>
+<div class="flex items-baseline justify-center gap-2">
+<!-- Income Direction Indicator -->
+<div class="flex items-center text-income self-center mb-1">
+<span class="material-symbols-outlined text-[20px] font-bold">add</span>
+<span class="material-symbols-outlined text-[22px] -ml-1">south_west</span>
+</div>
+<!-- Currency Code -->
+<span class="font-body-small text-body-small text-text-dim tracking-wider uppercase mb-1 font-semibold">EGP</span>
+<!-- Primary Amount -->
+<div class="flex items-baseline font-display-hero-mobile text-display-hero-mobile tracking-tight">
+<span class="text-text font-medium tabular-nums" id="amount-display">12,580</span>
+<span class="text-text-dim text-headline font-normal">.00</span>
+</div>
+</div>
+</div>
+<!-- Chip Row (Horizontally Scrollable) -->
+<div class="w-full overflow-x-auto no-scrollbar px-margin py-1.5 flex items-center gap-2">
+<!-- Source Chip -->
+<button class="h-9 px-3 rounded-full bg-surface hover:bg-surface-raised flex items-center gap-1.5 shrink-0 transition-colors active:scale-95" type="button">
+<span class="w-2 h-2 rounded-full bg-income shrink-0"></span>
+<span class="font-body-small text-body-small text-text">Main job</span>
+<span class="material-symbols-outlined text-[16px] text-text-dim">expand_more</span>
+</button>
+<!-- Split Rule Chip (Active champagne accent) -->
+<button class="h-9 px-3.5 rounded-full bg-surface-raised flex items-center gap-1.5 shrink-0 shadow-sm transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[16px] text-accent-text">pie_chart</span>
+<span class="font-body-small text-body-small text-accent-text font-semibold tracking-wide">10 · 40 · 50</span>
+</button>
+<!-- Category Chip -->
+<button class="h-9 px-3 rounded-full bg-surface hover:bg-surface-raised flex items-center gap-1.5 shrink-0 transition-colors active:scale-95" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-dim">account_balance_wallet</span>
+<span class="font-body-small text-body-small text-text-dim">Salary and wages</span>
+<span class="material-symbols-outlined text-[16px] text-text-dim">expand_more</span>
+</button>
+<!-- Date Chip -->
+<button class="h-9 px-3 rounded-full bg-surface hover:bg-surface-raised flex items-center gap-1.5 shrink-0 transition-colors active:scale-95" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-dim">calendar_today</span>
+<span class="font-body-small text-body-small text-text-dim">Today</span>
+</button>
+<!-- Templates Chip -->
+<button class="h-9 px-3 rounded-full bg-surface hover:bg-surface-raised flex items-center gap-1.5 shrink-0 transition-colors active:scale-95" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-dim">bookmarks</span>
+<span class="font-body-small text-body-small text-text-dim">Templates</span>
+</button>
+<!-- More Chip -->
+<button class="h-9 w-9 rounded-full bg-surface hover:bg-surface-raised flex items-center justify-center shrink-0 transition-colors active:scale-95" type="button">
+<span class="material-symbols-outlined text-[18px] text-text-dim">more_horiz</span>
+</button>
+</div>
+<!-- Live Dynamic Allocation Ledger Strip -->
+<div class="px-margin pt-3 pb-3">
+<div class="bg-surface-container-low rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 text-body-small font-body-small text-text-dim truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-text shrink-0"></span>
+<span class="truncate">
+<span class="text-text-dim">Essential</span> <span class="text-text font-medium tabular-nums">1,258.00</span>
+<span class="mx-1 text-outline">·</span>
+<span class="text-text-dim">Fun</span> <span class="text-text font-medium tabular-nums">5,032.00</span>
+<span class="mx-1 text-outline">·</span>
+<span class="text-text-dim">Invest</span> <span class="text-text font-medium tabular-nums">6,290.00</span>
+</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-text-dim shrink-0 ml-1">tune</span>
+</div>
+</div>
+<!-- Keypad Section (Digits + Math Operations) -->
+<div class="px-margin py-2">
+<div class="grid grid-cols-4 gap-y-2 gap-x-3 text-center">
+<!-- Row 1 -->
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">7</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">8</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">9</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-title text-title text-text-dim hover:text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all" type="button">÷</button>
+<!-- Row 2 -->
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">4</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">5</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">6</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-title text-title text-text-dim hover:text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all" type="button">×</button>
+<!-- Row 3 -->
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">1</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">2</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">3</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-title text-title text-text-dim hover:text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all" type="button">−</button>
+<!-- Row 4 -->
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all" type="button">.</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-headline text-headline text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all tabular-nums" type="button">0</button>
+<button aria-label="Delete" class="h-14 rounded-xl flex items-center justify-center text-text-dim hover:text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[24px]">backspace</span>
+</button>
+<button class="h-14 rounded-xl flex items-center justify-center font-title text-title text-text-dim hover:text-text hover:bg-surface active:bg-surface-raised active:scale-95 transition-all" type="button">+</button>
+</div>
+</div>
+<!-- Bottom Execution Zone -->
+<div class="px-margin pt-3 flex flex-col items-center gap-2.5">
+<!-- Primary CTA: Champagne Save -->
+<button class="w-full h-[52px] rounded-[20px] bg-primary hover:bg-primary-container text-on-primary font-title text-title flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98]" type="button">
+<span>Save Income</span>
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+<!-- Secondary Text Action -->
+<button class="py-2 px-4 rounded-full text-accent-text hover:text-primary font-body-small text-body-small tracking-wide transition-colors active:scale-95" type="button">
+      Save and add another
+    </button>
+</div>
+</div></main><footer class="fixed bottom-0 w-full pointer-events-none z-50 pb-safe flex justify-center items-center h-5"><div class="w-28 h-1 bg-outline/40 rounded-full mb-1"></div></footer></body></html>

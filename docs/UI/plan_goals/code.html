@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<title>Plan - Mizan</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "background": "#202124",
+            "surface": "#292A2D",
+            "surface-raised": "#34363A",
+            "text": "#E9E6DE",
+            "text-dim": "#BEB9AF",
+            "primary": "#f6de98",
+            "primary-container": "#D9C27F",
+            "accent-text": "#E6D29A",
+            "outline": "#5B5A54",
+            "expense": "#F09289",
+            "warning": "#F0BD76",
+            "income": "#58CFC4"
+          },
+          fontFamily: {
+            body: ["Manrope", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #202124;
+        color: #E9E6DE;
+        font-family: 'Manrope', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      .pt-safe {
+        padding-top: max(env(safe-area-inset-top, 0px), 12px);
+      }
+      .pb-safe {
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .material-symbols-outlined.fill-1 {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#202124] text-[#E9E6DE] min-h-screen flex flex-col justify-between selection:bg-[#D9C27F]/30 selection:text-[#E9E6DE]">
+<!-- Top App Bar (Android 22px medium, transparent bg, 16dp px) -->
+<header class="fixed top-0 inset-x-0 z-40 bg-[#202124]/90 backdrop-blur-md pt-safe">
+<div class="h-14 px-4 flex items-center justify-between">
+<h1 class="text-[22px] font-medium text-[#E9E6DE] tracking-tight">Plan</h1>
+<div class="flex items-center gap-1">
+<button aria-label="Toggle visibility" class="w-10 h-10 flex items-center justify-center text-[#BEB9AF] hover:text-[#E9E6DE] active:scale-95 transition-all rounded-full" type="button">
+<span class="material-symbols-outlined text-[22px]">visibility</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 flex items-center justify-center text-[#BEB9AF] hover:text-[#E9E6DE] active:scale-95 transition-all rounded-full" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content (16dp side padding, 8dp spacing grid, safe bottom margin) -->
+<main class="flex-1 w-full pt-[72px] pb-[104px] px-4 flex flex-col gap-4"><div class="flex flex-col w-full pb-6 select-none">
+<!-- Plan Module 4-Way Segmented Control -->
+<div class="w-full bg-surface-raised p-1 rounded-full flex items-center justify-between mb-3">
+<button class="flex-1 py-2 text-center rounded-full text-text-dim font-body text-body-small hover:text-text transition-colors" type="button">
+      Budgets
+    </button>
+<button class="flex-1 py-2 text-center rounded-full text-text-dim font-body text-body-small hover:text-text transition-colors" type="button">
+      Planned
+    </button>
+<button class="flex-1 py-2 text-center rounded-full bg-surface text-text font-body font-semibold text-body-small shadow-sm" type="button">
+      Goals
+    </button>
+<button class="flex-1 py-2 text-center rounded-full text-text-dim font-body text-body-small hover:text-text transition-colors" type="button">
+      Debts
+    </button>
+</div>
+<!-- Sub-tab filter row -->
+<div class="flex items-center gap-6 px-1 mb-4">
+<button class="relative pb-2 flex items-center gap-1.5 font-body text-body-small font-semibold text-accent-text group" type="button">
+<span>Active</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<div class="absolute bottom-0 inset-x-0 h-0.5 bg-primary-container rounded-full"></div>
+</button>
+<button class="relative pb-2 font-body text-body-small font-medium text-text-dim hover:text-text transition-colors" type="button">
+<span>Paused</span>
+</button>
+<button class="relative pb-2 font-body text-body-small font-medium text-text-dim hover:text-text transition-colors" type="button">
+<span>Reached</span>
+</button>
+</div>
+<!-- Progress Overview Micro-bar -->
+<div class="w-full bg-surface-container-high rounded-2xl px-4 py-3 mb-3 flex flex-col gap-2">
+<div class="flex items-center justify-between text-body-small font-body">
+<div class="flex items-center gap-1.5 text-text">
+<span class="material-symbols-outlined text-[16px] text-accent-text">flag</span>
+<span class="font-semibold tracking-tight">3 active goals</span>
+</div>
+<div class="tabular-nums text-text-dim">
+<span class="text-text font-semibold">53.7%</span>
+<span>funded</span>
+</div>
+</div>
+<!-- Multi-goal miniature stacked track -->
+<div class="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden flex gap-0.5">
+<div class="h-full bg-account-blue rounded-full" style="width: 44.9%;"></div>
+<div class="h-full bg-account-orange rounded-full" style="width: 8.8%;"></div>
+<div class="h-full bg-account-teal rounded-full" style="width: 12.3%;"></div>
+</div>
+<div class="flex items-center justify-between text-[12px] font-body text-text-dim tracking-tight pt-0.5">
+<span>Saved <span class="text-text font-medium tabular-nums">EGP 153,200.00</span></span>
+<span>Target <span class="text-text font-medium tabular-nums">285,000.00</span></span>
+</div>
+</div>
+<!-- Goals List Container -->
+<div class="flex flex-col gap-3">
+<!-- Card 1: Emergency Fund -->
+<div class="w-full bg-surface rounded-[20px] p-4 flex flex-col gap-3 transition-colors active:bg-surface-raised/40">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<!-- 40dp Icon chip tinted blue -->
+<div class="w-10 h-10 rounded-xl bg-account-blue/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px] text-account-blue">shield_with_heart</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="font-body text-title text-text font-semibold truncate leading-tight">Emergency fund</h2>
+</div>
+<span class="font-body text-body-small text-text-dim leading-normal">Target: 31 Aug 2027</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-headline text-headline text-text font-semibold tabular-nums leading-none">85%</span>
+</div>
+</div>
+<!-- Amounts & Balance Display -->
+<div class="flex items-baseline justify-between pt-1">
+<div class="font-body text-body-small text-text-dim flex items-baseline gap-1">
+<span>Saved</span>
+<span class="text-text font-semibold tabular-nums text-amount-medium">EGP 128,000.00</span>
+</div>
+<div class="font-body text-body-small text-text-dim tabular-nums">
+          of 150,000.00
+        </div>
+</div>
+<!-- 6dp Progress Bar -->
+<div class="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden">
+<div class="h-full bg-account-blue rounded-full transition-all duration-500" style="width: 85%;"></div>
+</div>
+<!-- Backed Chip & Cadence Footer -->
+<div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-investment/10 text-investment">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<span class="font-body text-[11px] font-medium tracking-tight">Backed by gold holdings</span>
+</div>
+<div class="flex items-center gap-1 font-body text-body-small text-text-dim">
+<span class="material-symbols-outlined text-[16px] text-income">check_circle</span>
+<span class="tabular-nums">3,670.00/mo</span>
+<span>·</span>
+<span class="text-income font-medium">On track</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Travel -->
+<div class="w-full bg-surface rounded-[20px] p-4 flex flex-col gap-3 transition-colors active:bg-surface-raised/40">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<!-- 40dp Icon chip tinted orange/pink -->
+<div class="w-10 h-10 rounded-xl bg-account-orange/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px] text-account-orange">flight_takeoff</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h2 class="font-body text-title text-text font-semibold truncate leading-tight">Travel</h2>
+<span class="font-body text-body-small text-text-dim leading-normal">Target: 15 Jun 2027</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-headline text-headline text-text font-semibold tabular-nums leading-none">25%</span>
+</div>
+</div>
+<!-- Amounts & Balance Display -->
+<div class="flex items-baseline justify-between pt-1">
+<div class="font-body text-body-small text-text-dim flex items-baseline gap-1">
+<span>Saved</span>
+<span class="text-text font-semibold tabular-nums text-amount-medium">EGP 25,200.00</span>
+</div>
+<div class="font-body text-body-small text-text-dim tabular-nums">
+          of 100,000.00
+        </div>
+</div>
+<!-- 6dp Progress Bar -->
+<div class="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden">
+<div class="h-full bg-account-orange rounded-full transition-all duration-500" style="width: 25%;"></div>
+</div>
+<!-- Warning Footer -->
+<div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+<div class="flex items-center gap-1 font-body text-body-small text-text-dim">
+<span>Monthly needed:</span>
+<span class="font-medium text-text tabular-nums">2,070.00</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-warning/10 text-warning font-body text-body-small">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span class="font-medium">Behind by 2 months</span>
+</div>
+</div>
+</div>
+<!-- Card 3: New laptop (Reached) -->
+<div class="w-full bg-surface rounded-[20px] p-4 flex flex-col gap-3 transition-colors active:bg-surface-raised/40">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<!-- 40dp Icon chip tinted teal -->
+<div class="w-10 h-10 rounded-xl bg-account-teal/15 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px] text-account-teal">laptop_mac</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<h2 class="font-body text-title text-text font-semibold truncate leading-tight">New laptop</h2>
+<span class="material-symbols-outlined text-[16px] text-income fill-1">verified</span>
+</div>
+<span class="font-body text-body-small text-text-dim leading-normal">Target was 30 Oct 2026</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-headline text-headline text-income font-semibold tabular-nums leading-none">100%</span>
+</div>
+</div>
+<!-- Amounts & Balance Display -->
+<div class="flex items-baseline justify-between pt-1">
+<div class="font-body text-body-small text-text-dim flex items-baseline gap-1">
+<span>Saved</span>
+<span class="text-text font-semibold tabular-nums text-amount-medium">EGP 35,000.00</span>
+</div>
+<div class="font-body text-body-small text-text-dim tabular-nums">
+          of 35,000.00
+        </div>
+</div>
+<!-- 6dp Progress Bar 100% filled in Goal Teal -->
+<div class="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden">
+<div class="h-full bg-account-teal rounded-full" style="width: 100%;"></div>
+</div>
+<!-- Celebration & Action row -->
+<div class="flex items-center justify-between pt-1">
+<span class="font-body text-body-small text-income font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">celebration</span>
+          Goal achieved
+        </span>
+<!-- Champagne text button (strictly disciplined accent usage) -->
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-accent-text active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[17px]">done_all</span>
+<span class="font-body text-body-small font-semibold">Mark as reached</span>
+</button>
+</div>
+</div>
+<!-- Motivational Insight / Quiet vault footer -->
+<div class="w-full mt-2 py-3 px-4 rounded-xl bg-surface-container flex items-center gap-3">
+<span class="material-symbols-outlined text-text-dim text-[20px] shrink-0">auto_awesome</span>
+<p class="font-body text-body-small text-text-dim leading-snug">
+        Allocating <span class="text-text font-medium tabular-nums">EGP 5,740.00</span> next payday maintains full momentum across all remaining targets.
+      </p>
+</div>
+</div>
+</div></main>
+<!-- Floating Action Button (60dp, #D9C27F champagne fill, #2D291E text/icon, positioned 16dp above 64dp nav bar) -->
+<a aria-label="Add transaction" class="fixed right-4 bottom-20 z-50 w-[60px] h-[60px] rounded-full bg-[#D9C27F] text-[#2D291E] flex items-center justify-center shadow-[0_4px_18px_rgba(217,194,127,0.3)] active:scale-95 transition-transform" data-path="add-record" href="#">
+<span class="material-symbols-outlined text-[30px] font-medium">add</span>
+</a>
+<!-- Bottom Navigation (64dp height, surface #292A2D, 5 destinations, Plan with champagne pill indicator) -->
+<nav class="fixed bottom-0 inset-x-0 z-40 bg-[#292A2D] border-t border-[#5B5A54]/20 pb-safe">
+<div class="h-16 flex items-center justify-around px-2 max-w-md mx-auto">
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="home" href="#">
+<span class="material-symbols-outlined text-[22px]">home</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="records" href="#">
+<span class="material-symbols-outlined text-[22px]">receipt_long</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Records</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="stats" href="#">
+<span class="material-symbols-outlined text-[22px]">donut_large</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Stats</span>
+</a>
+<!-- Active Item: Plan with champagne-tinted pill -->
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="plan" href="#">
+<div class="px-3.5 py-0.5 rounded-full bg-[#D9C27F]/20 flex items-center justify-center">
+<span class="material-symbols-outlined fill-1 text-[22px] text-[#E6D29A]">pie_chart</span>
+</div>
+<span class="text-[11px] font-semibold mt-0.5 text-[#E6D29A] tracking-tight">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="wealth" href="#">
+<span class="material-symbols-outlined text-[22px]">account_balance</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Wealth</span>
+</a>
+</div>
+</nav>
+</body></html>

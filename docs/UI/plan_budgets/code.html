@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<title>Plan - Mizan</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "background": "#202124",
+            "surface": "#292A2D",
+            "surface-raised": "#34363A",
+            "text": "#E9E6DE",
+            "text-dim": "#BEB9AF",
+            "primary": "#f6de98",
+            "primary-container": "#D9C27F",
+            "accent-text": "#E6D29A",
+            "outline": "#5B5A54",
+            "expense": "#F09289",
+            "warning": "#F0BD76",
+            "income": "#58CFC4"
+          },
+          fontFamily: {
+            body: ["Manrope", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #202124;
+        color: #E9E6DE;
+        font-family: 'Manrope', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      .pt-safe {
+        padding-top: max(env(safe-area-inset-top, 0px), 12px);
+      }
+      .pb-safe {
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .material-symbols-outlined.fill-1 {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-[#202124] text-[#E9E6DE] min-h-screen flex flex-col justify-between selection:bg-[#D9C27F]/30 selection:text-[#E9E6DE]">
+<!-- Top App Bar (Android 22px medium, transparent bg, 16dp px) -->
+<header class="fixed top-0 inset-x-0 z-40 bg-[#202124]/90 backdrop-blur-md pt-safe">
+<div class="h-14 px-4 flex items-center justify-between">
+<h1 class="text-[22px] font-medium text-[#E9E6DE] tracking-tight">Plan</h1>
+<div class="flex items-center gap-1">
+<button aria-label="Toggle visibility" class="w-10 h-10 flex items-center justify-center text-[#BEB9AF] hover:text-[#E9E6DE] active:scale-95 transition-all rounded-full" type="button">
+<span class="material-symbols-outlined text-[22px]">visibility</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 flex items-center justify-center text-[#BEB9AF] hover:text-[#E9E6DE] active:scale-95 transition-all rounded-full" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content (16dp side padding, 8dp spacing grid, safe bottom margin) -->
+<main class="flex-1 w-full pt-[72px] pb-[104px] px-4 flex flex-col gap-4">
+<!-- Segmented Controls & Period Selectors -->
+<div class="flex flex-col gap-3">
+<!-- 4-Way Segmented Control -->
+<div class="w-full bg-[#1A1B1E] p-1 rounded-xl flex items-center border border-[#5B5A54]/20 shadow-inner">
+<button class="flex-1 py-1.5 rounded-lg bg-[#34363A] text-[#E9E6DE] font-semibold text-[13px] text-center shadow-sm transition-all" type="button">
+          Budgets
+        </button>
+<button class="flex-1 py-1.5 rounded-lg text-[#BEB9AF] font-medium text-[13px] text-center hover:text-[#E9E6DE] transition-colors" type="button">
+          Planned
+        </button>
+<button class="flex-1 py-1.5 rounded-lg text-[#BEB9AF] font-medium text-[13px] text-center hover:text-[#E9E6DE] transition-colors" type="button">
+          Goals
+        </button>
+<button class="flex-1 py-1.5 rounded-lg text-[#BEB9AF] font-medium text-[13px] text-center hover:text-[#E9E6DE] transition-colors" type="button">
+          Debts
+        </button>
+</div>
+<!-- Frequency Sub-tabs Row -->
+<div class="flex items-center justify-between border-b border-[#5B5A54]/30 px-1 pt-1">
+<button class="pb-2.5 px-2 text-[#BEB9AF] font-medium text-[13px] hover:text-[#E9E6DE] transition-colors" type="button">
+          Weekly
+        </button>
+<button class="pb-2.5 px-2 text-[#E6D29A] font-semibold text-[13px] relative flex flex-col items-center" type="button">
+<span>Monthly</span>
+<span class="absolute bottom-0 inset-x-0 h-[2px] bg-[#D9C27F] rounded-full"></span>
+</button>
+<button class="pb-2.5 px-2 text-[#BEB9AF] font-medium text-[13px] hover:text-[#E9E6DE] transition-colors" type="button">
+          Yearly
+        </button>
+<button class="pb-2.5 px-2 text-[#BEB9AF] font-medium text-[13px] hover:text-[#E9E6DE] transition-colors" type="button">
+          One-time
+        </button>
+</div>
+<!-- Compact Period Selector Pill -->
+<div class="flex items-center justify-center pt-1">
+<div class="inline-flex items-center gap-2 bg-[#292A2D] px-3.5 py-1.5 rounded-full border border-[#5B5A54]/40 shadow-sm">
+<button aria-label="Previous month" class="text-[#BEB9AF] hover:text-[#E9E6DE] flex items-center active:scale-90 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="font-medium text-[13px] text-[#E9E6DE] tracking-wide px-1 select-none">October 2026</span>
+<button aria-label="Next month" class="text-[#BEB9AF] hover:text-[#E9E6DE] flex items-center active:scale-90 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Cards List -->
+<div class="flex flex-col gap-3.5">
+<!-- Summary Card -->
+<div class="w-full bg-[#292A2D] rounded-[20px] p-4 border border-[#5B5A54]/40 flex flex-col gap-3 shadow-sm">
+<div class="flex flex-col gap-0.5">
+<span class="text-[12px] text-[#BEB9AF] font-medium">Total spent</span>
+<div class="flex items-baseline gap-1.5 flex-wrap">
+<span class="text-[32px] sm:text-[36px] font-semibold text-[#E9E6DE] leading-tight tracking-tight tabular-nums">62%</span>
+<span class="text-[15px] text-[#BEB9AF] font-normal">of</span>
+<span class="text-[13px] text-[#BEB9AF] font-medium uppercase tracking-wider">EGP</span>
+<span class="text-[20px] font-semibold text-[#E9E6DE] tabular-nums">11,000.00</span>
+</div>
+</div>
+<!-- 6dp Pace Progress Bar -->
+<div class="flex flex-col gap-1.5">
+<div class="relative w-full h-[6px] bg-[#34363A] rounded-full overflow-visible">
+<!-- Spending Fill (62%) -->
+<div class="h-full bg-[#BEB9AF] rounded-full" style="width: 62%;"></div>
+<!-- Thin champagne #D9C27F vertical tick at ~51.6% (Day 16 pace) -->
+<div class="absolute -top-[3px] w-[2px] h-[12px] bg-[#D9C27F] rounded-full z-10 shadow-[0_0_2px_rgba(0,0,0,0.5)]" style="left: 51.6%;" title="Day 16 pace"></div>
+</div>
+<div class="flex justify-between items-center text-[12px] text-[#BEB9AF] pt-0.5 font-medium">
+<span class="tabular-nums">Spent EGP 6,880.00</span>
+<span class="flex items-center gap-1.5 text-[#E6D29A]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#D9C27F] inline-block"></span>
+              Day 16 pace
+            </span>
+</div>
+</div>
+<div class="pt-2 border-t border-[#5B5A54]/25 flex items-center justify-between text-[#BEB9AF] text-[13px]">
+<span class="tabular-nums font-medium">EGP 4,180.00 left</span>
+<span class="text-[#5B5A54]">·</span>
+<span>15 days to go</span>
+</div>
+</div>
+<!-- Budget Card 1: Dining (Over budget) -->
+<div class="w-full bg-[#292A2D] rounded-[20px] border border-[#5B5A54]/40 overflow-hidden flex flex-col shadow-sm">
+<div class="p-4 flex flex-col gap-3">
+<!-- Top Row -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#F09289]/18 text-[#F09289] shrink-0">
+<span class="material-symbols-outlined text-[20px]">restaurant</span>
+</div>
+<div class="flex flex-col">
+<span class="font-semibold text-[16px] text-[#E9E6DE] leading-snug">Dining</span>
+<span class="text-[13px] text-[#BEB9AF] tabular-nums">Spent 2,160.00 of 2,000.00 EGP</span>
+</div>
+</div>
+<span class="text-[26px] font-semibold text-[#F09289] tabular-nums tracking-tight">108%</span>
+</div>
+<!-- 6dp Progress Bar -->
+<div class="relative w-full h-[6px] bg-[#34363A] rounded-full overflow-visible">
+<div class="h-full bg-[#F09289] rounded-full" style="width: 100%;"></div>
+<!-- Pace Tick -->
+<div class="absolute -top-[3px] w-[2px] h-[12px] bg-[#D9C27F] rounded-full z-10" style="left: 51.6%;"></div>
+</div>
+<!-- State Line -->
+<div class="flex items-center gap-1.5 text-[#F09289] text-[13px] font-medium">
+<span class="material-symbols-outlined text-[18px]">error_outline</span>
+<span>Over by 160.00 EGP</span>
+</div>
+</div>
+<!-- Action Row -->
+<button class="w-full px-4 py-2.5 bg-[#292A2D] hover:bg-[#34363A] active:bg-[#34363A]/80 transition-colors border-t border-[#5B5A54]/20 flex items-center justify-between text-[#BEB9AF] group" type="button">
+<span class="text-[13px] group-hover:text-[#E9E6DE] transition-colors">What it was spent on</span>
+<span class="material-symbols-outlined text-[18px] text-[#BEB9AF] group-hover:text-[#E9E6DE] transition-colors">chevron_right</span>
+</button>
+</div>
+<!-- Budget Card 2: Fun (Trending over) -->
+<div class="w-full bg-[#292A2D] rounded-[20px] border border-[#5B5A54]/40 overflow-hidden flex flex-col shadow-sm">
+<div class="p-4 flex flex-col gap-3">
+<!-- Top Row -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#8A67CE]/18 text-[#8A67CE] shrink-0">
+<span class="material-symbols-outlined text-[20px]">sports_esports</span>
+</div>
+<div class="flex flex-col">
+<span class="font-semibold text-[16px] text-[#E9E6DE] leading-snug">Fun</span>
+<span class="text-[13px] text-[#BEB9AF] tabular-nums">Spent 3,200.00 of 5,000.00 EGP</span>
+</div>
+</div>
+<span class="text-[26px] font-semibold text-[#F0BD76] tabular-nums tracking-tight">64%</span>
+</div>
+<!-- 6dp Progress Bar -->
+<div class="relative w-full h-[6px] bg-[#34363A] rounded-full overflow-visible">
+<div class="h-full bg-[#F0BD76] rounded-full" style="width: 64%;"></div>
+<!-- Pace Tick -->
+<div class="absolute -top-[3px] w-[2px] h-[12px] bg-[#D9C27F] rounded-full z-10" style="left: 51.6%;"></div>
+</div>
+<!-- State Line -->
+<div class="flex items-center gap-1.5 text-[#F0BD76] text-[13px] font-medium">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+<span>On pace to spend 108% by 31 Oct</span>
+</div>
+</div>
+<!-- Action Row -->
+<button class="w-full px-4 py-2.5 bg-[#292A2D] hover:bg-[#34363A] active:bg-[#34363A]/80 transition-colors border-t border-[#5B5A54]/20 flex items-center justify-between text-[#BEB9AF] group" type="button">
+<span class="text-[13px] group-hover:text-[#E9E6DE] transition-colors">What it was spent on</span>
+<span class="material-symbols-outlined text-[18px] text-[#BEB9AF] group-hover:text-[#E9E6DE] transition-colors">chevron_right</span>
+</button>
+</div>
+<!-- Budget Card 3: Groceries (On pace) -->
+<div class="w-full bg-[#292A2D] rounded-[20px] border border-[#5B5A54]/40 overflow-hidden flex flex-col shadow-sm">
+<div class="p-4 flex flex-col gap-3">
+<!-- Top Row -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#35B2C4]/18 text-[#35B2C4] shrink-0">
+<span class="material-symbols-outlined text-[20px]">local_grocery_store</span>
+</div>
+<div class="flex flex-col">
+<span class="font-semibold text-[16px] text-[#E9E6DE] leading-snug">Groceries</span>
+<span class="text-[13px] text-[#BEB9AF] tabular-nums">Spent 1,520.00 of 4,000.00 EGP</span>
+</div>
+</div>
+<span class="text-[26px] font-semibold text-[#E9E6DE] tabular-nums tracking-tight">38%</span>
+</div>
+<!-- 6dp Progress Bar -->
+<div class="relative w-full h-[6px] bg-[#34363A] rounded-full overflow-visible">
+<div class="h-full bg-[#BEB9AF] rounded-full" style="width: 38%;"></div>
+<!-- Pace Tick -->
+<div class="absolute -top-[3px] w-[2px] h-[12px] bg-[#D9C27F] rounded-full z-10" style="left: 51.6%;"></div>
+</div>
+<!-- State Line -->
+<div class="flex items-center gap-1.5 text-[#BEB9AF] text-[13px] font-medium">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>2,480.00 EGP left</span>
+</div>
+</div>
+<!-- Action Row -->
+<button class="w-full px-4 py-2.5 bg-[#292A2D] hover:bg-[#34363A] active:bg-[#34363A]/80 transition-colors border-t border-[#5B5A54]/20 flex items-center justify-between text-[#BEB9AF] group" type="button">
+<span class="text-[13px] group-hover:text-[#E9E6DE] transition-colors">What it was spent on</span>
+<span class="material-symbols-outlined text-[18px] text-[#BEB9AF] group-hover:text-[#E9E6DE] transition-colors">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (60dp, #D9C27F champagne fill, #2D291E text/icon, positioned 16dp above 64dp nav bar) -->
+<a aria-label="Add transaction" class="fixed right-4 bottom-20 z-50 w-[60px] h-[60px] rounded-full bg-[#D9C27F] text-[#2D291E] flex items-center justify-center shadow-[0_4px_18px_rgba(217,194,127,0.3)] active:scale-95 transition-transform" data-path="add-record" href="#">
+<span class="material-symbols-outlined text-[30px] font-medium">add</span>
+</a>
+<!-- Bottom Navigation (64dp height, surface #292A2D, 5 destinations, Plan with champagne pill indicator) -->
+<nav class="fixed bottom-0 inset-x-0 z-40 bg-[#292A2D] border-t border-[#5B5A54]/20 pb-safe">
+<div class="h-16 flex items-center justify-around px-2 max-w-md mx-auto">
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="home" href="#">
+<span class="material-symbols-outlined text-[22px]">home</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="records" href="#">
+<span class="material-symbols-outlined text-[22px]">receipt_long</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Records</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="stats" href="#">
+<span class="material-symbols-outlined text-[22px]">donut_large</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Stats</span>
+</a>
+<!-- Active Item: Plan with champagne-tinted pill -->
+<a aria-current="page" class="flex flex-col items-center justify-center flex-1 py-1 text-[#E6D29A]" data-path="plan" href="#">
+<div class="px-3.5 py-0.5 rounded-full bg-[#D9C27F]/20 flex items-center justify-center">
+<span class="material-symbols-outlined fill-1 text-[22px] text-[#E6D29A]">pie_chart</span>
+</div>
+<span class="text-[11px] font-semibold mt-0.5 text-[#E6D29A] tracking-tight">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" data-path="wealth" href="#">
+<span class="material-symbols-outlined text-[22px]">account_balance</span>
+<span class="text-[11px] font-medium mt-0.5 tracking-tight">Wealth</span>
+</a>
+</div>
+</nav>
+</body></html>

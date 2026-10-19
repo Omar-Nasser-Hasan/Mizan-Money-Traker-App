@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "error": "#ffb4ab",
+        "tertiary-fixed": "#81f6ea",
+        "on-primary": "#3c2f00",
+        "account-magenta": "#C45AAC",
+        "account-amber": "#AA7818",
+        "accent-text": "#E6D29A",
+        "account-blue": "#0785DB",
+        "outline-variant": "#4b463a",
+        "surface-variant": "#343538",
+        "expense": "#F4806E",
+        "text": "#E9E6DE",
+        "on-primary-container": "#5f4f18",
+        "on-secondary": "#2e3034",
+        "income": "#58CFC4",
+        "account-indigo": "#717BCB",
+        "on-secondary-fixed": "#191c1f",
+        "account-azure": "#188ABB",
+        "surface-container": "#1e2022",
+        "surface-bright": "#38393c",
+        "light-surface-raised": "#EBE6DA",
+        "light-transfer": "#4C6378",
+        "account-pink": "#CE588B",
+        "on-tertiary": "#003733",
+        "error-container": "#93000a",
+        "secondary-fixed": "#e2e2e7",
+        "inverse-surface": "#e3e2e6",
+        "surface-container-lowest": "#0d0e11",
+        "light-income": "#0C7466",
+        "outline": "#5B5A54",
+        "inverse-on-surface": "#2f3033",
+        "account-green": "#3A924F",
+        "account-orange": "#CA642F",
+        "tertiary-fixed-dim": "#63d9ce",
+        "account-olive": "#7A882F",
+        "text-dim": "#BEB9AF",
+        "light-surface": "#FFFCF5",
+        "on-error": "#690005",
+        "on-surface": "#e3e2e6",
+        "on-tertiary-container": "#005b55",
+        "on-secondary-container": "#b7b8bd",
+        "light-accent-text": "#77591D",
+        "light-warning": "#875A15",
+        "on-secondary-fixed-variant": "#45474b",
+        "on-tertiary-fixed-variant": "#00504b",
+        "primary-container": "#d9c27f",
+        "surface-raised": "#34363A",
+        "surface-container-low": "#1a1b1e",
+        "tertiary-container": "#60d6cb",
+        "investment": "#C0A5E8",
+        "primary-fixed": "#f9e19b",
+        "light-primary": "#8B6D2B",
+        "on-primary-fixed": "#231b00",
+        "on-primary-fixed-variant": "#55450e",
+        "account-violet": "#9A6EC2",
+        "inverse-primary": "#6e5d24",
+        "surface-container-high": "#292a2d",
+        "on-background": "#e3e2e6",
+        "secondary-fixed-dim": "#c5c6cb",
+        "surface-container-highest": "#343538",
+        "warning": "#F0BD76",
+        "tertiary": "#7ef3e7",
+        "light-outline": "#938A78",
+        "primary-fixed-dim": "#dcc582",
+        "on-error-container": "#ffdad6",
+        "account-teal": "#059093",
+        "primary": "#f6de98",
+        "light-text": "#2E2B25",
+        "secondary": "#c5c6cb",
+        "transfer": "#B5C7D8",
+        "on-surface-variant": "#cec6b5",
+        "account-red": "#DA535F",
+        "background-oled": "#000000",
+        "light-on-primary": "#FFF8E7",
+        "secondary-container": "#47494d",
+        "surface": "#292A2D",
+        "background": "#121316",
+        "light-investment": "#6F4A9E",
+        "light-background": "#F5F2E9",
+        "surface-dim": "#121316",
+        "light-expense": "#B03A14",
+        "light-text-dim": "#5D574C",
+        "on-tertiary-fixed": "#00201d",
+        "surface-tint": "#dcc582"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      "spacing": {
+        "space-md": "0.75rem",
+        "space-lg": "1rem",
+        "space-xxl": "1.5rem",
+        "margin": "1.25rem",
+        "gutter": "0.75rem",
+        "space-sm": "0.5rem",
+        "space-xs": "0.25rem",
+        "space-xl": "1.25rem",
+        "space-section": "2rem"
+      },
+      "fontFamily": {
+        "label-caps": ["Manrope"],
+        "body": ["Manrope"],
+        "amount-small": ["Manrope"],
+        "keypad": ["Manrope"],
+        "amount-medium": ["Manrope"],
+        "headline": ["Manrope"],
+        "amount-large": ["Manrope"],
+        "title": ["Manrope"],
+        "display-hero": ["Manrope"],
+        "body-small": ["Manrope"],
+        "display-hero-mobile": ["Manrope"]
+      },
+      "fontSize": {
+        "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+        "body": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+        "amount-small": ["14px", {"lineHeight": "17px", "fontWeight": "600"}],
+        "keypad": ["30px", {"lineHeight": "30px", "fontWeight": "500"}],
+        "amount-medium": ["17px", {"lineHeight": "20px", "fontWeight": "600"}],
+        "headline": ["28px", {"lineHeight": "32px", "fontWeight": "500"}],
+        "amount-large": ["28px", {"lineHeight": "32px", "fontWeight": "600"}],
+        "title": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+        "display-hero": ["44px", {"lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+        "body-small": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+        "display-hero-mobile": ["36px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500"}]
+      }
+    }
+  }
+}</script><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100vh;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface-container-high text-text font-body antialiased flex flex-col min-h-screen selection:bg-primary/20"><header class="fixed top-0 inset-x-0 z-50 bg-surface-container-high/90 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.24)]"><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Close modal" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-text-dim hover:text-text active:bg-surface-raised transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">close</span></button><h1 class="text-title font-title text-text tracking-tight">New Budget</h1></div><div class="flex items-center gap-space-sm"><button class="min-h-[44px] px-space-md flex items-center justify-center text-primary font-title text-body hover:text-primary-fixed active:opacity-75 transition-colors" type="button">Save</button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-14 pb-safe bg-surface-container-high"><div class="flex flex-col w-full pb-8">
+<form class="flex flex-col gap-3 px-margin pt-4" id="budget-form" onsubmit="event.preventDefault();">
+<!-- 1. Name Input Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col gap-space-sm border border-outline/40">
+<label class="font-label-caps text-label-caps uppercase tracking-wider text-text-dim" for="budget-name">
+        Budget name
+      </label>
+<div class="bg-surface-raised rounded-xl h-14 px-space-lg flex items-center border border-outline/40 focus-within:border-primary-container transition-colors">
+<input class="bg-transparent w-full text-text font-body text-[16px] outline-none placeholder:text-text-dim/60" id="budget-name" placeholder="e.g. Groceries, Entertainment" type="text" value="Eating out"/>
+</div>
+</div>
+<!-- 2. "Applies to" Card (Scope) -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col gap-space-md border border-outline/40">
+<div>
+<h2 class="text-title font-title text-text text-[16px] leading-tight">Applies to</h2>
+<p class="text-body-small font-body-small text-text-dim mt-0.5">Which expenses count toward this budget</p>
+</div>
+<!-- Segmented Control -->
+<div aria-label="Scope selection" class="bg-surface-raised rounded-xl p-1 flex gap-1 border border-outline/40" role="tablist">
+<button aria-selected="true" class="flex-1 py-2 px-space-xs text-center rounded-lg text-body-small font-title transition-colors bg-surface text-text shadow-sm" onclick="selectScope(this)" role="tab" type="button">
+          Categories
+        </button>
+<button aria-selected="false" class="flex-1 py-2 px-space-xs text-center rounded-lg text-body-small font-title transition-colors text-text-dim hover:text-text" onclick="selectScope(this)" role="tab" type="button">
+          Accounts
+        </button>
+<button aria-selected="false" class="flex-1 py-2 px-space-xs text-center rounded-lg text-body-small font-title transition-colors text-text-dim hover:text-text" onclick="selectScope(this)" role="tab" type="button">
+          Everything
+        </button>
+</div>
+<!-- Selected Categories List/Chips -->
+<div class="flex flex-wrap gap-2 pt-1 items-center" id="category-chips">
+<!-- Chip 1: Restaurants -->
+<div class="h-9 pl-1 pr-2.5 rounded-full bg-surface-raised flex items-center gap-2 border border-outline/30 group">
+<div class="w-7 h-7 rounded-full bg-expense/15 flex items-center justify-center text-expense">
+<span class="material-symbols-outlined text-[17px]">restaurant</span>
+</div>
+<span class="text-body-small font-title text-text">Restaurants &amp; fast food</span>
+<button aria-label="Remove Restaurants &amp; fast food" class="w-5 h-5 -mr-1 flex items-center justify-center rounded-full text-text-dim hover:text-text active:scale-95 transition-all" onclick="this.parentElement.remove()" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Chip 2: Cafés & drinks -->
+<div class="h-9 pl-1 pr-2.5 rounded-full bg-surface-raised flex items-center gap-2 border border-outline/30 group">
+<div class="w-7 h-7 rounded-full bg-warning/15 flex items-center justify-center text-warning">
+<span class="material-symbols-outlined text-[17px]">local_cafe</span>
+</div>
+<span class="text-body-small font-title text-text">Cafés &amp; drinks</span>
+<button aria-label="Remove Cafés &amp; drinks" class="w-5 h-5 -mr-1 flex items-center justify-center rounded-full text-text-dim hover:text-text active:scale-95 transition-all" onclick="this.parentElement.remove()" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Add Category Pill -->
+<button class="h-9 px-3 rounded-full border border-dashed border-outline text-text-dim hover:text-text active:bg-surface-raised flex items-center gap-1.5 transition-colors" onclick="alert('Select category sheet opening...')" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span class="text-body-small font-title">Add category</span>
+</button>
+</div>
+</div>
+<!-- 3. "Period" Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col gap-space-md border border-outline/40">
+<div class="flex items-center justify-between">
+<h2 class="text-title font-title text-text text-[16px]">Period</h2>
+<span class="material-symbols-outlined text-text-dim text-[18px]">calendar_today</span>
+</div>
+<!-- Horizontal Pill Filter Row -->
+<div aria-label="Budget period" class="flex items-center gap-2 overflow-x-auto pb-1" role="radiogroup">
+<button aria-checked="false" class="h-9 px-4 rounded-full bg-surface-raised text-text-dim text-body-small font-title border border-outline/30 flex items-center justify-center shrink-0 hover:text-text transition-colors" onclick="selectPeriod(this)" role="radio" type="button">
+          Weekly
+        </button>
+<button aria-checked="true" class="h-9 px-4 rounded-full bg-primary-container text-on-primary text-body-small font-title flex items-center justify-center shrink-0 font-semibold transition-all" onclick="selectPeriod(this)" role="radio" type="button">
+          Monthly
+        </button>
+<button aria-checked="false" class="h-9 px-4 rounded-full bg-surface-raised text-text-dim text-body-small font-title border border-outline/30 flex items-center justify-center shrink-0 hover:text-text transition-colors" onclick="selectPeriod(this)" role="radio" type="button">
+          Yearly
+        </button>
+<button aria-checked="false" class="h-9 px-4 rounded-full bg-surface-raised text-text-dim text-body-small font-title border border-outline/30 flex items-center justify-center shrink-0 hover:text-text transition-colors" onclick="selectPeriod(this)" role="radio" type="button">
+          One-time
+        </button>
+</div>
+<p class="text-body-small font-body-small text-text-dim flex items-center gap-1.5 pt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container inline-block"></span>
+        Resets on the 1st of every month
+      </p>
+</div>
+<!-- 4. "Limit" Card (Hero Amount Entry) -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col gap-space-sm border border-outline/40">
+<div class="flex justify-between items-center">
+<label class="font-label-caps text-label-caps uppercase tracking-wider text-text-dim" for="limit-input">
+          Budget limit
+        </label>
+<span class="text-label-caps font-label-caps text-accent-text tracking-wide bg-primary-container/10 px-2 py-0.5 rounded">
+          Fixed cap
+        </span>
+</div>
+<div class="bg-surface-raised rounded-xl p-space-lg flex items-baseline gap-2.5 border border-outline/40 focus-within:border-primary-container transition-colors">
+<span class="text-text-dim font-title text-[18px] tracking-tight shrink-0 select-none">EGP</span>
+<input class="bg-transparent text-text font-title text-[32px] leading-none tracking-tight tabular-nums w-full outline-none font-medium" id="limit-input" inputmode="decimal" oninput="updateAllowance(this.value)" type="text" value="2,000.00"/>
+</div>
+<p class="text-body-small font-body-small text-text-dim pt-0.5 tabular-nums" id="allowance-helper">
+        Daily allowance: <span class="text-text font-title">EGP 64.52</span>/day (31 days)
+      </p>
+</div>
+<!-- 5. "Rollover" Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col gap-space-md border border-outline/40">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-title font-title text-text text-[16px]">Rollover</h2>
+<p class="text-body-small font-body-small text-text-dim mt-0.5">Carry forward balance variations</p>
+</div>
+<span class="material-symbols-outlined text-text-dim text-[20px]">sync_alt</span>
+</div>
+<!-- Segmented Control -->
+<div aria-label="Rollover configuration" class="bg-surface-raised rounded-xl p-1 flex gap-1 border border-outline/40" role="tablist">
+<button aria-selected="true" class="flex-1 py-2 px-1 text-center rounded-lg text-body-small font-title transition-colors bg-surface text-text shadow-sm" onclick="selectRollover(this, 'none')" role="tab" type="button">
+          None
+        </button>
+<button aria-selected="false" class="flex-1 py-2 px-1 text-center rounded-lg text-body-small font-title transition-colors text-text-dim hover:text-text" onclick="selectRollover(this, 'unused')" role="tab" type="button">
+          Unused only
+        </button>
+<button aria-selected="false" class="flex-1 py-2 px-1 text-center rounded-lg text-body-small font-title transition-colors text-text-dim hover:text-text" onclick="selectRollover(this, 'overunder')" role="tab" type="button">
+          Over and under
+        </button>
+</div>
+<p class="text-body-small font-body-small text-text-dim" id="rollover-description">
+        Budget starts fresh each month. Unused amounts do not carry forward.
+      </p>
+</div>
+<!-- 6. "Alerts & pacing" Card -->
+<div class="bg-surface rounded-xl p-space-lg flex flex-col border border-outline/40">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-title font-title text-text text-[16px]">Alerts</h2>
+<span class="material-symbols-outlined text-text-dim text-[18px]">notifications</span>
+</div>
+<!-- Toggle row 1: 80% -->
+<div class="flex items-center justify-between py-2">
+<div class="flex flex-col pr-4">
+<span class="text-body font-title text-[15px] text-text font-medium">Alert at 80%</span>
+<span class="text-body-small font-body-small text-text-dim tabular-nums">Notify when reaching EGP 1,600.00</span>
+</div>
+<button aria-checked="true" class="w-12 h-7 bg-primary-container rounded-full p-1 transition-colors relative flex items-center shrink-0 cursor-pointer" onclick="toggleSwitch(this)" role="switch" type="button">
+<span class="w-5 h-5 rounded-full bg-on-primary transition-transform translate-x-5 block"></span>
+</button>
+</div>
+<!-- Hairline divider -->
+<div class="w-full h-[1px] bg-outline/25 my-2"></div>
+<!-- Toggle row 2: 100% -->
+<div class="flex items-center justify-between py-2">
+<div class="flex flex-col pr-4">
+<span class="text-body font-title text-[15px] text-text font-medium">Alert at 100%</span>
+<span class="text-body-small font-body-small text-text-dim tabular-nums">Notify when limit of EGP 2,000.00 is reached</span>
+</div>
+<button aria-checked="true" class="w-12 h-7 bg-primary-container rounded-full p-1 transition-colors relative flex items-center shrink-0 cursor-pointer" onclick="toggleSwitch(this)" role="switch" type="button">
+<span class="w-5 h-5 rounded-full bg-on-primary transition-transform translate-x-5 block"></span>
+</button>
+</div>
+</div>
+<!-- Bottom Actions Anchored in flow -->
+<div class="pt-3 pb-safe flex flex-col gap-2">
+<button class="w-full h-[52px] rounded-[20px] bg-primary-container text-on-primary font-title text-[16px] font-semibold flex items-center justify-center active:opacity-90 transition-opacity" type="submit">
+        Save budget
+      </button>
+<div class="h-4"></div>
+</div>
+</form>
+<script>
+    function selectScope(btn) {
+      const container = btn.parentElement;
+      container.querySelectorAll('button').forEach(b => {
+        b.setAttribute('aria-selected', 'false');
+        b.className = 'flex-1 py-2 px-space-xs text-center rounded-lg text-body-small font-title transition-colors text-text-dim hover:text-text';
+      });
+      btn.setAttribute('aria-selected', 'true');
+      btn.className = 'flex-1 py-2 px-space-xs text-center rounded-lg text-body-small font-title transition-colors bg-surface text-text shadow-sm';
+    }
+
+    function selectPeriod(btn) {
+      const group = btn.parentElement;
+      group.querySelectorAll('button').forEach(b => {
+        b.setAttribute('aria-checked', 'false');
+        b.className = 'h-9 px-4 rounded-full bg-surface-raised text-text-dim text-body-small font-title border border-outline/30 flex items-center justify-center shrink-0 hover:text-text transition-colors';
+      });
+      btn.setAttribute('aria-checked', 'true');
+      btn.className = 'h-9 px-4 rounded-full bg-primary-container text-on-primary text-body-small font-title flex items-center justify-center shrink-0 font-semibold transition-all';
+    }
+
+    function selectRollover(btn, type) {
+      const container = btn.parentElement;
+      container.querySelectorAll('button').forEach(b => {
+        b.setAttribute('aria-selected', 'false');
+        b.className = 'flex-1 py-2 px-1 text-center rounded-lg text-body-small font-title transition-colors text-text-dim hover:text-text';
+      });
+      btn.setAttribute('aria-selected', 'true');
+      btn.className = 'flex-1 py-2 px-1 text-center rounded-lg text-body-small font-title transition-colors bg-surface text-text shadow-sm';
+
+      const helper = document.getElementById('rollover-description');
+      if (type === 'none') {
+        helper.textContent = 'Budget starts fresh each month. Unused amounts do not carry forward.';
+      } else if (type === 'unused') {
+        helper.textContent = 'Surplus budget rolls forward into the next period to increase your allowance.';
+      } else {
+        helper.textContent = 'Both excess spend and unspent balances will adjust the upcoming month.';
+      }
+    }
+
+    function toggleSwitch(btn) {
+      const isChecked = btn.getAttribute('aria-checked') === 'true';
+      const thumb = btn.firstElementChild;
+      if (isChecked) {
+        btn.setAttribute('aria-checked', 'false');
+        btn.className = 'w-12 h-7 bg-surface-raised border border-outline/40 rounded-full p-1 transition-colors relative flex items-center shrink-0 cursor-pointer';
+        thumb.className = 'w-5 h-5 rounded-full bg-text-dim transition-transform translate-x-0 block';
+      } else {
+        btn.setAttribute('aria-checked', 'true');
+        btn.className = 'w-12 h-7 bg-primary-container rounded-full p-1 transition-colors relative flex items-center shrink-0 cursor-pointer';
+        thumb.className = 'w-5 h-5 rounded-full bg-on-primary transition-transform translate-x-5 block';
+      }
+    }
+
+    function updateAllowance(val) {
+      const cleaned = parseFloat(val.replace(/,/g, ''));
+      const helper = document.getElementById('allowance-helper');
+      if (!isNaN(cleaned) && cleaned > 0) {
+        const perDay = (cleaned / 31).toFixed(2);
+        helper.innerHTML = `Daily allowance: <span class="text-text font-title">EGP ${perDay}</span>/day (31 days)`;
+      } else {
+        helper.innerHTML = 'Enter a valid amount to calculate daily cadence';
+      }
+    }
+  </script>
+</div></main></body></html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<title>Stats - Outlook</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "background": "#202124",
+            "surface": "#292A2D",
+            "surface-raised": "#34363A",
+            "surface-dim": "#1a1b1e",
+            "primary": "#D9C27F",
+            "primary-container": "#D9C27F",
+            "accent-text": "#E6D29A",
+            "text": "#E9E6DE",
+            "text-dim": "#BEB9AF",
+            "expense": "#F09289",
+            "income": "#72C5A6",
+            "outline": "#5B5A54",
+          },
+          fontFamily: {
+            body: ["Manrope", "sans-serif"],
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #202124;
+      }
+      body {
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="bg-[#202124] text-[#E9E6DE] font-body min-h-screen flex flex-col antialiased selection:bg-[#D9C27F]/20 selection:text-[#E6D29A]">
+<!-- Top App Chrome / Header -->
+<header class="fixed top-0 left-0 right-0 z-50 pt-safe bg-[#202124]/95 backdrop-blur-md">
+<!-- Status Bar Spacer (Simulated for visual balance if standalone) -->
+<div class="h-2 w-full"></div>
+<div class="flex flex-col">
+<!-- Title & Actions Row -->
+<div class="h-14 px-5 flex items-center justify-between">
+<h1 class="text-[22px] font-medium tracking-tight text-[#E9E6DE]">Stats</h1>
+<div class="flex items-center gap-1 text-[#BEB9AF]">
+<button aria-label="Toggle Balance Visibility" class="w-10 h-10 flex items-center justify-center rounded-full hover:text-[#E9E6DE] active:text-[#E6D29A] transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]">visibility</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 flex items-center justify-center rounded-full hover:text-[#E9E6DE] active:text-[#E6D29A] transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+<!-- Horizontally Scrollable Sub-tabs -->
+<nav aria-label="Stats Sub-tabs" class="h-11 px-5 flex items-center gap-7 overflow-x-auto no-scrollbar border-b border-[#5B5A54]/20">
+<a class="shrink-0 h-full flex items-center text-[14px] font-medium text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">Cash flow</a>
+<a class="shrink-0 h-full flex items-center text-[14px] font-medium text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">Spending</a>
+<a class="shrink-0 h-full flex items-center text-[14px] font-medium text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">Balance</a>
+<a aria-current="page" class="shrink-0 h-full flex items-center relative text-[14px] font-semibold text-[#E6D29A]" href="#">
+<span>Outlook</span>
+<span class="absolute bottom-0 inset-x-0 h-[2.5px] rounded-full bg-[#D9C27F]"></span>
+</a>
+<a class="shrink-0 h-full flex items-center text-[14px] font-medium text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">Reports</a>
+</nav>
+</div>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex-1 w-full pt-[120px] pb-24 px-4 max-w-md mx-auto space-y-4">
+<!-- Compact Controls Row -->
+<div class="flex items-center justify-between w-full pt-1 pb-1">
+<!-- Month Navigation Raised Pill -->
+<div class="flex items-center h-9 px-1 bg-[#34363A] rounded-full text-[#BEB9AF] shadow-sm border border-[#5B5A54]/30">
+<button aria-label="Previous Month" class="w-7 h-7 flex items-center justify-center rounded-full hover:text-[#E9E6DE] active:text-[#E6D29A] transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="flex items-center gap-0.5 px-2 text-[13px] font-medium text-[#E9E6DE] hover:text-[#E6D29A] transition-colors" type="button">
+<span>October 2026</span>
+<span class="material-symbols-outlined text-[16px] text-[#BEB9AF]">arrow_drop_down</span>
+</button>
+<button aria-label="Next Month" class="w-7 h-7 flex items-center justify-center rounded-full hover:text-[#E9E6DE] active:text-[#E6D29A] transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<!-- Account Filter Chip -->
+<button class="flex items-center h-9 px-3.5 bg-[#34363A] rounded-full text-[13px] font-medium text-[#E9E6DE] border border-[#5B5A54]/30 shadow-sm hover:text-[#E6D29A] transition-colors" type="button">
+<span>All accounts</span>
+<span class="material-symbols-outlined text-[16px] text-[#BEB9AF] ml-0.5">arrow_drop_down</span>
+</button>
+</div>
+<!-- CARD 1: Planned Payments -->
+<section class="flex flex-col w-full bg-[#292A2D] rounded-[20px] p-5 shadow-sm border border-[#5B5A54]/45">
+<!-- Header with Share Icon -->
+<div class="flex items-start justify-between w-full">
+<div class="flex flex-col">
+<h2 class="text-[17px] font-semibold text-[#E9E6DE] tracking-tight">Planned payments</h2>
+<p class="text-[13px] text-[#BEB9AF] mt-0.5 font-normal">What do I have to pay soon?</p>
+</div>
+<button aria-label="Share planned payments" class="w-8 h-8 rounded-full flex items-center justify-center text-[#BEB9AF] hover:text-[#E9E6DE] active:text-[#E6D29A] transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+</button>
+</div>
+<!-- Summary Line Pill -->
+<div class="flex items-center gap-2 mt-3.5 px-3 py-1.5 bg-[#34363A]/80 rounded-full self-start border border-[#5B5A54]/25">
+<span class="text-[13px] font-semibold tabular-nums text-[#F09289]">
+<span class="text-[#BEB9AF] font-normal mr-1">Out</span>− 1,240.00 EGP
+        </span>
+<span class="text-[#5B5A54] text-xs">·</span>
+<span class="text-[13px] font-semibold tabular-nums text-[#72C5A6]">
+<span class="text-[#BEB9AF] font-normal mr-1">In</span>+ 100.00 EGP
+        </span>
+</div>
+<!-- Grouped Timeline -->
+<div class="flex flex-col mt-5 space-y-4">
+<!-- Day: Sun 18 Oct -->
+<div class="flex flex-col space-y-2.5">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-[#BEB9AF]">Sun 18 Oct</span>
+<!-- Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3 min-w-0">
+<!-- 36dp rounded-square icon chip tinted at 18% with icon in full color -->
+<div class="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-[#0785DB]/[0.18] text-[#0785DB]">
+<span class="material-symbols-outlined text-[20px]">bolt</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[14px] font-medium text-[#E9E6DE] truncate">Electricity bill (WE/Telecom)</span>
+<span class="text-[12px] text-[#BEB9AF] tabular-nums mt-0.5">Balance after: EGP 60,560.00</span>
+</div>
+</div>
+<span class="text-[14px] font-semibold tabular-nums text-[#F09289] ml-2 shrink-0">− 640.00 EGP</span>
+</div>
+</div>
+<div class="w-full h-px bg-[#5B5A54]/25"></div>
+<!-- Day: Tue 20 Oct -->
+<div class="flex flex-col space-y-3">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-[#BEB9AF]">Tue 20 Oct</span>
+<!-- Row 1: Netflix -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-[#C45AAC]/[0.18] text-[#C45AAC]">
+<span class="material-symbols-outlined text-[20px]">live_tv</span>
+</div>
+<span class="text-[14px] font-medium text-[#E9E6DE] truncate">Netflix subscription</span>
+</div>
+<span class="text-[14px] font-semibold tabular-nums text-[#F09289] ml-2 shrink-0">− 250.00 EGP</span>
+</div>
+<!-- Row 2: Gym Locker -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-[#059093]/[0.18] text-[#059093]">
+<span class="material-symbols-outlined text-[20px]">fitness_center</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[14px] font-medium text-[#E9E6DE] truncate">Gym locker fee</span>
+<span class="text-[12px] text-[#BEB9AF] tabular-nums mt-0.5">Balance after: EGP 59,960.00</span>
+</div>
+</div>
+<span class="text-[14px] font-semibold tabular-nums text-[#F09289] ml-2 shrink-0">− 350.00 EGP</span>
+</div>
+</div>
+<div class="w-full h-px bg-[#5B5A54]/25"></div>
+<!-- Day: Sat 24 Oct -->
+<div class="flex flex-col space-y-2.5">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-[#BEB9AF]">Sat 24 Oct</span>
+<!-- Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-[#72C5A6]/[0.18] text-[#72C5A6]">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[14px] font-medium text-[#E9E6DE] truncate">Cashback deposit (CIB)</span>
+<span class="text-[12px] text-[#BEB9AF] tabular-nums mt-0.5">Balance after: EGP 60,060.00</span>
+</div>
+</div>
+<span class="text-[14px] font-semibold tabular-nums text-[#72C5A6] ml-2 shrink-0">+ 100.00 EGP</span>
+</div>
+</div>
+</div>
+</section>
+<!-- CARD 2: Balance Forecast -->
+<section class="flex flex-col w-full bg-[#292A2D] rounded-[20px] p-5 shadow-sm border border-[#5B5A54]/45 space-y-4">
+<!-- Header -->
+<div class="flex items-start justify-between w-full">
+<div class="flex flex-col">
+<h2 class="text-[17px] font-semibold text-[#E9E6DE] tracking-tight">Balance forecast</h2>
+<p class="text-[13px] text-[#BEB9AF] mt-0.5 font-normal">Will I have enough for the rest of the month?</p>
+</div>
+<button aria-label="Share forecast" class="w-8 h-8 rounded-full flex items-center justify-center text-[#BEB9AF] hover:text-[#E9E6DE] active:text-[#E6D29A] transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+</button>
+</div>
+<!-- Hero Figure -->
+<div class="flex flex-col pt-1">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-[#BEB9AF]">PROJECTED MONTH-END</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="text-[15px] text-[#BEB9AF] font-normal">Ends around</span>
+<span class="text-[26px] leading-tight font-medium tabular-nums text-[#E9E6DE]">
+            EGP 52,300<span class="text-[16px] text-[#BEB9AF]">.00</span>
+</span>
+</div>
+</div>
+<!-- 5-Bar Waterfall Chart Container -->
+<div class="w-full pt-3 pb-1">
+<div class="relative w-full h-[185px]">
+<!-- SVG Waterfall Diagram -->
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 340 150">
+<defs>
+<lineargradient id="mizanChampagneGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#D9C27F" stop-opacity="0.30"></stop>
+<stop offset="100%" stop-color="#D9C27F" stop-opacity="0.08"></stop>
+</lineargradient>
+</defs>
+<!-- Horizontal Baseline Gridlines -->
+<line stroke="#5B5A54" stroke-opacity="0.35" stroke-width="1" x1="0" x2="340" y1="126" y2="126"></line>
+<line stroke="#5B5A54" stroke-dasharray="2 3" stroke-opacity="0.2" stroke-width="1" x1="0" x2="340" y1="76" y2="76"></line>
+<line stroke="#5B5A54" stroke-dasharray="2 3" stroke-opacity="0.2" stroke-width="1" x1="0" x2="340" y1="26" y2="26"></line>
+<!-- Connector Dashed Guide Hairlines between floating steps -->
+<!-- Bar 1 top (26) to Bar 2 top (26) -->
+<line stroke="#BEB9AF" stroke-dasharray="2.5 2.5" stroke-opacity="0.5" stroke-width="1" x1="48" x2="88" y1="26" y2="26"></line>
+<!-- Bar 2 bottom (40) to Bar 3 top (40) -->
+<line stroke="#BEB9AF" stroke-dasharray="2.5 2.5" stroke-opacity="0.5" stroke-width="1" x1="126" x2="154" y1="40" y2="40"></line>
+<!-- Bar 3 bottom (88) to Bar 4 bottom (88) -->
+<line stroke="#BEB9AF" stroke-dasharray="2.5 2.5" stroke-opacity="0.5" stroke-width="1" x1="192" x2="220" y1="88" y2="88"></line>
+<!-- Bar 4 top (82) to Bar 5 top (82) -->
+<line stroke="#BEB9AF" stroke-dasharray="2.5 2.5" stroke-opacity="0.5" stroke-width="1" x1="258" x2="286" y1="82" y2="82"></line>
+<!-- BAR 1: Start (61.2k) - neutral surface-raised tone -->
+<rect fill="#34363A" height="100" rx="5" stroke="#5B5A54" stroke-width="1" width="38" x="10" y="26"></rect>
+<text fill="#E9E6DE" font-family="Manrope" font-size="11.5" font-weight="600" text-anchor="middle" x="29" y="18">61.2k</text>
+<!-- BAR 2: Planned (-1.2k) - step-down floating bar in expense coral #F09289 -->
+<rect fill="#F09289" height="14" rx="4" width="38" x="88" y="26"></rect>
+<text fill="#F09289" font-family="Manrope" font-size="11.5" font-weight="600" text-anchor="middle" x="107" y="18">−1.2k</text>
+<!-- BAR 3: Unplanned (-7.8k) - step-down floating bar in expense coral #F09289 -->
+<rect fill="#F09289" height="48" rx="4" width="38" x="154" y="40"></rect>
+<text fill="#F09289" font-family="Manrope" font-size="11.5" font-weight="600" text-anchor="middle" x="173" y="32">−7.8k</text>
+<!-- BAR 4: Exp. in (+0.1k) - small step-up floating bar in income teal #72C5A6 -->
+<rect fill="#72C5A6" height="6" rx="3" width="38" x="220" y="82"></rect>
+<text fill="#72C5A6" font-family="Manrope" font-size="11.5" font-weight="600" text-anchor="middle" x="239" y="74">+0.1k</text>
+<!-- BAR 5: End (52.3k) - grounded champagne-tinted outline bar with champagne border #D9C27F and subtle warm fill -->
+<rect fill="url(#mizanChampagneGrad)" height="44" rx="5" width="38" x="286" y="82"></rect>
+<rect fill="none" height="44" rx="5" stroke="#D9C27F" stroke-width="1.5" width="38" x="286" y="82"></rect>
+<text fill="#E6D29A" font-family="Manrope" font-size="12" font-weight="700" text-anchor="middle" x="305" y="74">52.3k</text>
+</svg>
+<!-- X-Axis Labels -->
+<div class="grid grid-cols-5 text-center text-[12px] text-[#BEB9AF] font-medium pt-2">
+<span>Start</span>
+<span>Planned</span>
+<span>Unplanned</span>
+<span>Exp. in</span>
+<span class="text-[#E6D29A] font-semibold">End</span>
+</div>
+</div>
+</div>
+<!-- Toggle Module Row -->
+<div class="w-full bg-[#34363A]/70 rounded-xl p-3.5 space-y-1.5 border border-[#5B5A54]/25">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-[13.5px] font-medium text-[#E9E6DE]">Include typical income</span>
+<span class="px-2 py-0.5 rounded-full bg-[#202124] text-[#BEB9AF] text-[10px] font-semibold tracking-wider uppercase border border-[#5B5A54]/30">Assumption</span>
+</div>
+<!-- Switch component in OFF state -->
+<button aria-checked="false" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full bg-[#202124] p-0.5 transition-colors duration-200 ease-in-out border border-[#5B5A54]/40 focus:outline-none" onclick="const checked = this.getAttribute('aria-checked') === 'true'; this.setAttribute('aria-checked', !checked); this.querySelector('span').classList.toggle('translate-x-5'); this.classList.toggle('bg-[#D9C27F]');" role="switch" type="button">
+<span class="pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-[#BEB9AF] shadow-sm transition duration-200 ease-in-out translate-x-0"></span>
+</button>
+</div>
+<p class="text-[12px] text-[#BEB9AF] leading-relaxed">
+          Off by default. The forecast only counts income you scheduled.
+        </p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation (64dp tall, surface #292A2D, explicit NO floating button) -->
+<nav aria-label="Primary application navigation" class="fixed bottom-0 left-0 right-0 z-50 bg-[#292A2D] border-t border-[#5B5A54]/30 pb-safe shadow-[0_-2px_12px_rgba(0,0,0,0.3)]">
+<div class="flex justify-around items-center h-16 max-w-md mx-auto px-2">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center gap-1 w-14 h-full text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">home</span>
+<span class="text-[11px] font-medium leading-none">Home</span>
+</a>
+<!-- Records -->
+<a class="flex flex-col items-center justify-center gap-1 w-14 h-full text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">receipt_long</span>
+<span class="text-[11px] font-medium leading-none">Records</span>
+</a>
+<!-- Stats (SELECTED with accent-text icon/label inside soft champagne indicator) -->
+<a aria-current="page" class="flex flex-col items-center justify-center gap-1 w-14 h-full text-[#E6D29A]" href="#">
+<div class="px-3 py-1 rounded-full bg-[#D9C27F]/15 flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px] [font-variation-settings:'FILL'_1]">bar_chart</span>
+</div>
+<span class="text-[11px] font-semibold leading-none">Stats</span>
+</a>
+<!-- Plan -->
+<a class="flex flex-col items-center justify-center gap-1 w-14 h-full text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">calendar_today</span>
+<span class="text-[11px] font-medium leading-none">Plan</span>
+</a>
+<!-- Wealth -->
+<a class="flex flex-col items-center justify-center gap-1 w-14 h-full text-[#BEB9AF] hover:text-[#E9E6DE] transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">account_balance</span>
+<span class="text-[11px] font-medium leading-none">Wealth</span>
+</a>
+</div>
+<!-- Android Gesture Navigation Pill Bar -->
+<div class="w-full flex justify-center pb-1 pt-0.5">
+<div class="w-28 h-1 rounded-full bg-[#5B5A54]/50"></div>
+</div>
+</nav>
+</body></html>
