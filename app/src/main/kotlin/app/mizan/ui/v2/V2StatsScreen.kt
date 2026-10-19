@@ -107,25 +107,25 @@ fun V2StatsScreen(
 ) {
     val page = StatsPage.entries.firstOrNull { it.title == selectedPage } ?: StatsPage.BALANCE
     val period = remember(periodState) { periodState.toStatsPeriod() }
-    val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
-    val entries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val labels by repository.observeLabels().collectAsStateWithLifecycle(emptyList())
-    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
-    val debtRepaymentRows by repository.observeDebtRepaymentRows().collectAsStateWithLifecycle(emptyList())
-    val debtRateHistory by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
-    val debtRepayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
-    val plannedPayments by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
-    val plannedOccurrences by repository.observePlannedOccurrences().collectAsStateWithLifecycle(emptyList())
-    val incomeCategories by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
+    val rows by remember(repository) { repository.observeStatsRows() }.collectAsStateWithLifecycle(emptyList())
+    val entries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAllAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository) { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val labels by remember(repository) { repository.observeLabels() }.collectAsStateWithLifecycle(emptyList())
+    val payees by remember(repository) { repository.observePayees() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val trades by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observeLatestPrices() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val debts by remember(repository) { repository.observeAllDebts() }.collectAsStateWithLifecycle(emptyList())
+    val debtRepaymentRows by remember(repository) { repository.observeDebtRepaymentRows() }.collectAsStateWithLifecycle(emptyList())
+    val debtRateHistory by remember(repository) { repository.observeFxHistory() }.collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by remember(repository) { repository.observeDebtRepaymentTotals() }.collectAsStateWithLifecycle(emptyList())
+    val plannedPayments by remember(repository) { repository.observePlannedPayments() }.collectAsStateWithLifecycle(emptyList())
+    val plannedOccurrences by remember(repository) { repository.observePlannedOccurrences() }.collectAsStateWithLifecycle(emptyList())
+    val incomeCategories by remember(repository) { repository.observeCategories("INCOME") }.collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val selectedPeriod = period.through(today)
     val outlookEnd = periodState.outlookEnd(today)
@@ -138,7 +138,7 @@ fun V2StatsScreen(
     var snapshotReady by remember { mutableStateOf(false) }
     val snapshot by produceState(
         StatsSnapshot.empty(),
-        page,
+        page != StatsPage.OUTLOOK && page != StatsPage.REPORTS,
         rows,
         entries,
         balances,
