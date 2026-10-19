@@ -54,6 +54,7 @@
 
 ## Unreleased
 
+- Settings import now reads the Mizan Import sheet in `.xlsx` workbooks while keeping Wallet CSV support. Typed ASSET_BUY and debt events post through the real ledger and asset/debt tables; the preview flags unresolved source rows and stable event IDs prevent duplicate imports.
 - P15 makes the current interface the only shell, removes the legacy screens and runtime flag, routes first-run restore through the current Backup screen, and removes the unfinished destination browser. Domain models and data entities remain intact.
 - P14 adds a Mizan-styled voice review sheet that parses Arabic/English with the existing recognizer and parser and persists reviewed batches atomically; Inbox now shows source, amount, merchant, suggestions and duplicate/reversal states with confirm-to-Entry, edit and dismiss actions; reversal confirmation posts an ADJUSTMENT, never income/expense. Added a privacy-aware Glance widget balance, Home/Entry mic routes, SMS permission rationale, and fake-ledger plus Room inbox confirmation tests.
 - P9 adds the shared Plan tabs, calculator-backed budget periods and status cards, budget scope/rollover/alerts with archive Undo, planned-payment recurrence and reminder actions, and confirm-before-post Mark paid with the resulting transaction linked atomically to its occurrence. Added budget calculation golden coverage, Room-backed planning round-trip/reminder tests, and a Compose capture test. Emulator capture transfer failed; the phone capture step is in `docs/PHONE_CHECKLIST.md`.

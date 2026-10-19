@@ -239,7 +239,7 @@ class P13ScreensInstrumentedTest {
         compose.onNodeWithText("Attributions").assertIsDisplayed()
         capture("14-about.png")
         compose.runOnIdle { view = 4 }
-        compose.onNodeWithText("Choose Wallet CSV").assertIsDisplayed()
+        compose.onNodeWithText("Choose import file").assertIsDisplayed()
         capture("15-wallet-import.png")
     }
 

@@ -1,5 +1,14 @@
 # Assumptions
 
+## Mizan historical workbook import
+
+- The import workbook keeps every original Wallet row in the review tabs. Its `Mizan Import` sheet posts only mapped rows; `REVIEW` rows remain visible in the app preview and do not create ledger records.
+- `Investment` maps to an INVESTMENT account, while `Essential` and `Fun` map to BANK accounts. The source does not include opening balances, so imported accounts start at zero. The user confirmed the EGP 6,500 source row is already in a bank balance; it is excluded from income and requires separate account and opening-balance reconciliation.
+- Gold and fund purchases described by the user use the `Investment` account. The 8g 21K gold pound is represented as one coin unit so market pricing uses the gold-pound quote. The 24K bar keeps its EGP 33,910 all-in cost, with EGP 424.30 stored as a fee above the quoted EGP 6,697.14/g.
+- Fund cost uses the user's stated invested amount. Unit price is derived as total cost divided by units. The three NM purchases share one holding and keep separate lots. The EGP 957.41 first NM fund buy leaves the unused EGP 42.59 in cash.
+- The four salary-funded Financial investments outflows without an identified holding, the EGP 11,700 Savings outflow, the EGP 100 Seif debt-direction conflict, and both EGP 5,000 Moustfa records remain unposted for review. The EGP 33,900 Savings expense is preserved unchanged and is not linked to the 5g bar.
+- The historical Essam debt opens at EGP 270 without a cash posting because the source contains only the debt balance and repayments; EGP 180 + EGP 70 repayments leave EGP 20 owed.
+
 ## P8 Reports guide markers
 
 - Reports uses a 15% investing-rate target marker and 35% debt-to-income reference ceiling because neither value has a user preference or calculator constant yet. They are comparison guides only and do not change account, forecast, or report calculations.
