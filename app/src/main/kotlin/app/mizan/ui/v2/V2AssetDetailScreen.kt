@@ -47,14 +47,14 @@ fun V2AssetDetailScreen(
     hideAmounts: Boolean,
     onTrade: (String, Boolean) -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val transactions by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observePriceHistory().collectAsStateWithLifecycle(emptyList())
-    val fxHistory by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
-    val statsEntries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAllAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val transactions by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observePriceHistory() }.collectAsStateWithLifecycle(emptyList())
+    val fxHistory by remember(repository) { repository.observeFxHistory() }.collectAsStateWithLifecycle(emptyList())
+    val statsEntries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
     var range by rememberSaveable { mutableStateOf("6M") }
     val snapshot by produceState<V2WealthSnapshot?>(
         null,
