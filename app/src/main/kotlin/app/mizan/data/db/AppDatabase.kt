@@ -647,6 +647,9 @@ interface InboxDao {
     @Query("SELECT * FROM inbox_drafts WHERE id = :id")
     fun observe(id: String): Flow<InboxDraftEntity?>
 
+    @Query("SELECT * FROM inbox_drafts WHERE id = :id")
+    suspend fun findById(id: String): InboxDraftEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(value: InboxDraftEntity): Long
 
@@ -1029,6 +1032,7 @@ interface LedgerDao {
         SELECT EXISTS(
             SELECT 1 FROM transactions t JOIN entries e ON e.txnId = t.id
             WHERE t.deletedAt IS NULL AND e.accountId = :accountId AND ABS(e.amountMinor) = :amountMinor
+              AND (:currency IS NULL OR e.currency = :currency)
               AND ((:payeeId IS NULL AND t.payeeId IS NULL) OR t.payeeId = :payeeId)
               AND ABS(t.bookedAt - :bookedAt) <= 120000
         )
@@ -1039,6 +1043,7 @@ interface LedgerDao {
         amountMinor: Long,
         payeeId: String?,
         bookedAt: Long,
+        currency: String?,
     ): Boolean
 
     @Query(

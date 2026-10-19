@@ -184,6 +184,32 @@ class MizanRepository
 
         suspend fun confirmInboxDraft(id: String) = inbox.setStatus(id, "CONFIRMED")
 
+        suspend fun postInboxDraft(
+            id: String,
+            posting: LedgerPosting,
+            labelIds: Set<String> = emptySet(),
+            receiptUris: List<String> = emptyList(),
+        ) {
+            database.withTransaction {
+                check(inbox.findById(id)?.status == "PENDING") { "Inbox draft was already handled" }
+                post(posting, labelIds, receiptUris)
+                inbox.setStatus(id, "CONFIRMED")
+            }
+        }
+
+        suspend fun postInboxAdjustment(
+            id: String,
+            accountId: String,
+            currency: String,
+            deltaMinor: Long,
+        ) {
+            database.withTransaction {
+                check(inbox.findById(id)?.status == "PENDING") { "Inbox draft was already handled" }
+                postBalanceAdjustment(accountId, currency, deltaMinor)
+                inbox.setStatus(id, "CONFIRMED")
+            }
+        }
+
         suspend fun captureInboxDraft(
             source: String,
             draft: SmsDraft,
@@ -831,7 +857,8 @@ class MizanRepository
             amountMinor: Long,
             payeeId: String?,
             bookedAt: Instant,
-        ): Boolean = ledger.hasPossibleDuplicate(accountId, amountMinor, payeeId, bookedAt.toEpochMilli())
+            currency: String? = null,
+        ): Boolean = ledger.hasPossibleDuplicate(accountId, amountMinor, payeeId, bookedAt.toEpochMilli(), currency)
 
         fun observeStatsEntries() = ledger.observeStatsEntries()
 
@@ -1500,6 +1527,45 @@ class MizanRepository
                 plannedOccurrence?.let { (plannedId, dueDate) ->
                     planning.upsertOccurrence(PlannedOccurrenceEntity(plannedId, dueDate, "PAID", posting.transaction.id))
                 }
+            }
+        }
+
+        /** Persists a reviewed voice batch atomically, so a partial Save all can never leave duplicates. */
+        suspend fun postAll(postings: List<LedgerPosting>) {
+            require(postings.map { it.transaction.id }.distinct().size == postings.size) { "Voice batch contains duplicate ids" }
+            if (postings.isEmpty()) return
+            val now = clock.millis()
+            database.withTransaction {
+                ledger.persistBatch(
+                    postings.map { current ->
+                        TxnEntity(
+                            id = current.transaction.id,
+                            kind = current.transaction.kind.name,
+                            bookedAt = current.transaction.bookedAt.toEpochMilli(),
+                            bookedDate = current.transaction.bookedDate.toString(),
+                            categoryId = current.transaction.categoryId,
+                            payeeId = current.transaction.payeeId,
+                            note = current.transaction.note,
+                            status = current.transaction.status.name,
+                            paymentType = current.transaction.paymentType.name,
+                            createdAt = now,
+                            updatedAt = now,
+                        )
+                    },
+                    postings.flatMap { current ->
+                        current.entries.map { entry ->
+                            EntryEntity(
+                                entry.id,
+                                entry.txnId,
+                                entry.accountId,
+                                entry.currency,
+                                entry.amountMinor,
+                                entry.rateToBase.toPlainString(),
+                                entry.baseMinor,
+                            )
+                        }
+                    },
+                )
             }
         }
 

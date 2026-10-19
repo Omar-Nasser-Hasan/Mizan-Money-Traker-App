@@ -79,6 +79,7 @@ fun V2EntryScreen(
     plannedPaymentId: String? = null,
     plannedDueDate: String? = null,
     modifier: Modifier = Modifier,
+    onOpenVoice: () -> Unit = {},
     onDone: () -> Unit,
 ) {
     val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
@@ -88,6 +89,7 @@ fun V2EntryScreen(
     val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
     val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
     val labels by repository.observeLabels().collectAsStateWithLifecycle(emptyList())
+    val learnedPayeeCategories by repository.observeLearnedPayeeCategories().collectAsStateWithLifecycle(emptyMap())
     val scope = rememberCoroutineScope()
     var kind by remember(initialKind) { mutableStateOf(initialKind) }
     val recordTemplates by repository.observeRecordTemplates(kind).collectAsStateWithLifecycle(emptyList())
@@ -259,12 +261,15 @@ fun V2EntryScreen(
         }
         editLoaded = true
     }
-    androidx.compose.runtime.LaunchedEffect(inboxDraftId, inboxDraft, currencies, accounts) {
+    androidx.compose.runtime.LaunchedEffect(inboxDraftId, inboxDraft, currencies, accounts, categories, learnedPayeeCategories) {
         val draft = inboxDraft ?: return@LaunchedEffect
         if (editTransactionId != null || editLoaded) return@LaunchedEffect
         val draftDecimals = currencies.firstOrNull { it.code == draft.currency }?.decimals ?: 2
         kind = if (draft.kind == "INCOME" || draft.kind == "REVERSAL") "INCOME" else draft.kind
         currency = draft.currency
+        draft.merchant?.trim()?.lowercase()?.let { learnedPayeeCategories[it] }?.let { suggested ->
+            if (categories.any { it.id == suggested }) categoryId = suggested
+        }
         expression = BigDecimal.valueOf(draft.amountMinor).movePointLeft(draftDecimals).toPlainString()
         payeeQuery = draft.merchant.orEmpty()
         bookedDate = Instant.ofEpochMilli(draft.occurredAt).atZone(ZoneId.of("Africa/Cairo")).toLocalDate()
@@ -335,7 +340,7 @@ fun V2EntryScreen(
             }
         val payeeId = payees.firstOrNull { it.name.equals(payeeQuery.trim(), ignoreCase = true) }?.id
         if (editTransactionId == null && kind != "TRANSFER" && !duplicateConfirmed &&
-            repository.isPossibleDuplicate(current.id, amount, payeeId, bookedAt)
+            repository.isPossibleDuplicate(current.id, amount, payeeId, bookedAt, currency)
         ) {
             duplicateConfirmed = true
             message = "Possible duplicate. Tap Save again to post it."
@@ -456,13 +461,16 @@ fun V2EntryScreen(
                 }
             }
         if (editTransactionId == null) {
-            repository.post(
-                posting,
-                selectedLabelIds,
-                receiptUris,
-                plannedPaymentId?.let { it to (plannedDueDate ?: bookedDate.toString()) },
-            )
-            if (inboxDraftId != null) repository.confirmInboxDraft(inboxDraftId)
+            if (inboxDraftId != null) {
+                repository.postInboxDraft(inboxDraftId, posting, selectedLabelIds, receiptUris)
+            } else {
+                repository.post(
+                    posting,
+                    selectedLabelIds,
+                    receiptUris,
+                    plannedPaymentId?.let { it to (plannedDueDate ?: bookedDate.toString()) },
+                )
+            }
         } else {
             repository.replaceRecord(editTransactionId, posting, selectedLabelIds, receiptUris)
         }
@@ -474,6 +482,7 @@ fun V2EntryScreen(
         modifier = modifier.fillMaxSize().padding(horizontal = MzSpacing.sideMargin),
         verticalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
     ) {
+        item { MzButton("Mic · Voice entry", onOpenVoice, Modifier.fillMaxWidth(), MzButtonStyle.GHOST) }
         item {
             MzSegmented(
                 options = listOf("Expense", "Income", "Transfer"),

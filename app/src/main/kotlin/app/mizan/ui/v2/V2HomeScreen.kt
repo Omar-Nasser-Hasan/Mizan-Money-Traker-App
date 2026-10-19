@@ -102,6 +102,7 @@ fun V2HomeScreen(
     val balanceRows by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
     val records by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
     val recent by repository.observeRecentRecords(5).collectAsStateWithLifecycle(emptyList())
+    val inboxDrafts by repository.observeInboxDrafts().collectAsStateWithLifecycle(emptyList())
     val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
     val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
@@ -200,7 +201,7 @@ fun V2HomeScreen(
             }
 
             else -> {
-                HomeContent(data!!, hideAmounts, onNavigate)
+                HomeContent(data!!, inboxDrafts.size, hideAmounts, onNavigate)
             }
         }
     }
@@ -219,6 +220,7 @@ private fun HomeLoading() {
 @Composable
 private fun HomeContent(
     data: HomeUiData,
+    inboxDraftCount: Int,
     hideAmounts: Boolean,
     onNavigate: (V2Route) -> Unit,
 ) {
@@ -230,6 +232,15 @@ private fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
     ) {
         item { NetWorthHero(data.summary, hideAmounts) }
+        item { MzButton("Mic · Voice entry", { onNavigate(V2Route.VoiceReview) }, Modifier.fillMaxWidth(), MzButtonStyle.SECONDARY) }
+        if (inboxDraftCount > 0) {
+            item {
+                MzBanner(
+                    "$inboxDraftCount draft${if (inboxDraftCount == 1) "" else "s"} need review",
+                    onClick = { onNavigate(V2Route.Inbox) },
+                )
+            }
+        }
         if (HomeBanners.showUncategorized(data.summary.uncategorizedExpenseCount)) {
             item {
                 MzBanner("${data.summary.uncategorizedExpenseCount} records need a category", onClick = { onNavigate(V2Route.Records) })

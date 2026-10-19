@@ -208,6 +208,10 @@ fun v2MizanApp(
             Box(Modifier.padding(padding)) { V2AboutScreen(repository) }
         } else if (activeRoute == V2Route.QuickEntrySettings) {
             Box(Modifier.padding(padding)) { V2QuickSettingsScreen(repository) { navigation = navigation.navigate(it) } }
+        } else if (activeRoute == V2Route.VoiceReview) {
+            Box(Modifier.padding(padding)) {
+                V2VoiceReviewScreen(repository, hideAmounts) { navigation = navigation.back() }
+            }
         } else if (activeRoute == V2Route.Export) {
             Box(Modifier.padding(padding)) { V2ExportScreen(repository) }
         } else if (activeRoute == V2Route.Trash) {
@@ -494,6 +498,7 @@ fun v2MizanApp(
                 presetTransferTargetId = (activeRoute as? V2Route.CardPayment)?.cardId,
                 zakatPayment = activeRoute == V2Route.ZakatEntry,
                 modifier = Modifier.padding(padding),
+                onOpenVoice = { navigation = navigation.navigate(V2Route.VoiceReview) },
                 onDone = { navigation = navigation.back() },
             )
         } else if (activeRoute is V2Route.RecordDetail) {
@@ -509,7 +514,21 @@ fun v2MizanApp(
             V2InboxScreen(
                 repository = repository,
                 hideAmounts = hideAmounts,
-                onOpen = { id -> navigation = navigation.navigate(V2Route.InboxDraftEntry(id)) },
+                lastAccountId = lastAccountId,
+                onConfirm = { draft ->
+                    if (draft.kind == "REVERSAL") {
+                        scope.launch {
+                            val accountId = lastAccountId ?: accounts.firstOrNull { !it.archived }?.id
+                            if (accountId != null) {
+                                repository.postInboxAdjustment(draft.id, accountId, draft.currency, draft.amountMinor)
+                            }
+                        }
+                    } else {
+                        navigation = navigation.navigate(V2Route.InboxDraftEntry(draft.id))
+                    }
+                },
+                onEdit = { id -> navigation = navigation.navigate(V2Route.InboxDraftEntry(id)) },
+                onBack = { navigation = navigation.back() },
             )
         } else {
             V2RouteHost(
