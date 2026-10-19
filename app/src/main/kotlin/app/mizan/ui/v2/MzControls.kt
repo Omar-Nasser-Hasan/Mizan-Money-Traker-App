@@ -120,13 +120,13 @@ fun MzChip(
 ) {
     val tokens = LocalMzTokens.current
     Surface(
-        modifier = modifier.height(36.dp).clip(MzShapes.pill).clickable(role = Role.Button, onClick = onClick),
+        modifier = modifier.heightIn(min = 48.dp).clip(MzShapes.pill).clickable(role = Role.Button, onClick = onClick),
         shape = MzShapes.pill,
         color = if (selected) tokens.champagne else tokens.surface,
         contentColor = if (selected) tokens.onChampagne else tokens.textDim,
         border = if (selected) null else BorderStroke(1.dp, tokens.outline.copy(alpha = 0.4f)),
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Text(label, style = MzTypography.bodySmall.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium))
         }
     }
