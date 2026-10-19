@@ -145,3 +145,7 @@
 ### P13 — Backup
 
 - Encrypted local backup creation, daily scheduling, sharing, verified restore preview and local restore list; Drive setup is explicitly unavailable until configured.
+
+### P13 — More
+
+- More groups for Zakat, import, export, Trash, data sources and About, with a privacy footer.
