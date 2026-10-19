@@ -121,3 +121,7 @@
 - Connected persisted notification, backup, gold-price and widget preferences to their real workers; added optional weekly summaries, quiet-hour boundary handling and Hijri anniversary scheduling.
 - Added validated category/template writers, FX pins with stable timestamps and bank spread, atomic Wallet import with currency-separated preview and repeat-file protection, and undoable delayed Trash purging.
 - Included typed settings in encrypted backups without device-bound Keystore blobs; added private sanitized crash logs and isolated backup/export integration coverage.
+
+### P13 — Currencies and rates
+
+- Locked EGP base, tracked currencies, editable pins and spread, quote ages and attribution.
