@@ -169,3 +169,7 @@
 ### P13 — Wallet import
 
 - File picking, column mapping, currency-separated dry run, validation and explicit idempotent commit.
+
+### P13 — Export
+
+- CSV, XLSX and PDF export through real writers and the Android share sheet.
