@@ -125,3 +125,7 @@
 ### P13 — Currencies and rates
 
 - Locked EGP base, tracked currencies, editable pins and spread, quote ages and attribution.
+
+### P13 — Categories and labels
+
+- Expense, Income and Labels tabs with stable-id editing, subcategories, ordering, archive/Undo and locked debt-service meaning.
