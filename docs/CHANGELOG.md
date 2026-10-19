@@ -149,3 +149,7 @@
 ### P13 — More
 
 - More groups for Zakat, import, export, Trash, data sources and About, with a privacy footer.
+
+### P13 — Data sources
+
+- Gold auto/manual selection, provider attribution and price history metadata; stocks and funds remain manual per the spike verdict.
