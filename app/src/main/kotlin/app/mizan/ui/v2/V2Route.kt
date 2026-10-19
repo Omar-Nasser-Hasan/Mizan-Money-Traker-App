@@ -13,6 +13,8 @@ sealed interface V2Route {
 
     data object ExpenseEntry : V2Route by form("entry:EXPENSE", "Add expense")
 
+    data object ZakatEntry : V2Route by form("entry:zakat", "Log Zakat payment")
+
     data object IncomeEntry : V2Route by form("entry:INCOME", "Add income")
 
     data object TransferEntry : V2Route by form("entry:TRANSFER", "Transfer")

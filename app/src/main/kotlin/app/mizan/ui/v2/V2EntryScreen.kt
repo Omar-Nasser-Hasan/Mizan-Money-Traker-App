@@ -75,6 +75,7 @@ fun V2EntryScreen(
     editTransactionId: String? = null,
     inboxDraftId: String? = null,
     presetTransferTargetId: String? = null,
+    zakatPayment: Boolean = false,
     plannedPaymentId: String? = null,
     plannedDueDate: String? = null,
     modifier: Modifier = Modifier,
@@ -97,7 +98,16 @@ fun V2EntryScreen(
     var targetId by remember(accounts, presetTransferTargetId) {
         mutableStateOf(presetTransferTargetId ?: accounts.firstOrNull { it.id != accountId }?.id.orEmpty())
     }
-    var categoryId by remember(categories) { mutableStateOf(categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID) }
+    var categoryId by remember(categories) {
+        mutableStateOf(
+            if (zakatPayment) {
+                categories.firstOrNull { it.name.contains("Zakat", true) }?.id
+                    ?: MizanRepository.UNCATEGORIZED_ID
+            } else {
+                categories.firstOrNull()?.id ?: MizanRepository.UNCATEGORIZED_ID
+            },
+        )
+    }
     var sourceId by remember { mutableStateOf<String?>(null) }
     var templateId by remember { mutableStateOf<String?>(null) }
     val persistedLines by repository.observeSplitLines(templateId ?: "").collectAsStateWithLifecycle(emptyList())
@@ -118,6 +128,9 @@ fun V2EntryScreen(
     var note by remember { mutableStateOf("") }
     var payeeQuery by remember { mutableStateOf("") }
     var selectedLabelIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    androidx.compose.runtime.LaunchedEffect(zakatPayment, labels) {
+        if (zakatPayment) selectedLabelIds = labels.filter { it.name == "Zakat" }.map { it.id }.toSet()
+    }
     var newLabelName by remember { mutableStateOf("") }
     var receiptUris by remember { mutableStateOf<List<String>>(emptyList()) }
     var bookingRateOverride by remember(editTransactionId) { mutableStateOf<BigDecimal?>(null) }

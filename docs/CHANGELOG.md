@@ -161,3 +161,7 @@
 ### P13 — About and logs
 
 - Real app version, attributions, runtime interface flag and user-initiated private log export.
+
+### P13 — Zakat
+
+- Live editable cash, holdings and liabilities, per-holding exclusions, domain nisab/due calculation, Hijri reminder and labeled expense entry.
