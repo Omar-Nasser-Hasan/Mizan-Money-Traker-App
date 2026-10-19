@@ -1,6 +1,10 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.entry
 
+import app.mizan.domain.ledger.IncomeAllocation
+import app.mizan.domain.ledger.IncomeSplitCalculator
+import app.mizan.domain.ledger.PaymentType
+import app.mizan.domain.ledger.SplitLine
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -18,6 +22,10 @@ data class DraftRecord(
     val payee: String?,
     val confidence: Int,
     val sourceClause: String,
+    val paymentType: PaymentType? = null,
+    val incomeAllocations: List<IncomeAllocation> = emptyList(),
+    val incomeSplitLines: List<SplitLine> = emptyList(),
+    val incomeSplitRemainderAccountId: String? = null,
 )
 
 data class ParserAccount(
@@ -37,6 +45,8 @@ data class ParserContext(
     val learnedPhrases: Map<String, String> = emptyMap(),
     val defaultAccountId: String? = null,
     val defaultCurrency: String = "EGP",
+    val defaultIncomeSplitLines: List<SplitLine> = emptyList(),
+    val defaultIncomeRemainderAccountId: String? = null,
     val today: LocalDate,
     val decimalsByCurrency: Map<String, Int> = mapOf("EGP" to 2, "USD" to 2, "EUR" to 2, "KWD" to 3, "JPY" to 0),
 )
@@ -133,27 +143,69 @@ object VoiceParser {
         transcript: String,
         context: ParserContext,
     ): List<DraftRecord> {
-        val clauses = splitClauses(normalize(transcript))
+        val rawClauses = splitClauses(normalize(transcript))
+        val clauses = mutableListOf<String>()
+        rawClauses.forEach { clause ->
+            val targetClause =
+                clauses.lastOrNull()?.let { previous ->
+                    extractAmount(clause) == null &&
+                        incomeWords.any(previous::contains) &&
+                        listOf("put", "invest", "حط", "استثمر").any(clause::contains)
+                } == true
+            if (targetClause) clauses[clauses.lastIndex] = "${clauses.last()} $clause" else clauses += clause
+        }
         var inheritedAccount = context.defaultAccountId
         return clauses.mapNotNull { clause ->
             val amount = extractAmount(clause) ?: return@mapNotNull null
             val currency = extractCurrency(clause) ?: context.defaultCurrency
-            val account = extractAccount(clause, context) ?: inheritedAccount
+            val explicitAccount = extractAccount(clause, context)
+            val account = explicitAccount ?: inheritedAccount
             if (account != null) inheritedAccount = account
             val kind = if (incomeWords.any { word -> clause.contains(word) }) DraftKind.INCOME else DraftKind.EXPENSE
+            val incomeSplitLines = if (kind == DraftKind.INCOME && explicitAccount == null) context.defaultIncomeSplitLines else emptyList()
+            val amountMinor = toMinor(amount, currency, context)
+            val allocations =
+                when {
+                    kind != DraftKind.INCOME -> {
+                        emptyList()
+                    }
+
+                    explicitAccount != null -> {
+                        listOf(IncomeAllocation(explicitAccount, amountMinor))
+                    }
+
+                    incomeSplitLines.isNotEmpty() -> {
+                        runCatching {
+                            IncomeSplitCalculator
+                                .allocate(
+                                    amountMinor,
+                                    incomeSplitLines,
+                                    context.defaultIncomeRemainderAccountId,
+                                ).allocations
+                        }.getOrDefault(emptyList())
+                    }
+
+                    else -> {
+                        emptyList()
+                    }
+                }
             val payee = extractPayee(clause)
             val category = extractCategory(clause, payee, context)
             val confidence = 60 + if (account != null) 20 else 0 + if (category != null) 20 else 0
             DraftRecord(
                 kind,
-                toMinor(amount, currency, context),
+                amountMinor,
                 currency,
                 extractDate(clause, context.today),
-                account,
+                if (kind == DraftKind.INCOME) allocations.firstOrNull()?.accountId ?: account else account,
                 category,
                 payee,
                 confidence,
                 clause,
+                extractPaymentType(clause),
+                allocations,
+                incomeSplitLines,
+                context.defaultIncomeRemainderAccountId.takeIf { incomeSplitLines.isNotEmpty() },
             )
         }
     }
@@ -214,6 +266,26 @@ object VoiceParser {
             else -> today
         }
 
+    private fun extractPaymentType(clause: String): PaymentType? =
+        when {
+            listOf("credit card", "credit", "visa", "فيزا", "كريدت").any(clause::contains) -> PaymentType.CREDIT
+
+            listOf(
+                "debit card",
+                "debit",
+                "bank card",
+                "bank account",
+                "in the bank",
+                "ديبت",
+                "ديبت كارد",
+                "في البنك",
+            ).any(clause::contains) -> PaymentType.DEBIT
+
+            listOf("cash", "كاش", "نقدا").any(clause::contains) -> PaymentType.CASH
+
+            else -> null
+        }
+
     private fun extractAccount(
         clause: String,
         context: ParserContext,
@@ -221,7 +293,9 @@ object VoiceParser {
         context.accounts
             .firstOrNull { account ->
                 account.names.map(::normalize).any { name ->
-                    clause.contains("from $name") || clause.contains("من $name") || clause.contains("على $name")
+                    listOf("from ", "to ", "in ", "into ", "من ", "في ", "على ", "حطيتها في ", "حطيت في ").any { prefix ->
+                        clause.contains(prefix + name)
+                    }
                 }
             }?.id
 
@@ -256,5 +330,5 @@ object VoiceParser {
         context: ParserContext,
     ): Long = amount.movePointRight(context.decimalsByCurrency[currency] ?: 2).setScale(0, RoundingMode.HALF_UP).longValueExact()
 
-    private val incomeWords = setOf("got", "received", "salary", "قبضت", "جالي", "استلمت")
+    private val incomeWords = setOf("got", "received", "salary", "قبضت", "جالي", "جاتلي", "دخللي", "دخلتلي", "استلمت")
 }

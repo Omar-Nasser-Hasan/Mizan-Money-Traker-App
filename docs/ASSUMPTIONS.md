@@ -1,5 +1,11 @@
 # Assumptions
 
+## Owned holdings and offline voice follow-up
+
+- Adding a lot to an existing holding records its quantity, purchase date, historical unit price, actual total paid and current market quote without changing cash or expense statistics. When paid cost is greater than quantity times unit price, the difference is retained as a fee/premium; the entered total paid remains the cost basis.
+- Stop recognition asks Android's on-device recognizer to finish the current utterance and then opens the draft review. Online recognition remains disabled; if the device has no on-device model for the selected language, the app asks the user to install that speech pack.
+- Cash, debit, and credit entry choices select existing CASH, BANK, and CREDIT_CARD accounts respectively. They also identify which independent cash, bank, or card-owed figure a confirmed transaction updates; they do not derive those figures from account balances. A card purchase is an expense when the user records it, while paying the card is a separate explicit transfer from a selected cash or bank account.
+
 ## Mizan historical workbook import
 
 - The import workbook keeps every original Wallet row in the review tabs. Its `Mizan Import` sheet posts only mapped rows; `REVIEW` rows remain visible in the app preview and do not create ledger records.
@@ -102,6 +108,9 @@
 - P13: Encrypted backups now include typed preferences, excluding device-bound Keystore blobs; restore rewraps the supplied passphrase on the restoring device. Older archives without preferences remain readable.
 - P13: Debts without a due date are treated as due within a year for the editable Zakat estimate. Hijri day 30 uses day 29 in a 29-day month. Financial treatment remains a user-reviewed calculator, not a ruling.
 - P13: Sharing records the last share request, not confirmed off-device delivery. The warning explicitly distinguishes those states.
+
+- Voice recognition tries an available on-device recognizer first and automatically falls back to Android’s speech service when there is no offline recognizer or language pack. The Quick entry setting can force the online service; this choice is stored locally and recognition still only creates drafts for review.
+- Stats cash, bank and card-owed amounts are independent EGP balances. Users enter their current starting figures manually; subsequently confirmed ledger postings adjust them from their payment source, and transfers use the involved account types. Editing the Stats figures changes only this independent tracker. Savings and e-wallet account types count as bank for transfer movements; investment and other account types are excluded. Historical transactions are not backfilled into the tracker.
 
 - P13: Split template fixed values retain the existing domain minor-unit semantics and are displayed using the destination default currency; review allocations in Entry when applying a preset to income in a different currency. Percentage presets are currency-independent.
 

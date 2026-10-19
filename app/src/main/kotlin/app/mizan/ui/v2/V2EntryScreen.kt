@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -148,7 +150,15 @@ fun V2EntryScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
             receiptUris = receiptUris + uris.map { it.toString() }
         }
-    var paymentType by remember { mutableStateOf(PaymentType.CASH) }
+    var paymentType by remember(accounts, lastAccountId) {
+        mutableStateOf(
+            when (accounts.firstOrNull { it.id == lastAccountId }?.type) {
+                "BANK" -> PaymentType.DEBIT
+                "CREDIT_CARD" -> PaymentType.CREDIT
+                else -> PaymentType.CASH
+            },
+        )
+    }
     var status by remember { mutableStateOf(TxnStatus.CLEARED) }
     var bookedDate by remember { mutableStateOf(LocalDate.now(ZoneId.of("Africa/Cairo"))) }
     var timeText by remember {
@@ -161,6 +171,35 @@ fun V2EntryScreen(
         )
     }
     val account = accounts.firstOrNull { it.id == accountId }
+    val paymentAccounts =
+        if (kind == "EXPENSE") {
+            val requiredType =
+                when (paymentType) {
+                    PaymentType.CASH -> "CASH"
+                    PaymentType.DEBIT -> "BANK"
+                    PaymentType.CREDIT -> "CREDIT_CARD"
+                    else -> "CASH"
+                }
+            accounts.filter { !it.archived && it.type == requiredType }
+        } else {
+            accounts.filterNot { it.archived }
+        }
+    androidx.compose.runtime.LaunchedEffect(kind, paymentType, accounts) {
+        if (kind == "EXPENSE") {
+            val preferredType =
+                when (paymentType) {
+                    PaymentType.CASH -> "CASH"
+                    PaymentType.DEBIT -> "BANK"
+                    PaymentType.CREDIT -> "CREDIT_CARD"
+                    else -> "CASH"
+                }
+            if (accounts.none { it.id == accountId && !it.archived && it.type == preferredType }) {
+                accountId = paymentAccounts.firstOrNull()?.id.orEmpty()
+            }
+        } else if (accounts.none { it.id == accountId && !it.archived && it.type != "CREDIT_CARD" }) {
+            accountId = accounts.firstOrNull { !it.archived && it.type != "CREDIT_CARD" }?.id.orEmpty()
+        }
+    }
     val target = accounts.firstOrNull { it.id == targetId }
     val buckets by remember(repository, accountId) { repository.observeBuckets(accountId) }.collectAsStateWithLifecycle(emptyList())
     val bucketDeltas by remember(
@@ -330,7 +369,11 @@ fun V2EntryScreen(
     }
 
     suspend fun saveEntry(keepOpen: Boolean) {
-        val current = account ?: return
+        val current =
+            account ?: run {
+                message = "Choose an account for this payment source."
+                return
+            }
         if (amount <= 0L) {
             message = "Enter an amount"
             return
@@ -524,8 +567,61 @@ fun V2EntryScreen(
             )
         }
         item { MzKeypad(onKey = { key -> expression = if (key == "⌫") expression.dropLast(1) else expression + key }) }
-        item { Text("Account", style = MzTypography.labelCaps) }
-        item { AccountChips(accounts, accountId) { accountId = it } }
+        if (kind == "EXPENSE") {
+            item { Text("Paid with", style = MzTypography.labelCaps) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(
+                        PaymentType.CASH to "Cash",
+                        PaymentType.DEBIT to "Debit card",
+                        PaymentType.CREDIT to "Credit card",
+                    ).forEach { (candidate, label) ->
+                        MzChip(label, paymentType == candidate, {
+                            paymentType = candidate
+                            val type =
+                                when (candidate) {
+                                    PaymentType.CASH -> "CASH"
+                                    PaymentType.DEBIT -> "BANK"
+                                    else -> "CREDIT_CARD"
+                                }
+                            accountId = accounts.firstOrNull { !it.archived && it.type == type }?.id.orEmpty()
+                        })
+                    }
+                }
+            }
+        } else if (kind == "INCOME") {
+            item { Text("Received into", style = MzTypography.labelCaps) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(PaymentType.CASH to "Cash", PaymentType.DEBIT to "Bank").forEach { (candidate, label) ->
+                        MzChip(label, paymentType == candidate, { paymentType = candidate })
+                    }
+                }
+            }
+        }
+        item {
+            Text(
+                if (kind ==
+                    "EXPENSE"
+                ) {
+                    "Account · ${paymentType.name.lowercase().replace('_', ' ')}"
+                } else {
+                    "Account"
+                },
+                style = MzTypography.labelCaps,
+            )
+        }
+        item {
+            if (paymentAccounts.isEmpty() && kind == "EXPENSE") {
+                Text(
+                    "Add an account for this payment source in Settings → Accounts.",
+                    style = MzTypography.bodySmall,
+                    color = LocalMzTokens.current.textDim,
+                )
+            } else {
+                AccountChips(paymentAccounts, accountId) { accountId = it }
+            }
+        }
         if (buckets.size > 1) {
             item {
                 CurrencyChips(buckets.map { it.currency }, currency) { currency = it }
@@ -725,10 +821,12 @@ fun V2EntryScreen(
                     onRemove = { receiptUris = receiptUris - uri },
                 )
             }
-            Text("Payment type", style = MzTypography.labelCaps)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                PaymentType.entries.forEach { candidate ->
-                    MzChip(candidate.name.lowercase().replace('_', ' '), paymentType == candidate, { paymentType = candidate })
+            if (kind != "EXPENSE") {
+                Text("Payment type", style = MzTypography.labelCaps)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    PaymentType.entries.forEach { candidate ->
+                        MzChip(candidate.name.lowercase().replace('_', ' '), paymentType == candidate, { paymentType = candidate })
+                    }
                 }
             }
             Text("Status", style = MzTypography.labelCaps)
@@ -837,65 +935,70 @@ fun V2EntryScreen(
     }
     if (showCategoryPicker) {
         MzSheet(onDismissRequest = { showCategoryPicker = false }) {
-            Text("Choose category", style = MzTypography.title)
-            MzInput(categorySearch, { categorySearch = it }, "Search categories")
-            Text("Frequent", style = MzTypography.labelCaps)
-            categories.take(6).forEach { category ->
-                MzChip(category.name, category.id == categoryId, onClick = {
-                    categoryId = category.id
-                    showCategoryPicker = false
-                })
-            }
-            Text("All categories", style = MzTypography.labelCaps)
-            categories.filter { it.parentId == null && it.name.contains(categorySearch, ignoreCase = true) }.forEach { parent ->
-                MzChip(
-                    label = if (expandedCategoryParentId == parent.id) "⌄ ${parent.name}" else "› ${parent.name}",
-                    selected = parent.id == categoryId,
-                    onClick = {
-                        val children = categories.filter { it.parentId == parent.id }
-                        if (children.isEmpty()) {
-                            categoryId = parent.id
-                            showCategoryPicker = false
-                        } else {
-                            expandedCategoryParentId = if (expandedCategoryParentId == parent.id) null else parent.id
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("Choose category", style = MzTypography.title)
+                MzInput(categorySearch, { categorySearch = it }, "Search categories")
+                Text("Frequent", style = MzTypography.labelCaps)
+                categories.take(6).forEach { category ->
+                    MzChip(category.name, category.id == categoryId, onClick = {
+                        categoryId = category.id
+                        showCategoryPicker = false
+                    })
+                }
+                Text("All categories", style = MzTypography.labelCaps)
+                categories.filter { it.parentId == null && it.name.contains(categorySearch, ignoreCase = true) }.forEach { parent ->
+                    MzChip(
+                        label = if (expandedCategoryParentId == parent.id) "⌄ ${parent.name}" else "› ${parent.name}",
+                        selected = parent.id == categoryId,
+                        onClick = {
+                            val children = categories.filter { it.parentId == parent.id }
+                            if (children.isEmpty()) {
+                                categoryId = parent.id
+                                showCategoryPicker = false
+                            } else {
+                                expandedCategoryParentId = if (expandedCategoryParentId == parent.id) null else parent.id
+                            }
+                        },
+                    )
+                    if (expandedCategoryParentId == parent.id) {
+                        categories.filter { it.parentId == parent.id }.forEach { child ->
+                            MzChip("  ${child.name}", child.id == categoryId, onClick = {
+                                categoryId = child.id
+                                showCategoryPicker = false
+                            })
                         }
-                    },
-                )
-                if (expandedCategoryParentId == parent.id) {
-                    categories.filter { it.parentId == parent.id }.forEach { child ->
-                        MzChip("  ${child.name}", child.id == categoryId, onClick = {
-                            categoryId = child.id
-                            showCategoryPicker = false
-                        })
                     }
                 }
-            }
-            MzInput(newCategoryName, { newCategoryName = it }, "New category")
-            MzButton(
-                "Create category",
-                onClick = {
-                    val name = newCategoryName.trim()
-                    if (name.isNotEmpty()) {
-                        scope.launch {
-                            val id = UUID.randomUUID().toString()
-                            repository.saveCategory(
-                                CategoryEntity(
-                                    id,
-                                    null,
-                                    name,
-                                    "category",
-                                    "#F2B84B",
-                                    if (kind == "INCOME") "INCOME" else "EXPENSE",
-                                ),
-                            )
-                            categoryId = id
-                            newCategoryName = ""
-                            showCategoryPicker = false
+                MzInput(newCategoryName, { newCategoryName = it }, "New category")
+                MzButton(
+                    "Create category",
+                    onClick = {
+                        val name = newCategoryName.trim()
+                        if (name.isNotEmpty()) {
+                            scope.launch {
+                                val id = UUID.randomUUID().toString()
+                                repository.saveCategory(
+                                    CategoryEntity(
+                                        id,
+                                        null,
+                                        name,
+                                        "category",
+                                        "#F2B84B",
+                                        if (kind == "INCOME") "INCOME" else "EXPENSE",
+                                    ),
+                                )
+                                categoryId = id
+                                newCategoryName = ""
+                                showCategoryPicker = false
+                            }
                         }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }

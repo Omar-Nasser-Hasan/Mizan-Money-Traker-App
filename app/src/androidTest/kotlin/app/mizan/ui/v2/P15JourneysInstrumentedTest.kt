@@ -128,6 +128,7 @@ class P15JourneysInstrumentedTest {
                     quantity = BigDecimal("4"),
                     unitCost = BigDecimal("5710"),
                     currentPrice = BigDecimal("6000"),
+                    totalPaidMinor = 2_300_000L,
                 )
 
                 val afterCash = repository.observeAccountBalances().first().sumOf { it.openingMinor + it.entryMinor }
@@ -136,6 +137,9 @@ class P15JourneysInstrumentedTest {
                 val lot = repository.observeAllAssetTransactions().first().single()
                 assertEquals(null, lot.txnId)
                 assertEquals("BUY", lot.kind)
+                assertEquals("5710", lot.unitPrice)
+                assertEquals(2_300_000L, lot.totalMinor)
+                assertEquals(16_000L, lot.feeMinor)
                 val wealth =
                     V2WealthModels.build(
                         repository.observeAccounts().first(),
@@ -150,6 +154,60 @@ class P15JourneysInstrumentedTest {
                     )
                 assertEquals(2_400_000L, wealth.summary.holdingsEgpMinor)
                 assertEquals(2_500_000L, wealth.summary.netWorthEgpMinor)
+            }
+        }
+    }
+
+    @Test
+    fun credit_card_asset_purchase_tracks_owed_balance_until_manual_payment_transfer() {
+        P15RoomFixture().use { fixture ->
+            val repository = fixture.repository
+            runBlocking {
+                repository.seedReferenceData()
+                val bank =
+                    repository.saveAccount(
+                        name = "Bank",
+                        type = "BANK",
+                        color = "#0785DB",
+                        icon = "bank",
+                        currency = "EGP",
+                        openingMinor = 100_000,
+                    )
+                val card =
+                    repository.saveAccount(
+                        name = "Card",
+                        type = "CREDIT_CARD",
+                        color = "#CE588B",
+                        icon = "credit_card",
+                        currency = "EGP",
+                        openingMinor = 0,
+                        creditLimitMinor = 50_000,
+                        statementDay = 20,
+                        dueDay = 5,
+                    )
+                repository.saveAsset(Asset("fund", "Fund", AssetType.FUND, "FUND", "EGP", "unit"))
+                val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
+                repository.postAssetTrade(
+                    AssetTransaction("card-buy", "fund", AssetTransactionKind.BUY, today, BigDecimal.ONE, BigDecimal("50"), 0, 5_000),
+                    card,
+                    2,
+                    BigDecimal.ONE,
+                    paymentType = app.mizan.domain.ledger.PaymentType.CREDIT,
+                )
+                val afterBuy = repository.observeAccountBalances().first().associate { it.accountId to it.entryMinor }
+                assertEquals(0L, afterBuy[bank] ?: 0L)
+                assertEquals(-5_000L, afterBuy[card] ?: 0L)
+                assertTrue(repository.observeStatsRows().first().none { it.kind == "EXPENSE" })
+
+                val payment =
+                    LedgerService().postTransfer(
+                        TransferRequest(bank, "EGP", 5_000, 2, BigDecimal.ONE, card, "EGP", 5_000, 2, BigDecimal.ONE, Instant.now(), today),
+                    )
+                repository.post(payment)
+                val afterPayment = repository.observeAccountBalances().first().associate { it.accountId to it.openingMinor + it.entryMinor }
+                assertEquals(95_000L, afterPayment[bank])
+                assertEquals(0L, afterPayment[card])
+                assertTrue(repository.observeStatsRows().first().none { it.kind == "EXPENSE" })
             }
         }
     }

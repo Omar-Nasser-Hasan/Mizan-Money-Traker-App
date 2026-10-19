@@ -7,6 +7,8 @@ import app.mizan.domain.ledger.ExpenseRequest
 import app.mizan.domain.ledger.IncomeRequest
 import app.mizan.domain.ledger.LedgerPosting
 import app.mizan.domain.ledger.LedgerService
+import app.mizan.domain.ledger.PaymentType
+import app.mizan.domain.ledger.SplitIncomeRequest
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -27,19 +29,36 @@ object VoiceDraftPoster {
                 else -> 2
             }
         return if (draft.kind.name == "INCOME") {
-            LedgerService().postIncome(
-                IncomeRequest(
-                    accountId,
-                    draft.currency,
-                    draft.amountMinor,
-                    decimals,
-                    rateToEgp,
-                    postedAt,
-                    draft.date,
-                    category,
-                    payeeId = payeeId,
-                ),
-            )
+            if (draft.incomeSplitLines.isNotEmpty() && draft.incomeAllocations.isNotEmpty()) {
+                LedgerService().postSplitIncome(
+                    SplitIncomeRequest(
+                        draft.incomeAllocations,
+                        draft.currency,
+                        decimals,
+                        rateToEgp,
+                        postedAt,
+                        draft.date,
+                        category,
+                        payeeId = payeeId,
+                        paymentType = draft.paymentType ?: PaymentType.CASH,
+                    ),
+                )
+            } else {
+                LedgerService().postIncome(
+                    IncomeRequest(
+                        accountId,
+                        draft.currency,
+                        draft.amountMinor,
+                        decimals,
+                        rateToEgp,
+                        postedAt,
+                        draft.date,
+                        category,
+                        payeeId = payeeId,
+                        paymentType = draft.paymentType ?: PaymentType.CASH,
+                    ),
+                )
+            }
         } else {
             LedgerService().postExpense(
                 ExpenseRequest(
@@ -52,6 +71,7 @@ object VoiceDraftPoster {
                     postedAt,
                     draft.date,
                     payeeId = payeeId,
+                    paymentType = draft.paymentType ?: PaymentType.CASH,
                 ),
             )
         }

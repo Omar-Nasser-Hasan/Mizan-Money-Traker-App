@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -56,6 +57,7 @@ import app.mizan.data.db.DebtRepaymentRow
 import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.PayeeEntity
+import app.mizan.data.db.PaymentSourceBalanceEntity
 import app.mizan.data.db.PriceSnapshotEntity
 import app.mizan.data.db.StatsEntryRow
 import app.mizan.data.db.StatsRecordRow
@@ -77,6 +79,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
@@ -110,6 +113,7 @@ fun V2StatsScreen(
     val rows by remember(repository) { repository.observeStatsRows() }.collectAsStateWithLifecycle(emptyList())
     val entries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
     val balances by remember(repository) { repository.observeAllAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val sourceBalances by remember(repository) { repository.observePaymentSourceBalances() }.collectAsStateWithLifecycle(null)
     val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
     val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
     val categories by remember(repository) { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
@@ -296,6 +300,11 @@ fun V2StatsScreen(
             MzChip(label = "${selectedPeriod.start} – ${selectedPeriod.end}", selected = false, onClick = onOpenPeriod)
             AccountFilter(accounts, accountFilterId, onAccountSelected, Modifier.weight(1f))
         }
+        PaymentSourceBalancesCard(
+            repository,
+            sourceBalances ?: PaymentSourceBalanceEntity(),
+            hideAmounts,
+        )
         when (page) {
             StatsPage.CASH_FLOW -> {
                 CashFlowPage(snapshot, hideAmounts, share)
@@ -353,6 +362,89 @@ private fun AccountFilter(
         }
     }
 }
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+private fun PaymentSourceBalancesCard(
+    repository: MizanRepository,
+    balances: PaymentSourceBalanceEntity,
+    hideAmounts: Boolean,
+) {
+    var editing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var cash by remember(editing, hideAmounts) { mutableStateOf(if (hideAmounts) "" else sourceAmountText(balances.cashMinor)) }
+    var bank by remember(editing, hideAmounts) { mutableStateOf(if (hideAmounts) "" else sourceAmountText(balances.bankMinor)) }
+    var credit by remember(editing, hideAmounts) { mutableStateOf(if (hideAmounts) "" else sourceAmountText(balances.creditOwedMinor)) }
+    val cashMinor = sourceAmountMinor(cash)
+    val bankMinor = sourceAmountMinor(bank)
+    val creditMinor = sourceAmountMinor(credit)?.takeIf { it >= 0 }
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        MzCard(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Cash, bank & card", style = MzTypography.body)
+                    MzButton("Edit", { editing = true }, style = MzButtonStyle.GHOST)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    SourceBalanceCell("Cash", balances.cashMinor, hideAmounts, Modifier.weight(1f))
+                    SourceBalanceCell("Bank", balances.bankMinor, hideAmounts, Modifier.weight(1f))
+                    SourceBalanceCell("Card owed", balances.creditOwedMinor, hideAmounts, Modifier.weight(1f))
+                }
+            }
+        }
+    }
+    if (editing) {
+        MzSheet(onDismissRequest = { editing = false }) {
+            Text("Edit cash, bank & card", style = MzTypography.title)
+            Text(
+                "Enter your current EGP starting figures. New confirmed records update them separately from account balances.",
+                style = MzTypography.bodySmall,
+            )
+            OutlinedTextField(cash, { cash = it }, label = { Text("Cash on hand · EGP") }, singleLine = true)
+            OutlinedTextField(bank, { bank = it }, label = { Text("Bank balance · EGP") }, singleLine = true)
+            OutlinedTextField(credit, { credit = it }, label = { Text("Credit card owed · EGP") }, singleLine = true)
+            MzButton(
+                "Save balances",
+                {
+                    val cashValue = cashMinor ?: return@MzButton
+                    val bankValue = bankMinor ?: return@MzButton
+                    val creditValue = creditMinor ?: return@MzButton
+                    scope.launch {
+                        repository.setPaymentSourceBalances(cashValue, bankValue, creditValue)
+                        editing = false
+                    }
+                },
+                Modifier.fillMaxWidth(),
+                enabled = cashMinor != null && bankMinor != null && creditMinor != null,
+            )
+        }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+private fun SourceBalanceCell(
+    label: String,
+    amount: Long,
+    hideAmounts: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Text(label, style = MzTypography.labelCaps, color = LocalMzTokens.current.textDim, maxLines = 1)
+        AmountText(amount, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.bodySmall)
+    }
+}
+
+private fun sourceAmountText(minor: Long) = BigDecimal.valueOf(minor, 2).setScale(2, RoundingMode.HALF_UP).toPlainString()
+
+private fun sourceAmountMinor(value: String): Long? =
+    runCatching {
+        BigDecimal(value.trim()).movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact()
+    }.getOrNull()
 
 @Composable
 @Suppress("ktlint:standard:function-naming")

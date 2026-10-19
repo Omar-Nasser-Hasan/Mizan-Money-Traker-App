@@ -248,7 +248,7 @@ fun V2AccountDetailScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MzButton("See all", { onNavigate(V2Route.Records) }, Modifier.weight(1f), MzButtonStyle.SECONDARY)
                 if (card) {
-                    MzButton("Pay card", { onNavigate(V2Route.TransferEntry) }, Modifier.weight(1f))
+                    MzButton("Pay card", { onNavigate(V2Route.CardPayment(accountId)) }, Modifier.weight(1f))
                 } else {
                     MzButton("Add record", { onNavigate(V2Route.ExpenseEntry) }, Modifier.weight(1f))
                 }

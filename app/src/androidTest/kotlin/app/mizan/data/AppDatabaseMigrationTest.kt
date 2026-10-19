@@ -123,4 +123,15 @@ class AppDatabaseMigrationTest {
         }
         migrated.close()
     }
+
+    @Test
+    fun addsIndependentPaymentSourceBalances() {
+        val databaseName = "migration-v12-test"
+        helper.createDatabase(databaseName, 12).close()
+        val migrated = helper.runMigrationsAndValidate(databaseName, 13, true, AppDatabase.MIGRATION_12_13)
+        migrated.query("SELECT cashMinor, bankMinor, creditOwedMinor FROM payment_source_balances").use { cursor ->
+            assertEquals(false, cursor.moveToFirst())
+        }
+        migrated.close()
+    }
 }

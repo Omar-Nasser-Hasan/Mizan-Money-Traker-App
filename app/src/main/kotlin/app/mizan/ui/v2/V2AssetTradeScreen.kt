@@ -34,6 +34,7 @@ import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AverageCost
+import app.mizan.domain.ledger.PaymentType
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -76,7 +77,12 @@ fun V2AssetTradeScreen(
     }
     val eligibleAccounts =
         accounts.filter {
-            it.type in setOf("CASH", "BANK", "EWALLET", "SAVINGS", "INVESTMENT") &&
+            it.type in
+                if (!selling) {
+                    setOf("CASH", "BANK", "EWALLET", "SAVINGS", "INVESTMENT", "CREDIT_CARD")
+                } else {
+                    setOf("CASH", "BANK", "EWALLET", "SAVINGS", "INVESTMENT")
+                } &&
                 (asset == null || it.defaultCurrency == asset.quoteCurrency)
         }
     LaunchedEffect(eligibleAccounts, selectedAccountId) {
@@ -240,7 +246,7 @@ fun V2AssetTradeScreen(
                     ) {
                         Column {
                             Text(
-                                if (selling) "To account" else "From account",
+                                if (selling) "To account" else "From account or credit card",
                                 style = MzTypography.bodySmall,
                                 color = LocalMzTokens.current.textDim,
                             )
@@ -297,6 +303,13 @@ fun V2AssetTradeScreen(
                         )
                     }
                     Text(tradeKindNote, style = MzTypography.bodySmall, color = LocalMzTokens.current.textDim)
+                    if (!selling && selectedAccount?.type == "CREDIT_CARD") {
+                        Text(
+                            "This adds the purchase to the card balance. It is not an expense; pay the card separately when you choose.",
+                            style = MzTypography.bodySmall,
+                            color = LocalMzTokens.current.warning,
+                        )
+                    }
                 }
             }
         }
@@ -351,6 +364,13 @@ fun V2AssetTradeScreen(
                                     selectedAccount.id,
                                     decimals,
                                     rate,
+                                    paymentType =
+                                        when (selectedAccount.type) {
+                                            "CREDIT_CARD" -> PaymentType.CREDIT
+                                            "CASH" -> PaymentType.CASH
+                                            "BANK" -> PaymentType.DEBIT
+                                            else -> PaymentType.BANK_TRANSFER
+                                        },
                                 )
                             }.onSuccess {
                                 onSaved(asset.id)

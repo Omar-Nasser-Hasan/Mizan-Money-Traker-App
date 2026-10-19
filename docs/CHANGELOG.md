@@ -1,5 +1,15 @@
 # Changelog
 
+## Follow-up — Owned holdings and offline voice
+
+- Added an owned-lot action to existing asset details, retaining both amount paid and historical unit cost while leaving cash and expense statistics unchanged.
+- Voice sessions now continue across speech-recognizer segments until Stop, then review all recognized clauses together. Income drafts use the saved default split dynamically; an explicitly named destination overrides it, and cash/bank source is confirmed before saving.
+- Made the expense category picker vertically scrollable so categories below the initially visible rows remain reachable.
+- Added editable EGP cash, bank, and credit-card-owed balances to Stats. Confirmed records adjust the selected source, transfers between supported account types move the totals, and editing the figures never changes account balances.
+- Voice review now requires an account and category, plus Cash, Debit card, or Credit card for each expense before saving; missing fields open for review.
+- Expense entry filters source accounts by Cash, Bank, or Credit Card. Wealth shows aggregated cash, bank, and card owed; card payoff opens a prefilled transfer, and asset buys can use a card account.
+- Extended Room journey assertions to verify actual paid cost, historical unit price, owned-lot premium, and card balance changes through manual payment.
+
 ## P15 — Integration and local release
 
 - Retired the legacy UI and interface flag; finalized navigation, design tokens and paired screen gallery.

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.domain.entry
 
+import app.mizan.domain.ledger.SplitLine
+import app.mizan.domain.ledger.SplitMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -63,6 +65,47 @@ class VoiceParserTest {
         assertEquals(today.minusDays(1), drafts.single().date)
         assertEquals("cash", drafts.single().accountId)
         assertEquals("food", drafts.single().categoryId)
+    }
+
+    @Test fun `recognizes explicit cash debit and credit card payment sources`() {
+        val drafts =
+            listOf("spent 20 EGP on lunch cash", "spent 20 EGP on lunch debit card", "spent 20 EGP on lunch credit card")
+                .map { VoiceParser.parse(it, context).single() }
+        assertEquals(
+            listOf(
+                app.mizan.domain.ledger.PaymentType.CASH,
+                app.mizan.domain.ledger.PaymentType.DEBIT,
+                app.mizan.domain.ledger.PaymentType.CREDIT,
+            ),
+            drafts.map { it.paymentType },
+        )
+    }
+
+    @Test fun `uses saved split amounts for income and explicit destination overrides it across one session`() {
+        val investmentContext =
+            context.copy(
+                accounts = context.accounts + ParserAccount("invest", setOf("Investment", "investments")),
+                defaultIncomeSplitLines =
+                    listOf(
+                        SplitLine("fun-line", "saved", "fun", SplitMode.PERCENT, 5000),
+                        SplitLine("invest-line", "saved", "invest", SplitMode.PERCENT, 5000),
+                    ),
+                defaultIncomeRemainderAccountId = "fun",
+            )
+
+        val drafts =
+            VoiceParser.parse(
+                "received 2000 EGP, received 300 EGP and put it in investments, spent 40 EGP cash",
+                investmentContext,
+            )
+
+        assertEquals(3, drafts.size)
+        assertEquals(listOf("fun", "invest"), drafts[0].incomeAllocations.map { it.accountId })
+        assertEquals(listOf(100_000L, 100_000L), drafts[0].incomeAllocations.map { it.amountMinor })
+        assertEquals(listOf("invest"), drafts[1].incomeAllocations.map { it.accountId })
+        assertEquals(30_000L, drafts[1].incomeAllocations.single().amountMinor)
+        assertEquals(4_000L, drafts[2].amountMinor)
+        assertEquals(app.mizan.domain.ledger.PaymentType.CASH, drafts[2].paymentType)
     }
 
     @Test fun `normalization and parsing stay below fifty milliseconds for fixture corpus`() {

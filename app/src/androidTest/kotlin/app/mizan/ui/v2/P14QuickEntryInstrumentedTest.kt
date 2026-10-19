@@ -77,7 +77,19 @@ class P14QuickEntryInstrumentedTest {
     }
 
     @Test fun voice_review_sheet_posts_only_after_save_all_and_supports_arabic_transcript_state() {
-        val draft = DraftRecord(DraftKind.EXPENSE, 12_500, "EGP", LocalDate.parse("2026-10-19"), "cash", "food", "Carrefour", 96, "125 EGP")
+        val draft =
+            DraftRecord(
+                DraftKind.EXPENSE,
+                12_500,
+                "EGP",
+                LocalDate.parse("2026-10-19"),
+                "cash",
+                "food",
+                "Carrefour",
+                96,
+                "125 EGP",
+                app.mizan.domain.ledger.PaymentType.CASH,
+            )
         var saves = 0
         var edits = 0
         setScreen {
@@ -88,7 +100,8 @@ class P14QuickEntryInstrumentedTest {
                 VoiceReviewSheet(
                     listOf(draft),
                     mapOf("cash" to "Cash"),
-                    mapOf("food" to "Food"),
+                    mapOf("cash" to "CASH"),
+                    mapOf(DraftKind.EXPENSE to mapOf("food" to "Food"), DraftKind.INCOME to emptyMap()),
                     false,
                     false,
                     { _, replacement -> if (replacement.amountMinor != draft.amountMinor) edits++ },

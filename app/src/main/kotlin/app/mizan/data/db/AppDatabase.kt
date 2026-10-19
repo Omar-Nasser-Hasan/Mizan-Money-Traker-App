@@ -72,6 +72,14 @@ data class AccountBucketEntity(
     val openingMinor: Long,
 )
 
+@Entity(tableName = "payment_source_balances")
+data class PaymentSourceBalanceEntity(
+    @PrimaryKey val id: String = "manual",
+    val cashMinor: Long = 0,
+    val bankMinor: Long = 0,
+    val creditOwedMinor: Long = 0,
+)
+
 @Entity(tableName = "categories", indices = [Index("parentId")])
 data class CategoryEntity(
     @PrimaryKey val id: String,
@@ -590,6 +598,18 @@ interface AccountDao {
 }
 
 @Dao
+interface PaymentSourceBalanceDao {
+    @Query("SELECT * FROM payment_source_balances WHERE id = 'manual'")
+    fun observe(): Flow<PaymentSourceBalanceEntity?>
+
+    @Query("SELECT * FROM payment_source_balances WHERE id = 'manual'")
+    suspend fun current(): PaymentSourceBalanceEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun save(value: PaymentSourceBalanceEntity)
+}
+
+@Dao
 interface ReferenceDataDao {
     @Query("UPDATE categories SET sortOrder = :order WHERE id = :id")
     suspend fun reorderCategory(
@@ -884,6 +904,9 @@ interface PlanningDao {
 interface LedgerDao {
     @Query("SELECT * FROM transactions WHERE id = :id AND deletedAt IS NULL")
     suspend fun findTransaction(id: String): TxnEntity?
+
+    @Query("SELECT * FROM transactions WHERE id = :id AND deletedAt IS NOT NULL")
+    suspend fun findDeletedTransaction(id: String): TxnEntity?
 
     @Query(
         "SELECT * FROM transactions WHERE debtId = :debtId AND deletedAt IS NULL AND kind IN ('DEBT_LEND', 'DEBT_BORROW') ORDER BY createdAt LIMIT 1",
@@ -1303,8 +1326,8 @@ interface AssetDao {
 }
 
 @Database(
-    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, InboxDraftEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, GoalEntity::class, GoalLinkEntity::class, GoalContributionEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
-    version = 12,
+    entities = [CurrencyEntity::class, FxRateEntity::class, AccountEntity::class, AccountBucketEntity::class, PaymentSourceBalanceEntity::class, CategoryEntity::class, LabelEntity::class, PayeeEntity::class, InboxDraftEntity::class, IncomeSourceEntity::class, SplitTemplateEntity::class, SplitLineEntity::class, RecordTemplateEntity::class, BudgetEntity::class, PlannedPaymentEntity::class, PlannedOccurrenceEntity::class, DebtEntity::class, BudgetAlertEntity::class, GoalEntity::class, GoalLinkEntity::class, GoalContributionEntity::class, TxnEntity::class, EntryEntity::class, AttachmentEntity::class, RecordLabelEntity::class, AssetEntity::class, AssetTransactionEntity::class, PriceSnapshotEntity::class],
+    version = 13,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -1313,6 +1336,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun fxRateDao(): FxRateDao
 
     abstract fun accountDao(): AccountDao
+
+    abstract fun paymentSourceBalanceDao(): PaymentSourceBalanceDao
 
     abstract fun referenceDataDao(): ReferenceDataDao
 
@@ -1513,6 +1538,15 @@ abstract class AppDatabase : RoomDatabase() {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("ALTER TABLE assets ADD COLUMN goldForm TEXT")
                     db.execSQL("ALTER TABLE assets ADD COLUMN priceMode TEXT NOT NULL DEFAULT 'MANUAL'")
+                }
+            }
+
+        val MIGRATION_12_13 =
+            object : Migration(12, 13) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS payment_source_balances (id TEXT NOT NULL PRIMARY KEY, cashMinor INTEGER NOT NULL, bankMinor INTEGER NOT NULL, creditOwedMinor INTEGER NOT NULL)",
+                    )
                 }
             }
     }

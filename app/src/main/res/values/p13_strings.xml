@@ -119,11 +119,9 @@
     <string name="p13_delete_warning">This permanently removes the record and its ledger entries. Undo is available for 10 seconds.</string>
     <string name="p13_trash_note">Deleted records remain here for 30 days. Restoring returns the original entries to balances and statistics.</string>
     <string name="p13_trash_empty">Trash is empty.</string>
-    <string name="p13_voice_unavailable">On-device speech is unavailable. You can opt into online recognition in Quick entry settings.</string>
+    <string name="p13_voice_unavailable">Speech recognition is unavailable. Check that a speech service is installed and enabled.</string>
     <string name="p13_widget">Enable quick entry widget buttons</string>
     <string name="p13_add_widget">Add widget to Home screen</string>
-    <string name="p13_online_voice">Allow online recognition</string>
-    <string name="p13_online_voice_note">On-device recognition is preferred. If unavailable, online recognition sends audio to Google through your system recognizer.</string>
     <string name="p13_sms">Import bank SMS into Inbox</string>
     <string name="p13_bank_notifications">Import bank notifications into Inbox</string>
     <string name="p13_inbox_note">Opt-in only. Messages become drafts for your confirmation and never post automatically.</string>
@@ -182,7 +180,7 @@
     <string name="p13_zakat_reminder_body">Your Hijri anniversary has arrived. Review your Zakat calculation.</string>
     <string name="p13_voice_error">Recognition error %1$d</string>
     <string name="p13_voice_empty">No transcript was returned</string>
-    <string name="p14_voice_language_unavailable">The Arabic speech pack is unavailable for offline recognition on this phone. Install an Arabic speech pack or enable Online voice in Quick entry settings.</string>
+    <string name="p14_voice_language_unavailable">This phone could not recognize that language. Check the speech service or install its language pack.</string>
     <string name="p13_need_account">Create an account before making an allocation preset.</string>
     <string name="p13_create_account">Create account</string>
 </resources>

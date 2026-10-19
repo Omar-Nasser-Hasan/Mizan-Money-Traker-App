@@ -1,4 +1,6 @@
 // Copyright (c) 2026 Mizan contributors
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package app.mizan.ui.v2
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,12 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,6 +36,7 @@ import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetValuation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -56,6 +61,14 @@ fun V2AssetDetailScreen(
     val fxHistory by remember(repository) { repository.observeFxHistory() }.collectAsStateWithLifecycle(emptyList())
     val statsEntries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
     var range by rememberSaveable { mutableStateOf("6M") }
+    var addOwnedLot by rememberSaveable { mutableStateOf(false) }
+    var lotQuantity by rememberSaveable(assetId) { mutableStateOf("") }
+    var lotAmountPaid by rememberSaveable(assetId) { mutableStateOf("") }
+    var lotUnitCost by rememberSaveable(assetId) { mutableStateOf("") }
+    var lotCurrentPrice by rememberSaveable(assetId) { mutableStateOf("") }
+    var lotDate by rememberSaveable(assetId) { mutableStateOf(LocalDate.now(ZoneId.of("Africa/Cairo")).toString()) }
+    var lotError by remember(assetId) { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     val snapshot by produceState<V2WealthSnapshot?>(
         null,
         accounts,
@@ -284,6 +297,7 @@ fun V2AssetDetailScreen(
                     Text("Lots", style = MzTypography.title)
                     Text("${assetTrades.size} lots", style = MzTypography.bodySmall, color = tokens.textDim)
                 }
+                MzButton("Add owned holding", { addOwnedLot = true }, Modifier.fillMaxWidth(), MzButtonStyle.SECONDARY)
             }
             if (assetTrades.isEmpty()) {
                 item {
@@ -305,6 +319,83 @@ fun V2AssetDetailScreen(
                     position.quantity > BigDecimal.ZERO,
             )
             MzButton("Buy", { onTrade(assetId, false) }, Modifier.weight(1f))
+        }
+    }
+    if (addOwnedLot) {
+        val currencyDecimals = currencies.firstOrNull { it.code == asset.quoteCurrency }?.decimals ?: 2
+        ModalBottomSheet(
+            onDismissRequest = { addOwnedLot = false },
+            containerColor = LocalMzTokens.current.surface,
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = MzSpacing.sideMargin).padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text("Add an already owned lot", style = MzTypography.title)
+                Text("This adds the holding and cost basis without changing your cash balance.", style = MzTypography.bodySmall)
+                MzInput(lotQuantity, { lotQuantity = it }, "Quantity (${asset.unit})")
+                MzInput(lotAmountPaid, { lotAmountPaid = it }, "Total amount paid · ${asset.quoteCurrency}")
+                MzInput(lotUnitCost, { lotUnitCost = it }, "Purchase price per ${asset.unit} · ${asset.quoteCurrency}")
+                MzInput(lotDate, { lotDate = it }, "Purchase date · YYYY-MM-DD")
+                MzInput(
+                    lotCurrentPrice.ifBlank {
+                        position.pricePerUnit
+                            ?.stripTrailingZeros()
+                            ?.toPlainString()
+                            .orEmpty()
+                    },
+                    { lotCurrentPrice = it },
+                    "Current market price per ${asset.unit} · ${asset.quoteCurrency}",
+                )
+                lotError?.let { Text(it, color = tokens.expense, style = MzTypography.bodySmall) }
+                MzButton(
+                    "Save owned lot",
+                    {
+                        val quantity = runCatching { BigDecimal(lotQuantity) }.getOrNull()
+                        val amount = runCatching { BigDecimal(lotAmountPaid) }.getOrNull()
+                        val unitCost = runCatching { BigDecimal(lotUnitCost) }.getOrNull()
+                        val currentPrice =
+                            runCatching {
+                                BigDecimal(lotCurrentPrice.ifBlank { position.pricePerUnit?.toPlainString().orEmpty() })
+                            }.getOrNull()
+                        val date = runCatching { LocalDate.parse(lotDate) }.getOrNull()
+                        if (quantity == null || quantity <= BigDecimal.ZERO || amount == null || amount < BigDecimal.ZERO ||
+                            unitCost == null || unitCost <= BigDecimal.ZERO || currentPrice == null || currentPrice <= BigDecimal.ZERO ||
+                            date == null
+                        ) {
+                            lotError = "Enter a positive quantity and prices, a valid amount paid, and a valid date."
+                        } else {
+                            lotError = null
+                            val totalPaidMinor =
+                                runCatching {
+                                    amount.movePointRight(currencyDecimals).setScale(0, RoundingMode.HALF_UP).longValueExact()
+                                }.getOrNull()
+                            if (totalPaidMinor == null) {
+                                lotError = "The amount paid is too large."
+                            } else {
+                                scope.launch {
+                                    runCatching {
+                                        repository.recordOwnedAssetHolding(
+                                            assetId,
+                                            date,
+                                            quantity,
+                                            unitCost,
+                                            currentPrice,
+                                            totalPaidMinor,
+                                        )
+                                        addOwnedLot = false
+                                        lotQuantity = ""
+                                        lotAmountPaid = ""
+                                        lotUnitCost = ""
+                                        lotCurrentPrice = ""
+                                    }.onFailure { lotError = it.message ?: "Could not save the owned lot." }
+                                }
+                            }
+                        }
+                    },
+                    Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }

@@ -60,6 +60,7 @@ fun V2AddHoldingScreen(
     var purchaseAlreadyRecorded by rememberSaveable { mutableStateOf(true) }
     var quantity by rememberSaveable { mutableStateOf("") }
     var purchaseUnitPrice by rememberSaveable { mutableStateOf("") }
+    var purchaseTotalPaid by rememberSaveable { mutableStateOf("") }
     var currentUnitPrice by rememberSaveable { mutableStateOf("") }
     var purchaseDate by rememberSaveable { mutableStateOf(LocalDate.now(java.time.ZoneId.of("Africa/Cairo")).toString()) }
     var accountId by rememberSaveable { mutableStateOf("") }
@@ -196,6 +197,7 @@ fun V2AddHoldingScreen(
                 MzInput(quantity, { quantity = it }, "Quantity ($unit)")
             }
             item { MzInput(purchaseUnitPrice, { purchaseUnitPrice = it }, "Purchase price per unit · $quoteCurrency") }
+            item { MzInput(purchaseTotalPaid, { purchaseTotalPaid = it }, "Total amount paid · $quoteCurrency") }
             item { MzInput(purchaseDate, { purchaseDate = it }, "Purchase date · YYYY-MM-DD") }
             item { MzInput(currentUnitPrice, { currentUnitPrice = it }, "Current market price per unit · $quoteCurrency") }
             item {
@@ -224,6 +226,7 @@ fun V2AddHoldingScreen(
                     val symbol = if (selectedType == AssetType.GOLD) karat else identifier.trim()
                     val quantityValue = runCatching { BigDecimal(quantity) }.getOrNull()
                     val purchasePriceValue = runCatching { BigDecimal(purchaseUnitPrice) }.getOrNull()
+                    val totalPaidValue = runCatching { BigDecimal(purchaseTotalPaid) }.getOrNull()
                     val currentPriceValue = runCatching { BigDecimal(currentUnitPrice) }.getOrNull()
                     val parsedDate = runCatching { LocalDate.parse(purchaseDate) }.getOrNull()
                     if (title.isEmpty() || symbol.isEmpty() || quoteCurrency !in enabledCurrencies.map { it.code }) {
@@ -235,6 +238,8 @@ fun V2AddHoldingScreen(
                                 quantityValue <= BigDecimal.ZERO ||
                                 purchasePriceValue == null ||
                                 purchasePriceValue <= BigDecimal.ZERO ||
+                                totalPaidValue == null ||
+                                totalPaidValue < BigDecimal.ZERO ||
                                 currentPriceValue == null ||
                                 currentPriceValue <= BigDecimal.ZERO ||
                                 parsedDate == null
@@ -271,8 +276,14 @@ fun V2AddHoldingScreen(
                                 if (alreadyOwned) {
                                     val quantityValue = requireNotNull(quantityValue)
                                     val purchasePriceValue = requireNotNull(purchasePriceValue)
+                                    val totalPaidValue = requireNotNull(totalPaidValue)
                                     val currentPriceValue = requireNotNull(currentPriceValue)
                                     val dateValue = requireNotNull(parsedDate)
+                                    val totalMinor =
+                                        totalPaidValue
+                                            .movePointRight(decimals)
+                                            .setScale(0, RoundingMode.HALF_UP)
+                                            .longValueExact()
                                     if (purchaseAlreadyRecorded) {
                                         repository.recordOwnedAssetHolding(
                                             id,
@@ -280,9 +291,10 @@ fun V2AddHoldingScreen(
                                             quantityValue,
                                             purchasePriceValue,
                                             currentPriceValue,
+                                            totalMinor,
                                         )
                                     } else {
-                                        val totalMinor =
+                                        val calculatedCostMinor =
                                             quantityValue
                                                 .multiply(purchasePriceValue)
                                                 .movePointRight(decimals)
@@ -300,7 +312,7 @@ fun V2AddHoldingScreen(
                                                 dateValue,
                                                 quantityValue,
                                                 purchasePriceValue,
-                                                0L,
+                                                (totalMinor - calculatedCostMinor).coerceAtLeast(0L),
                                                 totalMinor,
                                                 note = "Existing holding purchase",
                                             ),

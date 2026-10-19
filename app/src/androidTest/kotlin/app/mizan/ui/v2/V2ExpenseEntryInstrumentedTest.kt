@@ -10,7 +10,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.mizan.data.repository.MizanRepository
 import app.mizan.di.RepositoryEntryPoint
+import app.mizan.domain.ledger.ExpenseRequest
+import app.mizan.domain.ledger.IncomeRequest
+import app.mizan.domain.ledger.LedgerService
+import app.mizan.domain.ledger.PaymentType
+import app.mizan.domain.ledger.TransferRequest
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -20,6 +26,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -122,6 +132,105 @@ class V2ExpenseEntryInstrumentedTest {
 
         compose.onNodeWithText("Browse all categories").performScrollTo().performClick()
         compose.onNodeWithText("All categories").assertIsDisplayed()
+        compose.onNodeWithText("Others").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun payment_source_totals_follow_confirmed_records_and_manual_edits_do_not_change_accounts() {
+        val bankId =
+            runBlocking {
+                repository.saveAccount(
+                    name = "Source bank ${UUID.randomUUID()}",
+                    type = "BANK",
+                    color = "#537A9A",
+                    icon = "bank",
+                    currency = "EGP",
+                    openingMinor = 0,
+                )
+            }
+        val cardId =
+            runBlocking {
+                repository.saveAccount(
+                    name = "Source card ${UUID.randomUUID()}",
+                    type = "CREDIT_CARD",
+                    color = "#537A9A",
+                    icon = "card",
+                    currency = "EGP",
+                    openingMinor = 0,
+                    creditLimitMinor = 100_000,
+                )
+            }
+        val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
+        val accountTotal = {
+            runBlocking {
+                database.ledgerDao().observeAllAccountBalances().first().filter { it.accountId == accountId }.sumOf {
+                    it.openingMinor + it.entryMinor
+                }
+            }
+        }
+        val beforeAccountBalance = accountTotal()
+        runBlocking {
+            repository.setPaymentSourceBalances(50_000, 70_000, 30_000)
+            assertEquals(beforeAccountBalance, accountTotal())
+            val service = LedgerService()
+            repository.post(
+                service.postExpense(
+                    ExpenseRequest(
+                        accountId,
+                        "EGP",
+                        100,
+                        2,
+                        BigDecimal.ONE,
+                        MizanRepository.UNCATEGORIZED_ID,
+                        Instant.now(),
+                        today,
+                        paymentType = PaymentType.CASH,
+                    ),
+                ),
+            )
+            repository.post(
+                service.postIncome(
+                    IncomeRequest(bankId, "EGP", 5_000, 2, BigDecimal.ONE, Instant.now(), today, paymentType = PaymentType.DEBIT),
+                ),
+            )
+            repository.post(
+                service.postExpense(
+                    ExpenseRequest(
+                        cardId,
+                        "EGP",
+                        20_000,
+                        2,
+                        BigDecimal.ONE,
+                        MizanRepository.UNCATEGORIZED_ID,
+                        Instant.now(),
+                        today,
+                        paymentType = PaymentType.CREDIT,
+                    ),
+                ),
+            )
+            repository.post(
+                service.postTransfer(
+                    TransferRequest(
+                        bankId,
+                        "EGP",
+                        1_000,
+                        2,
+                        BigDecimal.ONE,
+                        cardId,
+                        "EGP",
+                        1_000,
+                        2,
+                        BigDecimal.ONE,
+                        Instant.now(),
+                        today,
+                    ),
+                ),
+            )
+        }
+        val totals = runBlocking { repository.observePaymentSourceBalances().first() }
+        assertEquals(49_900L, totals?.cashMinor)
+        assertEquals(74_000L, totals?.bankMinor)
+        assertEquals(49_000L, totals?.creditOwedMinor)
     }
 
     @Test

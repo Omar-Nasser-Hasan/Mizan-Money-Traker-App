@@ -46,6 +46,7 @@ import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PagedRecordRow
 import app.mizan.data.db.PayeeEntity
+import app.mizan.data.db.PaymentSourceBalanceEntity
 import app.mizan.data.db.PlannedOccurrenceEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.PlanningDao
@@ -114,6 +115,21 @@ data class MarketRate(
 private val Context.dataStore by preferencesDataStore("mizan_preferences")
 private val cairo = ZoneId.of("Africa/Cairo")
 
+private data class SourceBalanceDelta(
+    val cashMinor: Long = 0,
+    val bankMinor: Long = 0,
+    val creditOwedMinor: Long = 0,
+) {
+    val isZero get() = cashMinor == 0L && bankMinor == 0L && creditOwedMinor == 0L
+
+    fun scaled(direction: Long) =
+        SourceBalanceDelta(
+            Math.multiplyExact(cashMinor, direction),
+            Math.multiplyExact(bankMinor, direction),
+            Math.multiplyExact(creditOwedMinor, direction),
+        )
+}
+
 @Singleton
 class MizanRepository
     @Inject
@@ -149,6 +165,21 @@ class MizanRepository
         val restoreInProgress: kotlinx.coroutines.flow.StateFlow<Boolean> = restoring
 
         fun observeAccounts(): Flow<List<AccountEntity>> = accounts.observeActive()
+
+        fun observePaymentSourceBalances() = database.paymentSourceBalanceDao().observe()
+
+        suspend fun setPaymentSourceBalances(
+            cashMinor: Long,
+            bankMinor: Long,
+            creditOwedMinor: Long,
+        ) {
+            require(creditOwedMinor >= 0) { "Credit card amount owed cannot be negative." }
+            database.withTransaction {
+                database.paymentSourceBalanceDao().save(
+                    PaymentSourceBalanceEntity(cashMinor = cashMinor, bankMinor = bankMinor, creditOwedMinor = creditOwedMinor),
+                )
+            }
+        }
 
         fun observeCurrencies(): Flow<List<CurrencyEntity>> = currencies.observeAll()
 
@@ -979,6 +1010,7 @@ class MizanRepository
             currencyDecimals: Int,
             rateToBase: BigDecimal,
             manualCurrentPrice: BigDecimal? = null,
+            paymentType: PaymentType = PaymentType.BANK_TRANSFER,
         ) {
             require(
                 trade.kind == AssetTransactionKind.BUY || trade.kind == AssetTransactionKind.SELL,
@@ -998,6 +1030,7 @@ class MizanRepository
                         Instant.ofEpochMilli(clock.millis()),
                         trade.date,
                         trade.note,
+                        paymentType,
                     ),
                 )
             val now = clock.millis()
@@ -1060,6 +1093,7 @@ class MizanRepository
             quantity: BigDecimal,
             unitCost: BigDecimal,
             currentPrice: BigDecimal,
+            totalPaidMinor: Long? = null,
         ) {
             require(quantity > BigDecimal.ZERO) { "Quantity must be positive" }
             require(unitCost > BigDecimal.ZERO) { "Purchase price must be positive" }
@@ -1070,12 +1104,15 @@ class MizanRepository
                     .first()
                     .firstOrNull { it.code == asset.quoteCurrency && it.enabled }
                     ?: error("${asset.quoteCurrency} is not enabled")
-            val totalMinor =
+            val calculatedTotalMinor =
                 quantity
                     .multiply(unitCost)
                     .movePointRight(currency.decimals)
                     .setScale(0, RoundingMode.HALF_UP)
                     .longValueExact()
+            val totalMinor = totalPaidMinor ?: calculatedTotalMinor
+            require(totalMinor >= 0L) { "Amount paid must not be negative" }
+            val feeMinor = (totalMinor - calculatedTotalMinor).coerceAtLeast(0L)
             val now = clock.millis()
             val priceKey =
                 when {
@@ -1092,7 +1129,7 @@ class MizanRepository
                         date = date.toString(),
                         quantity = quantity.toPlainString(),
                         unitPrice = unitCost.toPlainString(),
-                        feeMinor = 0L,
+                        feeMinor = feeMinor,
                         totalMinor = totalMinor,
                         txnId = null,
                         note = "Opening holding",
@@ -1427,9 +1464,22 @@ class MizanRepository
             archived: Boolean,
         ) = reference.archivePayee(id, archived)
 
-        suspend fun deleteRecord(id: String) = ledger.softDelete(id, clock.millis())
+        suspend fun deleteRecord(id: String) {
+            database.withTransaction {
+                val transaction = ledger.findTransaction(id) ?: return@withTransaction
+                val entries = ledger.entriesForTransaction(id)
+                ledger.softDelete(id, clock.millis())
+                applyPaymentSourceDelta(transaction.kind, transaction.paymentType, entries, reverse = true)
+            }
+        }
 
-        suspend fun restoreRecord(id: String) = ledger.restore(id, clock.millis())
+        suspend fun restoreRecord(id: String) {
+            database.withTransaction {
+                val transaction = ledger.findDeletedTransaction(id) ?: return@withTransaction
+                ledger.restore(id, clock.millis())
+                applyPaymentSourceDelta(transaction.kind, transaction.paymentType, ledger.entriesForTransaction(id), reverse = false)
+            }
+        }
 
         suspend fun addRecordAttachments(
             transactionId: String,
@@ -1589,6 +1639,7 @@ class MizanRepository
                         }
                     },
                 )
+                applyPaymentSourceDelta(posting)
                 ledger.insertLabels(
                     labelIds.map { labelId ->
                         app.mizan.data.db
@@ -1643,6 +1694,7 @@ class MizanRepository
                         }
                     },
                 )
+                postings.forEach { applyPaymentSourceDelta(it) }
             }
         }
 
@@ -1655,8 +1707,85 @@ class MizanRepository
         ) {
             database.withTransaction {
                 post(posting, labelIds, receiptUris)
+                val previous = ledger.findTransaction(previousTransactionId)
+                val previousEntries = ledger.entriesForTransaction(previousTransactionId)
                 ledger.softDelete(previousTransactionId, clock.millis())
+                if (previous != null) applyPaymentSourceDelta(previous.kind, previous.paymentType, previousEntries, reverse = true)
             }
+        }
+
+        private suspend fun applyPaymentSourceDelta(posting: LedgerPosting) {
+            val allPostings = posting.feePosting?.let { listOf(posting, it) } ?: listOf(posting)
+            allPostings.forEach { current ->
+                val delta =
+                    paymentSourceDelta(
+                        current.transaction.kind.name,
+                        current.transaction.paymentType.name,
+                        current.entries.map {
+                            app.mizan.data.db.EntryEntity(
+                                it.id,
+                                it.txnId,
+                                it.accountId,
+                                it.currency,
+                                it.amountMinor,
+                                it.rateToBase.toPlainString(),
+                                it.baseMinor,
+                            )
+                        },
+                    )
+                savePaymentSourceDelta(delta)
+            }
+        }
+
+        private suspend fun applyPaymentSourceDelta(
+            kind: String,
+            paymentType: String,
+            entries: List<EntryEntity>,
+            reverse: Boolean,
+        ) {
+            val direction = if (reverse) -1L else 1L
+            savePaymentSourceDelta(paymentSourceDelta(kind, paymentType, entries).scaled(direction))
+        }
+
+        private suspend fun paymentSourceDelta(
+            kind: String,
+            paymentType: String,
+            entries: List<EntryEntity>,
+        ): SourceBalanceDelta {
+            if (kind == TxnKind.ADJUSTMENT.name) return SourceBalanceDelta()
+            if (kind == TxnKind.TRANSFER.name) {
+                var cash = 0L
+                var bank = 0L
+                var credit = 0L
+                entries.forEach { entry ->
+                    when (accounts.find(entry.accountId)?.type) {
+                        "CASH" -> cash = Math.addExact(cash, entry.baseMinor)
+                        "BANK", "EWALLET", "SAVINGS" -> bank = Math.addExact(bank, entry.baseMinor)
+                        "CREDIT_CARD" -> credit = Math.subtractExact(credit, entry.baseMinor)
+                    }
+                }
+                return SourceBalanceDelta(cash, bank, credit)
+            }
+            val signedBaseMinor = entries.fold(0L) { total, entry -> Math.addExact(total, entry.baseMinor) }
+            return when (paymentType) {
+                "CASH" -> SourceBalanceDelta(cashMinor = signedBaseMinor)
+                "DEBIT", "BANK_TRANSFER", "INSTAPAY", "MOBILE" -> SourceBalanceDelta(bankMinor = signedBaseMinor)
+                "CREDIT" -> SourceBalanceDelta(creditOwedMinor = Math.negateExact(signedBaseMinor))
+                else -> SourceBalanceDelta()
+            }
+        }
+
+        private suspend fun savePaymentSourceDelta(delta: SourceBalanceDelta) {
+            if (delta.isZero) return
+            val dao = database.paymentSourceBalanceDao()
+            val current = dao.current() ?: PaymentSourceBalanceEntity()
+            dao.save(
+                current.copy(
+                    cashMinor = Math.addExact(current.cashMinor, delta.cashMinor),
+                    bankMinor = Math.addExact(current.bankMinor, delta.bankMinor),
+                    creditOwedMinor = Math.addExact(current.creditOwedMinor, delta.creditOwedMinor).coerceAtLeast(0L),
+                ),
+            )
         }
 
         suspend fun setCurrencyEnabled(

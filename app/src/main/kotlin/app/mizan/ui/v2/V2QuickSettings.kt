@@ -76,10 +76,10 @@ fun V2QuickSettingsScreen(
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         MzToggle(
                             state!![SettingFlag.ONLINE_VOICE],
-                            { scope.launch { repository.settings.set(SettingFlag.ONLINE_VOICE, it) } },
-                            stringResource(R.string.p13_online_voice),
+                            { enabled -> scope.launch { repository.settings.set(SettingFlag.ONLINE_VOICE, enabled) } },
+                            stringResource(R.string.p14_voice_online_only),
                         )
-                        Text(stringResource(R.string.p13_online_voice_note))
+                        Text(stringResource(R.string.p14_voice_online_info))
                     }
                 }
             }

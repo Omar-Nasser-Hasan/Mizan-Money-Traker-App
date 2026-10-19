@@ -13,6 +13,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -53,6 +55,9 @@ import app.mizan.domain.entry.ParserAccount
 import app.mizan.domain.entry.ParserCategory
 import app.mizan.domain.entry.ParserContext
 import app.mizan.domain.entry.VoiceParser
+import app.mizan.domain.ledger.IncomeSplitCalculator
+import app.mizan.domain.ledger.SplitLine
+import app.mizan.domain.ledger.SplitMode
 import app.mizan.voice.OnDeviceVoiceRecognizer
 import app.mizan.voice.VoiceDraftCommitter
 import kotlinx.coroutines.flow.first
@@ -72,49 +77,98 @@ fun V2VoiceReviewScreen(
     val context = LocalContext.current
     val resources = LocalResources.current
     val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val incomeSources by remember(repository) { repository.observeIncomeSources() }.collectAsStateWithLifecycle(emptyList())
+    val splitLines by remember(repository) { repository.observeAllSplitLines() }.collectAsStateWithLifecycle(emptyList())
+    val splitTemplates by remember(repository) { repository.observeSplitTemplates() }.collectAsStateWithLifecycle(emptyList())
     val expenses by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
     val incomes by remember(repository, "INCOME") { repository.observeCategories("INCOME") }.collectAsStateWithLifecycle(emptyList())
     val learned by remember(repository) { repository.observeLearnedPayeeCategories() }.collectAsStateWithLifecycle(emptyMap())
     val recognizer = remember { OnDeviceVoiceRecognizer(context) }
     val scope = rememberCoroutineScope()
     var transcript by remember { mutableStateOf("") }
+    var finalTranscript by remember { mutableStateOf("") }
+    var partialTranscript by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("Speak a record, then review every draft before saving.") }
     var listening by remember { mutableStateOf(false) }
     var reviewOpen by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var language by remember { mutableStateOf("ar-EG") }
     var showVoiceSettings by remember { mutableStateOf(false) }
-    val permission =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                listening = true
-                status = if (language == "ar-EG") "Listening in Arabic…" else "Listening in English…"
-                showVoiceSettings = false
-                startVoice(recognizer, language, {
-                    transcript = it
-                    listening = false
-                    reviewOpen = true
-                }, {
-                    status = it
-                    showVoiceSettings = it == resources.getString(app.mizan.R.string.p14_voice_language_unavailable)
-                    listening = false
-                })
-            } else {
-                status = "Microphone permission was not granted."
-            }
+    val defaultTemplateId =
+        incomeSources.firstOrNull { it.id == "onboarding-default-income" }?.defaultTemplateId
+            ?: incomeSources.firstOrNull()?.defaultTemplateId
+    val defaultSplitLines =
+        remember(defaultTemplateId, splitLines) {
+            splitLines
+                .filter { it.templateId == defaultTemplateId }
+                .map { SplitLine(it.id, it.templateId, it.accountId, SplitMode.valueOf(it.mode), it.value) }
         }
+    val defaultRemainder = splitTemplates.firstOrNull { it.id == defaultTemplateId }?.remainderAccountId
     val parserContext =
-        remember(accounts, expenses, incomes, learned) {
+        remember(accounts, expenses, incomes, learned, defaultSplitLines, defaultRemainder) {
             ParserContext(
-                accounts.map { ParserAccount(it.id, setOf(it.name)) },
+                accounts.map { account ->
+                    val aliases =
+                        when (account.type) {
+                            "CASH" -> setOf("cash", "كاش", "نقدي")
+                            "BANK", "SAVINGS", "EWALLET" -> setOf("bank", "bank account", "debit card", "بنك", "البنك", "حساب البنك")
+                            "CREDIT_CARD" -> setOf("credit card", "credit", "card", "كريدت", "بطاقة ائتمان")
+                            "INVESTMENT" -> setOf("investment", "investments", "استثمار", "استثمارات", "الاستثمار")
+                            else -> emptySet()
+                        }
+                    ParserAccount(account.id, setOf(account.name) + aliases)
+                },
                 (expenses + incomes).map { ParserCategory(it.id, setOf(it.name)) },
                 learnedPayees = learned,
-                defaultAccountId = accounts.firstOrNull()?.id,
+                defaultAccountId = null,
                 today = LocalDate.now(ZoneId.of("Africa/Cairo")),
+                defaultIncomeSplitLines = defaultSplitLines,
+                defaultIncomeRemainderAccountId = defaultRemainder,
             )
         }
     val drafts = remember(transcript, parserContext) { VoiceParser.parse(transcript, parserContext) }
     val editedDrafts = remember(drafts) { mutableStateListOf<DraftRecord>().apply { addAll(drafts) } }
+
+    fun transcriptText(vararg parts: String): String = parts.map(String::trim).filter(String::isNotBlank).joinToString(" ")
+
+    fun startSession(nextLanguage: String) {
+        language = nextLanguage
+        listening = true
+        finalTranscript = ""
+        partialTranscript = ""
+        transcript = ""
+        reviewOpen = false
+        showVoiceSettings = false
+        status = if (nextLanguage == "ar-EG") "Listening in Arabic…" else "Listening in English…"
+        startVoice(
+            recognizer,
+            nextLanguage,
+            { segment ->
+                finalTranscript = transcriptText(finalTranscript, segment)
+                partialTranscript = ""
+                transcript = finalTranscript
+            },
+            { error ->
+                status = error
+                showVoiceSettings = error == resources.getString(app.mizan.R.string.p14_voice_language_unavailable)
+                listening = false
+            },
+            { partial ->
+                partialTranscript = partial
+                transcript = transcriptText(finalTranscript, partialTranscript)
+            },
+            {
+                transcript = transcriptText(finalTranscript, partialTranscript)
+                listening = false
+                reviewOpen = transcript.isNotBlank()
+                status = if (reviewOpen) "Transcript ready. Review every record before saving." else "No speech was recognized. Try again."
+            },
+        )
+    }
+    val permission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) startSession(language) else status = "Microphone permission was not granted."
+        }
     DisposableEffect(recognizer) { onDispose { recognizer.destroy() } }
     Column(
         Modifier.fillMaxSize().padding(horizontal = MzSpacing.sideMargin, vertical = MzSpacing.gutter),
@@ -127,37 +181,34 @@ fun V2VoiceReviewScreen(
         if (showVoiceSettings) {
             MzButton("Open Quick entry settings", onOpenVoiceSettings, Modifier.fillMaxWidth(), MzButtonStyle.SECONDARY)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(MzSpacing.gutter)) {
-            MzButton("Speak Arabic", {
-                language = "ar-EG"
-                status = "Requesting microphone…"
-                permission.launch(android.Manifest.permission.RECORD_AUDIO)
-            })
-            MzButton("Speak English", {
-                if (androidx.core.content.ContextCompat
-                        .checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) ==
-                    android.content.pm.PackageManager.PERMISSION_GRANTED
-                ) {
-                    listening = true
-                    status = "Listening in English…"
-                    showVoiceSettings = false
-                    language = "en-US"
-                    startVoice(recognizer, language, {
-                        transcript = it
-                        listening = false
-                        reviewOpen = true
-                    }, {
-                        status = it
-                        showVoiceSettings = it == resources.getString(app.mizan.R.string.p14_voice_language_unavailable)
-                        listening =
-                            false
-                    })
-                } else {
-                    language = "en-US"
+        if (listening) {
+            MzButton(
+                "Stop recognition",
+                {
+                    status = "Finishing transcript…"
+                    recognizer.stopListening()
+                },
+                Modifier.fillMaxWidth(),
+            )
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(MzSpacing.gutter)) {
+                MzButton("Speak Arabic", {
                     status = "Requesting microphone…"
                     permission.launch(android.Manifest.permission.RECORD_AUDIO)
-                }
-            }, style = MzButtonStyle.SECONDARY)
+                })
+                MzButton("Speak English", {
+                    if (androidx.core.content.ContextCompat
+                            .checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) ==
+                        android.content.pm.PackageManager.PERMISSION_GRANTED
+                    ) {
+                        startSession("en-US")
+                    } else {
+                        language = "en-US"
+                        status = "Requesting microphone…"
+                        permission.launch(android.Manifest.permission.RECORD_AUDIO)
+                    }
+                }, style = MzButtonStyle.SECONDARY)
+            }
         }
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             OutlinedTextField(
@@ -177,7 +228,12 @@ fun V2VoiceReviewScreen(
         VoiceReviewSheet(
             drafts = editedDrafts,
             accounts = accounts.associate { it.id to it.name },
-            categories = (expenses + incomes).associate { it.id to it.name },
+            accountTypes = accounts.associate { it.id to it.type },
+            categories =
+                mapOf(
+                    app.mizan.domain.entry.DraftKind.EXPENSE to expenses.associate { it.id to it.name },
+                    app.mizan.domain.entry.DraftKind.INCOME to incomes.associate { it.id to it.name },
+                ),
             hideAmounts = hideAmounts,
             saving = saving,
             onEdit = { index, replacement -> editedDrafts[index] = replacement },
@@ -241,8 +297,10 @@ private fun startVoice(
     language: String,
     onTranscript: (String) -> Unit,
     onError: (String) -> Unit,
+    onPartialTranscript: (String) -> Unit = {},
+    onStopped: () -> Unit,
 ) {
-    recognizer.start(language, onTranscript, onError)
+    recognizer.start(language, onTranscript, onError, onPartialTranscript, continuous = true, onStopped = onStopped)
 }
 
 private fun voiceCurrencyDecimals(currency: String) =
@@ -287,7 +345,8 @@ private fun VoiceWaveform(listening: Boolean) {
 internal fun VoiceReviewSheet(
     drafts: List<DraftRecord>,
     accounts: Map<String, String>,
-    categories: Map<String, String>,
+    accountTypes: Map<String, String>,
+    categories: Map<app.mizan.domain.entry.DraftKind, Map<String, String>>,
     hideAmounts: Boolean,
     saving: Boolean,
     onEdit: (Int, DraftRecord) -> Unit,
@@ -301,7 +360,12 @@ internal fun VoiceReviewSheet(
         ) {
             item { Text("Review ${drafts.size} records", style = MzTypography.title) }
             items(drafts.indices.toList(), key = { drafts[it].sourceClause + it }) { index ->
-                var editing by remember(index) { mutableStateOf(false) }
+                var editing by remember(index, drafts[index]) {
+                    mutableStateOf(
+                        drafts[index].accountId == null || drafts[index].categoryId == null ||
+                            drafts[index].paymentType == null,
+                    )
+                }
                 var amount by remember(drafts[index].amountMinor) {
                     mutableStateOf(
                         BigDecimal
@@ -325,7 +389,26 @@ internal fun VoiceReviewSheet(
                                         BigDecimal(amount).movePointRight(voiceCurrencyDecimals(drafts[index].currency)).longValueExact()
                                     }.getOrNull()
                                 if (minor != null && minor > 0) {
-                                    onEdit(index, drafts[index].copy(amountMinor = minor, payee = payee.takeIf(String::isNotBlank)))
+                                    val current = drafts[index]
+                                    val allocations =
+                                        if (current.incomeSplitLines.isNotEmpty()) {
+                                            IncomeSplitCalculator
+                                                .allocate(
+                                                    minor,
+                                                    current.incomeSplitLines,
+                                                    current.incomeSplitRemainderAccountId,
+                                                ).allocations
+                                        } else {
+                                            current.incomeAllocations
+                                        }
+                                    onEdit(
+                                        index,
+                                        current.copy(
+                                            amountMinor = minor,
+                                            payee = payee.takeIf(String::isNotBlank),
+                                            incomeAllocations = allocations,
+                                        ),
+                                    )
                                 }
                                 editing = false
                             })
@@ -333,9 +416,94 @@ internal fun VoiceReviewSheet(
                             AmountText(drafts[index].amountMinor, drafts[index].currency, hideAmounts = hideAmounts)
                         }
                         Text(
-                            "${drafts[index].date} · ${accounts[drafts[index].accountId].orEmpty()} · ${categories[drafts[index].categoryId].orEmpty()}",
+                            "${drafts[index].date} · " +
+                                if (drafts[index].incomeAllocations.size > 1) {
+                                    drafts[index].incomeAllocations.joinToString(" + ") { accounts[it.accountId].orEmpty() }
+                                } else {
+                                    accounts[drafts[index].accountId].orEmpty().ifBlank { "Choose account" }
+                                } + " · " +
+                                categories[drafts[index].kind]?.get(drafts[index].categoryId).orEmpty().ifBlank { "Choose category" },
                             color = LocalMzTokens.current.textDim,
                         )
+                        if (drafts[index].incomeSplitLines.isNotEmpty()) {
+                            Text(
+                                "Saved default split · ${drafts[index].incomeAllocations.size} destinations",
+                                color = LocalMzTokens.current.textDim,
+                                style = MzTypography.bodySmall,
+                            )
+                        }
+                        if (editing) {
+                            Text("Account", style = MzTypography.labelCaps)
+                            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                val eligibleAccounts =
+                                    accounts.filter { (id, _) ->
+                                        if (drafts[index].kind != app.mizan.domain.entry.DraftKind.EXPENSE ||
+                                            drafts[index].paymentType == null
+                                        ) {
+                                            true
+                                        } else {
+                                            accountTypes[id] ==
+                                                when (drafts[index].paymentType) {
+                                                    app.mizan.domain.ledger.PaymentType.CASH -> "CASH"
+                                                    app.mizan.domain.ledger.PaymentType.DEBIT -> "BANK"
+                                                    app.mizan.domain.ledger.PaymentType.CREDIT -> "CREDIT_CARD"
+                                                    else -> ""
+                                                }
+                                        }
+                                    }
+                                eligibleAccounts.forEach { (id, name) ->
+                                    MzChip(name, drafts[index].accountId == id, {
+                                        onEdit(
+                                            index,
+                                            drafts[index].copy(
+                                                accountId = id,
+                                                incomeAllocations = emptyList(),
+                                                incomeSplitLines = emptyList(),
+                                            ),
+                                        )
+                                    })
+                                }
+                            }
+                            Text("Category", style = MzTypography.labelCaps)
+                            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                categories[drafts[index].kind].orEmpty().forEach { (id, name) ->
+                                    MzChip(name, drafts[index].categoryId == id, {
+                                        onEdit(index, drafts[index].copy(categoryId = id))
+                                    })
+                                }
+                            }
+                            if (drafts[index].kind in
+                                setOf(app.mizan.domain.entry.DraftKind.EXPENSE, app.mizan.domain.entry.DraftKind.INCOME)
+                            ) {
+                                Text(
+                                    if (drafts[index].kind == app.mizan.domain.entry.DraftKind.INCOME) "Received into" else "Paid with",
+                                    style = MzTypography.labelCaps,
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    listOf(
+                                        app.mizan.domain.ledger.PaymentType.CASH to "Cash",
+                                        app.mizan.domain.ledger.PaymentType.DEBIT to "Debit card",
+                                        app.mizan.domain.ledger.PaymentType.CREDIT to "Credit card",
+                                    ).filter {
+                                        drafts[index].kind == app.mizan.domain.entry.DraftKind.EXPENSE ||
+                                            it.first != app.mizan.domain.ledger.PaymentType.CREDIT
+                                    }.map { (type, label) ->
+                                        type to
+                                            if (drafts[index].kind == app.mizan.domain.entry.DraftKind.INCOME &&
+                                                type == app.mizan.domain.ledger.PaymentType.DEBIT
+                                            ) {
+                                                "Bank"
+                                            } else {
+                                                label
+                                            }
+                                    }.forEach { (type, label) ->
+                                        MzChip(label, drafts[index].paymentType == type, {
+                                            onEdit(index, drafts[index].copy(paymentType = type))
+                                        })
+                                    }
+                                }
+                            }
+                        }
                         Text(
                             "Confidence ${"●".repeat(
                                 (drafts[index].confidence / 20).coerceIn(1, 5),
@@ -346,7 +514,37 @@ internal fun VoiceReviewSheet(
                     }
                 }
             }
-            item { MzButton(if (saving) "Saving…" else "Save all", onSaveAll, Modifier.fillMaxWidth(), enabled = !saving) }
+            val ready =
+                drafts.all { draft ->
+                    val selectedAccountType = draft.accountId?.let(accountTypes::get)
+                    val accountMatchesPayment =
+                        draft.kind != app.mizan.domain.entry.DraftKind.EXPENSE || draft.paymentType == null ||
+                            selectedAccountType ==
+                            when (draft.paymentType) {
+                                app.mizan.domain.ledger.PaymentType.CASH -> "CASH"
+                                app.mizan.domain.ledger.PaymentType.DEBIT -> "BANK"
+                                app.mizan.domain.ledger.PaymentType.CREDIT -> "CREDIT_CARD"
+                                else -> null
+                            }
+                    (
+                        if (draft.kind == app.mizan.domain.entry.DraftKind.INCOME && draft.incomeAllocations.isNotEmpty()) {
+                            draft.incomeAllocations.all { it.accountId in accounts }
+                        } else {
+                            draft.accountId?.let(accounts::containsKey) == true
+                        }
+                    ) && accountMatchesPayment &&
+                        draft.categoryId?.let(categories[draft.kind].orEmpty()::containsKey) == true &&
+                        draft.paymentType != null
+                }
+            if (!ready) {
+                item {
+                    Text(
+                        "Choose destination, category, and cash, bank, or card source for each voice draft before saving.",
+                        color = LocalMzTokens.current.warning,
+                    )
+                }
+            }
+            item { MzButton(if (saving) "Saving…" else "Save all", onSaveAll, Modifier.fillMaxWidth(), enabled = !saving && ready) }
             item { MzButton("Discard", onDismiss, Modifier.fillMaxWidth(), MzButtonStyle.GHOST) }
         }
     }

@@ -9,4 +9,7 @@
     <string name="p15_receivables">You are owed</string>
     <string name="p15_payables">You owe</string>
     <string name="p15_voice_missing_rate">No booking rate is available for %1$s on %2$s</string>
+    <string name="p14_voice_no_speech">No speech was recognized. Try again.</string>
+    <string name="p14_voice_online_only">Use online recognition only</string>
+    <string name="p14_voice_online_info">Mizan tries on-device recognition first and can use your phone’s speech service online if an offline language pack is unavailable. Turn on online-only recognition to always use that service.</string>
 </resources>
