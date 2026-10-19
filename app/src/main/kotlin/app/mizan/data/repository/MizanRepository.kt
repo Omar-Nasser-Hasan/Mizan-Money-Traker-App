@@ -96,6 +96,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -977,16 +978,19 @@ class MizanRepository
             accountId: String,
             currencyDecimals: Int,
             rateToBase: BigDecimal,
+            manualCurrentPrice: BigDecimal? = null,
         ) {
             require(
                 trade.kind == AssetTransactionKind.BUY || trade.kind == AssetTransactionKind.SELL,
             ) { "Only buys and sells have cash legs" }
             val kind = if (trade.kind == AssetTransactionKind.BUY) TxnKind.ASSET_BUY else TxnKind.ASSET_SELL
+            require(manualCurrentPrice == null || manualCurrentPrice > BigDecimal.ZERO) { "Current price must be positive" }
+            val asset = requireNotNull(observeAsset(trade.assetId).first())
             val posting =
                 LedgerService().postAssetCash(
                     AssetCashRequest(
                         accountId,
-                        requireNotNull(observeAsset(trade.assetId).first()).quoteCurrency,
+                        asset.quoteCurrency,
                         trade.totalMinor,
                         currencyDecimals,
                         rateToBase,
@@ -1025,6 +1029,84 @@ class MizanRepository
                         trade.totalMinor,
                         posting.transaction.id,
                         trade.note,
+                    ),
+                )
+                manualCurrentPrice?.let { price ->
+                    val priceKey =
+                        when {
+                            asset.type != "GOLD" -> "MANUAL:${asset.id}"
+                            asset.goldForm == "COIN" -> "GOLD_POUND"
+                            else -> "GOLD_${asset.symbolOrKarats.uppercase()}"
+                        }
+                    assetDao.insertPrice(
+                        PriceSnapshotEntity(
+                            priceKey,
+                            asset.id.takeIf { asset.type != "GOLD" },
+                            price.toPlainString(),
+                            asset.quoteCurrency,
+                            now,
+                            "Manual opening price",
+                            true,
+                        ),
+                    )
+                }
+            }
+        }
+
+        /** Records a pre-existing lot and its current quote without moving cash or creating a ledger transaction. */
+        suspend fun recordOwnedAssetHolding(
+            assetId: String,
+            date: LocalDate,
+            quantity: BigDecimal,
+            unitCost: BigDecimal,
+            currentPrice: BigDecimal,
+        ) {
+            require(quantity > BigDecimal.ZERO) { "Quantity must be positive" }
+            require(unitCost > BigDecimal.ZERO) { "Purchase price must be positive" }
+            require(currentPrice > BigDecimal.ZERO) { "Current price must be positive" }
+            val asset = requireNotNull(observeAsset(assetId).first()) { "Holding was not found" }
+            val currency =
+                observeCurrencies()
+                    .first()
+                    .firstOrNull { it.code == asset.quoteCurrency && it.enabled }
+                    ?: error("${asset.quoteCurrency} is not enabled")
+            val totalMinor =
+                quantity
+                    .multiply(unitCost)
+                    .movePointRight(currency.decimals)
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValueExact()
+            val now = clock.millis()
+            val priceKey =
+                when {
+                    asset.type != "GOLD" -> "MANUAL:${asset.id}"
+                    asset.goldForm == "COIN" -> "GOLD_POUND"
+                    else -> "GOLD_${asset.symbolOrKarats.uppercase()}"
+                }
+            database.withTransaction {
+                assetDao.insertAssetTransaction(
+                    AssetTransactionEntity(
+                        id = UUID.randomUUID().toString(),
+                        assetId = asset.id,
+                        kind = AssetTransactionKind.BUY.name,
+                        date = date.toString(),
+                        quantity = quantity.toPlainString(),
+                        unitPrice = unitCost.toPlainString(),
+                        feeMinor = 0L,
+                        totalMinor = totalMinor,
+                        txnId = null,
+                        note = "Opening holding",
+                    ),
+                )
+                assetDao.insertPrice(
+                    PriceSnapshotEntity(
+                        key = priceKey,
+                        assetId = asset.id.takeIf { asset.type != "GOLD" },
+                        price = currentPrice.toPlainString(),
+                        currency = asset.quoteCurrency,
+                        asOf = now,
+                        source = "Manual opening price",
+                        isManual = true,
                     ),
                 )
             }

@@ -79,7 +79,7 @@ class P15QualityInstrumentedTest {
     private lateinit var record: String
     private val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
 
-    @Test fun chips_grow_to_contain_wrapped_text_at_large_font_scale() {
+    @Test fun long_chips_stay_single_line_at_large_font_scale() {
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(3.5f, 1.3f)) {
                 MizanTheme {
@@ -89,15 +89,8 @@ class P15QualityInstrumentedTest {
         }
         val chip = compose.onNodeWithTag("wrap-chip").fetchSemanticsNode().boundsInRoot
         val text = compose.onNodeWithText("A long category label", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        assertTrue(
-            "Wrapped chip text stays inside the touch target",
-            chip.contains(text.topLeft) &&
-                chip.contains(
-                    text.bottomRight -
-                        androidx.compose.ui.geometry
-                            .Offset(1f, 1f),
-                ),
-        )
+        assertTrue("Long chip labels stay within one line", chip.height < 56f * 3.5f)
+        assertTrue("Chip text stays inside its touch target", chip.contains(text.topLeft))
     }
 
     @Test fun release_screens_render_in_all_themes_and_window_sizes() {

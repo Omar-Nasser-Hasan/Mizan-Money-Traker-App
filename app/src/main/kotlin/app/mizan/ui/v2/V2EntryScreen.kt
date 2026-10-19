@@ -10,6 +10,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -532,11 +534,16 @@ fun V2EntryScreen(
         if (kind == "EXPENSE") {
             item { Text("Category", style = MzTypography.labelCaps) }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    categories.take(6).forEach { category ->
-                        MzChip(category.name, category.id == categoryId, { categoryId = category.id })
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        categories.take(6).forEach { category ->
+                            MzChip(category.name, category.id == categoryId, { categoryId = category.id })
+                        }
                     }
-                    MzChip("Choose", false, { showCategoryPicker = true })
+                    MzButton("Browse all categories", { showCategoryPicker = true }, Modifier.fillMaxWidth(), MzButtonStyle.GHOST)
                 }
             }
             if (wouldOverdraw) {

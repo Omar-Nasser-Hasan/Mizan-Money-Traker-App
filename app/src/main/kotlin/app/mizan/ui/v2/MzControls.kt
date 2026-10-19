@@ -58,6 +58,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.Instant
@@ -127,7 +128,13 @@ fun MzChip(
         border = if (selected) null else BorderStroke(1.dp, tokens.outline.copy(alpha = 0.4f)),
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-            Text(label, style = MzTypography.bodySmall.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium))
+            Text(
+                label,
+                style = MzTypography.bodySmall.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

@@ -113,6 +113,18 @@ class V2ExpenseEntryInstrumentedTest {
     }
 
     @Test
+    fun category_picker_is_reachable_below_the_quick_category_chips() {
+        compose.setContent {
+            MizanTheme {
+                V2EntryScreen(repository, "EXPENSE", accountId, hideAmounts = false, onDone = {})
+            }
+        }
+
+        compose.onNodeWithText("Browse all categories").performScrollTo().performClick()
+        compose.onNodeWithText("All categories").assertIsDisplayed()
+    }
+
+    @Test
     fun duplicate_expense_displays_warning_without_posting() {
         runBlocking {
             val first =

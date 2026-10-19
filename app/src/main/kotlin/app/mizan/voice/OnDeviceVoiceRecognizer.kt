@@ -83,7 +83,13 @@ class OnDeviceVoiceRecognizer(
                                                 )
                                             }
                                     } else {
-                                        onError(context.getString(app.mizan.R.string.p13_voice_error, error))
+                                        onError(
+                                            if (missingPack && offline && !onlineAllowed) {
+                                                context.getString(app.mizan.R.string.p14_voice_language_unavailable)
+                                            } else {
+                                                context.getString(app.mizan.R.string.p13_voice_error, error)
+                                            },
+                                        )
                                     }
                                 }
 

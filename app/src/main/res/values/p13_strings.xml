@@ -182,6 +182,7 @@
     <string name="p13_zakat_reminder_body">Your Hijri anniversary has arrived. Review your Zakat calculation.</string>
     <string name="p13_voice_error">Recognition error %1$d</string>
     <string name="p13_voice_empty">No transcript was returned</string>
+    <string name="p14_voice_language_unavailable">The Arabic speech pack is unavailable for offline recognition on this phone. Install an Arabic speech pack or enable Online voice in Quick entry settings.</string>
     <string name="p13_need_account">Create an account before making an allocation preset.</string>
     <string name="p13_create_account">Create account</string>
 </resources>

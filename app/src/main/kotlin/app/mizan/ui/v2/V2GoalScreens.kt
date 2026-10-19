@@ -171,9 +171,13 @@ fun V2GoalsScreen(
             }
             if (visible.isEmpty()) {
                 item {
-                    MzEmptyState("No ${tab.lowercase()} goals", "Goals and their linked balances will appear here.", "New goal", {
-                        onNavigate(V2Route.NewGoal)
-                    })
+                    MzCard(Modifier.fillMaxWidth()) {
+                        Text(
+                            "No ${tab.lowercase()} goals yet. Use + to add one.",
+                            Modifier.padding(18.dp),
+                            style = MzTypography.bodySmall,
+                        )
+                    }
                 }
             }
             items(visible, key = { it.goal.id }) { card ->
@@ -246,7 +250,6 @@ fun V2GoalsScreen(
                     }
                 }
             }
-            item { MzButton("＋  New goal", { onNavigate(V2Route.NewGoal) }, Modifier.fillMaxWidth()) }
         }
     }
     selected?.let { id ->

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.ui.v2
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -67,6 +68,9 @@ fun v2MizanApp(
 
     val activeRoute = navigation.activeRoute
     val selectedTab = navigation.selectedTab
+    BackHandler(enabled = activeRoute != null) {
+        navigation = navigation.back()
+    }
     val isSheetRoute = activeRoute?.presentation == V2Presentation.SHEET
     Scaffold(
         modifier = Modifier.widthIn(max = 1000.dp).fillMaxSize().safeDrawingPadding(),
@@ -138,10 +142,23 @@ fun v2MizanApp(
                             )
                         }
                     }
+                } else if (selectedTab == V2Route.BalanceStats) {
+                    // Stats has no quick-add action; it obscures the chart and its labels on phones.
                 } else {
+                    val destination =
+                        if (selectedTab == V2Route.Budgets) {
+                            when (navigation.planSection) {
+                                V2Route.Budgets -> V2Route.NewBudget
+                                V2Route.PlannedPayments -> V2Route.NewPlannedPayment
+                                V2Route.Goals -> V2Route.NewGoal
+                                V2Route.Debts -> V2Route.NewDebt
+                                else -> V2Route.NewBudget
+                            }
+                        } else {
+                            V2Route.ExpenseEntry
+                        }
                     MzFab(onClick = {
-                        navigation =
-                            navigation.navigate(if (selectedTab == V2Route.Budgets) V2Route.NewBudget else V2Route.ExpenseEntry)
+                        navigation = navigation.navigate(destination)
                     })
                 }
             }
@@ -168,26 +185,39 @@ fun v2MizanApp(
                     initialCategoryId = selectedStatsCategory,
                 )
             }
-        } else if ((activeRoute == null && selectedTab == V2Route.Budgets) ||
-            activeRoute in setOf(V2Route.Budgets, V2Route.PlannedPayments)
-        ) {
-            val section = activeRoute ?: selectedTab
+        } else if (activeRoute == null && selectedTab == V2Route.Budgets) {
+            val section = navigation.planSection
+            Box(Modifier.padding(padding)) {
+                when (section) {
+                    V2Route.Goals -> {
+                        V2GoalsScreen(repository, hideAmounts) { navigation = navigation.navigate(it) }
+                    }
+
+                    V2Route.Debts -> {
+                        V2DebtsScreen(repository, hideAmounts) { navigation = navigation.navigate(it) }
+                    }
+
+                    else -> {
+                        V2PlanScreen(
+                            repository = repository,
+                            section = section,
+                            hideAmounts = hideAmounts,
+                            onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
+                            onNavigate = { navigation = navigation.navigate(it) },
+                            onSelectPlanTab = { route -> navigation = navigation.navigate(route) },
+                        )
+                    }
+                }
+            }
+        } else if (activeRoute in setOf(V2Route.Budgets, V2Route.PlannedPayments)) {
             Box(Modifier.padding(padding)) {
                 V2PlanScreen(
                     repository = repository,
-                    section = section,
+                    section = activeRoute ?: V2Route.Budgets,
                     hideAmounts = hideAmounts,
                     onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
                     onNavigate = { navigation = navigation.navigate(it) },
-                    onSelectPlanTab = { route ->
-                        if (route ==
-                            V2Route.Budgets
-                        ) {
-                            navigation = navigation.selectTab(V2Route.Budgets)
-                        } else {
-                            navigation = navigation.navigate(route)
-                        }
-                    },
+                    onSelectPlanTab = { route -> navigation = navigation.navigate(route) },
                 )
             }
         } else if (activeRoute == V2Route.Zakat) {
@@ -209,7 +239,12 @@ fun v2MizanApp(
             Box(Modifier.padding(padding)) { V2QuickSettingsScreen(repository) { navigation = navigation.navigate(it) } }
         } else if (activeRoute == V2Route.VoiceReview) {
             Box(Modifier.padding(padding)) {
-                V2VoiceReviewScreen(repository, hideAmounts) { navigation = navigation.back() }
+                V2VoiceReviewScreen(
+                    repository,
+                    hideAmounts,
+                    onDone = { navigation = navigation.back() },
+                    onOpenVoiceSettings = { navigation = navigation.navigate(V2Route.QuickEntrySettings) },
+                )
             }
         } else if (activeRoute == V2Route.Export) {
             Box(Modifier.padding(padding)) { V2ExportScreen(repository) }

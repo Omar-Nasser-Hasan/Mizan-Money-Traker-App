@@ -138,6 +138,11 @@ fun V2PlanScreen(
                     MzCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("${page.percentBasisPoints / 100}% spent", style = MzTypography.title)
+                            Text(
+                                "This tracks expenses against budget limits; cash held in accounts does not affect it.",
+                                style = MzTypography.bodySmall,
+                                color = LocalMzTokens.current.textDim,
+                            )
                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 AmountLine("Spent", page.spentMinor, hideAmounts)
                                 AmountLine("Left", page.leftMinor, hideAmounts)
@@ -167,12 +172,12 @@ fun V2PlanScreen(
                 }
                 if (page.cards.isEmpty()) {
                     item {
-                        MzEmptyState(
-                            "No budgets yet",
-                            "Set a limit and keep spending on track.",
-                            "New budget",
-                            { onNavigate(V2Route.NewBudget) },
-                        )
+                        MzCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("No budgets yet", style = MzTypography.title)
+                                Text("Use + to add a limit and track spending.", style = MzTypography.bodySmall)
+                            }
+                        }
                     }
                 }
                 items(page.cards, key = { it.budget.id }) { card ->
@@ -214,7 +219,6 @@ fun V2PlanScreen(
                         }
                     }
                 }
-                item { MzButton("＋  New budget", { onNavigate(V2Route.NewBudget) }, Modifier.fillMaxWidth()) }
             }
         } else if (section == V2Route.PlannedPayments) {
             LazyColumn(
@@ -306,11 +310,6 @@ fun V2PlanScreen(
                             }
                         }
                     }
-                }
-                item {
-                    MzButton("＋  New planned payment", {
-                        onNavigate(V2Route.NewPlannedPayment)
-                    }, Modifier.fillMaxWidth())
                 }
             }
         } else {

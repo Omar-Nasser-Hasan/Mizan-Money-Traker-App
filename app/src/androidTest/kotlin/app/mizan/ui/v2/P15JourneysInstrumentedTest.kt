@@ -105,6 +105,55 @@ class P15JourneysInstrumentedTest {
         }
     }
 
+    @Test
+    fun recording_an_owned_holding_preserves_cash_and_adds_its_value_to_wealth() {
+        P15RoomFixture().use { fixture ->
+            val repository = fixture.repository
+            runBlocking {
+                repository.seedReferenceData()
+                repository.saveAccount(
+                    name = "Existing cash",
+                    type = "CASH",
+                    color = "#0785DB",
+                    icon = "wallet",
+                    currency = "EGP",
+                    openingMinor = 100_000,
+                )
+                repository.saveAsset(Asset("owned-gold", "Owned gold", AssetType.GOLD, "21K", "EGP", "g"))
+                val beforeCash = repository.observeAccountBalances().first().sumOf { it.openingMinor + it.entryMinor }
+
+                repository.recordOwnedAssetHolding(
+                    assetId = "owned-gold",
+                    date = LocalDate.parse("2025-12-05"),
+                    quantity = BigDecimal("4"),
+                    unitCost = BigDecimal("5710"),
+                    currentPrice = BigDecimal("6000"),
+                )
+
+                val afterCash = repository.observeAccountBalances().first().sumOf { it.openingMinor + it.entryMinor }
+                assertEquals(beforeCash, afterCash)
+                assertTrue(repository.observeStatsRows().first().none { it.kind == "ASSET_BUY" })
+                val lot = repository.observeAllAssetTransactions().first().single()
+                assertEquals(null, lot.txnId)
+                assertEquals("BUY", lot.kind)
+                val wealth =
+                    V2WealthModels.build(
+                        repository.observeAccounts().first(),
+                        repository.observeAccountBalances().first(),
+                        repository.observeCurrencies().first(),
+                        repository.observeAssets().first(),
+                        repository.observeAllAssetTransactions().first(),
+                        repository.observeLatestPrices().first(),
+                        repository.observeFxHistory().first(),
+                        repository.observeStatsEntries().first(),
+                        Instant.now(),
+                    )
+                assertEquals(2_400_000L, wealth.summary.holdingsEgpMinor)
+                assertEquals(2_500_000L, wealth.summary.netWorthEgpMinor)
+            }
+        }
+    }
+
     @Test fun clean_install_skips_to_home_then_adds_an_expense_through_entry() {
         P15RoomFixture().use { fixture ->
             val repository = fixture.repository

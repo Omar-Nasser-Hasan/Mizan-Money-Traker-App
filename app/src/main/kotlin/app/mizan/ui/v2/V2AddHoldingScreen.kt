@@ -3,6 +3,7 @@
 
 package app.mizan.ui.v2
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,9 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.assets.Asset
+import app.mizan.domain.assets.AssetTransaction
+import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetType
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.UUID
 
 @Composable
@@ -38,6 +45,8 @@ fun V2AddHoldingScreen(
     onSaved: () -> Unit,
 ) {
     val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
     val enabledCurrencies = currencies.filter { it.enabled }
     val scope = rememberCoroutineScope()
     var type by rememberSaveable { mutableStateOf(AssetType.GOLD.name) }
@@ -47,8 +56,21 @@ fun V2AddHoldingScreen(
     var goldForm by rememberSaveable { mutableStateOf("GRAM") }
     var karat by rememberSaveable { mutableStateOf("21K") }
     var priceMode by rememberSaveable { mutableStateOf("AUTO") }
+    var alreadyOwned by rememberSaveable { mutableStateOf(false) }
+    var purchaseAlreadyRecorded by rememberSaveable { mutableStateOf(true) }
+    var quantity by rememberSaveable { mutableStateOf("") }
+    var purchaseUnitPrice by rememberSaveable { mutableStateOf("") }
+    var currentUnitPrice by rememberSaveable { mutableStateOf("") }
+    var purchaseDate by rememberSaveable { mutableStateOf(LocalDate.now(java.time.ZoneId.of("Africa/Cairo")).toString()) }
+    var accountId by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     val selectedType = AssetType.valueOf(type)
+    val decimals = currencies.firstOrNull { it.code == quoteCurrency }?.decimals ?: 2
+    val cashAccounts =
+        accounts.filter { account ->
+            !account.archived && balances.any { it.accountId == account.id && it.currency == quoteCurrency }
+        }
+    LaunchedEffect(cashAccounts) { if (cashAccounts.none { it.id == accountId }) accountId = cashAccounts.firstOrNull()?.id.orEmpty() }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -158,6 +180,41 @@ fun V2AddHoldingScreen(
                 }
             }
         }
+        item {
+            MzToggle(alreadyOwned, { alreadyOwned = it }, "I already own this holding")
+        }
+        if (alreadyOwned) {
+            item { Text("Acquisition details", style = MzTypography.labelCaps) }
+            item {
+                val unit =
+                    when {
+                        selectedType == AssetType.GOLD && goldForm == "COIN" -> "coin"
+                        selectedType == AssetType.GOLD -> "g"
+                        selectedType == AssetType.STOCK -> "shares"
+                        else -> "units"
+                    }
+                MzInput(quantity, { quantity = it }, "Quantity ($unit)")
+            }
+            item { MzInput(purchaseUnitPrice, { purchaseUnitPrice = it }, "Purchase price per unit · $quoteCurrency") }
+            item { MzInput(purchaseDate, { purchaseDate = it }, "Purchase date · YYYY-MM-DD") }
+            item { MzInput(currentUnitPrice, { currentUnitPrice = it }, "Current market price per unit · $quoteCurrency") }
+            item {
+                MzToggle(purchaseAlreadyRecorded, { purchaseAlreadyRecorded = it }, "The purchase cash is already in my ledger")
+            }
+            if (!purchaseAlreadyRecorded) {
+                item { Text("Purchase account", style = MzTypography.labelCaps) }
+                item {
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        cashAccounts.forEach { account ->
+                            MzChip(account.name, account.id == accountId, { accountId = account.id })
+                        }
+                    }
+                }
+            }
+        }
         error?.let { message -> item { Text(message, color = LocalMzTokens.current.expense) } }
         item {
             MzButton(
@@ -165,30 +222,97 @@ fun V2AddHoldingScreen(
                 {
                     val title = name.trim()
                     val symbol = if (selectedType == AssetType.GOLD) karat else identifier.trim()
+                    val quantityValue = runCatching { BigDecimal(quantity) }.getOrNull()
+                    val purchasePriceValue = runCatching { BigDecimal(purchaseUnitPrice) }.getOrNull()
+                    val currentPriceValue = runCatching { BigDecimal(currentUnitPrice) }.getOrNull()
+                    val parsedDate = runCatching { LocalDate.parse(purchaseDate) }.getOrNull()
                     if (title.isEmpty() || symbol.isEmpty() || quoteCurrency !in enabledCurrencies.map { it.code }) {
                         error = "Enter a name and identifier, and choose an enabled currency."
+                    } else if (
+                        alreadyOwned &&
+                        (
+                            quantityValue == null ||
+                                quantityValue <= BigDecimal.ZERO ||
+                                purchasePriceValue == null ||
+                                purchasePriceValue <= BigDecimal.ZERO ||
+                                currentPriceValue == null ||
+                                currentPriceValue <= BigDecimal.ZERO ||
+                                parsedDate == null
+                        )
+                    ) {
+                        error = "Enter a positive quantity and prices, and a valid purchase date."
+                    } else if (
+                        alreadyOwned && !purchaseAlreadyRecorded && cashAccounts.none { it.id == accountId }
+                    ) {
+                        error = "Choose an account that holds $quoteCurrency."
                     } else {
                         error = null
                         scope.launch {
-                            repository.saveAsset(
-                                Asset(
-                                    id = UUID.randomUUID().toString(),
-                                    name = title,
-                                    type = selectedType,
-                                    symbolOrKarats = symbol,
-                                    quoteCurrency = quoteCurrency,
-                                    unit =
-                                        when (selectedType) {
-                                            AssetType.GOLD -> if (goldForm == "COIN") "coin" else "g"
-                                            AssetType.STOCK -> "share"
-                                            else -> "unit"
-                                        },
-                                    resaleDeductionPct = BigDecimal.ZERO,
-                                    goldForm = goldForm.takeIf { selectedType == AssetType.GOLD },
-                                    priceMode = priceMode,
-                                ),
-                            )
-                            onSaved()
+                            runCatching {
+                                val id = UUID.randomUUID().toString()
+                                repository.saveAsset(
+                                    Asset(
+                                        id = id,
+                                        name = title,
+                                        type = selectedType,
+                                        symbolOrKarats = symbol,
+                                        quoteCurrency = quoteCurrency,
+                                        unit =
+                                            when (selectedType) {
+                                                AssetType.GOLD -> if (goldForm == "COIN") "coin" else "g"
+                                                AssetType.STOCK -> "share"
+                                                else -> "unit"
+                                            },
+                                        resaleDeductionPct = BigDecimal.ZERO,
+                                        goldForm = goldForm.takeIf { selectedType == AssetType.GOLD },
+                                        priceMode = priceMode,
+                                    ),
+                                )
+                                if (alreadyOwned) {
+                                    val quantityValue = requireNotNull(quantityValue)
+                                    val purchasePriceValue = requireNotNull(purchasePriceValue)
+                                    val currentPriceValue = requireNotNull(currentPriceValue)
+                                    val dateValue = requireNotNull(parsedDate)
+                                    if (purchaseAlreadyRecorded) {
+                                        repository.recordOwnedAssetHolding(
+                                            id,
+                                            dateValue,
+                                            quantityValue,
+                                            purchasePriceValue,
+                                            currentPriceValue,
+                                        )
+                                    } else {
+                                        val totalMinor =
+                                            quantityValue
+                                                .multiply(purchasePriceValue)
+                                                .movePointRight(decimals)
+                                                .setScale(0, RoundingMode.HALF_UP)
+                                                .longValueExact()
+                                        val rate =
+                                            requireNotNull(repository.effectiveRate(quoteCurrency, dateValue)) {
+                                                "No booking rate for $quoteCurrency on $dateValue."
+                                            }
+                                        repository.postAssetTrade(
+                                            AssetTransaction(
+                                                UUID.randomUUID().toString(),
+                                                id,
+                                                AssetTransactionKind.BUY,
+                                                dateValue,
+                                                quantityValue,
+                                                purchasePriceValue,
+                                                0L,
+                                                totalMinor,
+                                                note = "Existing holding purchase",
+                                            ),
+                                            accountId,
+                                            decimals,
+                                            rate,
+                                            currentPriceValue,
+                                        )
+                                    }
+                                }
+                                onSaved()
+                            }.onFailure { failure -> error = failure.message ?: "Could not save the holding." }
                         }
                     }
                 },

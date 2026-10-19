@@ -67,6 +67,7 @@ fun V2VoiceReviewScreen(
     repository: MizanRepository,
     hideAmounts: Boolean,
     onDone: () -> Unit,
+    onOpenVoiceSettings: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -82,16 +83,20 @@ fun V2VoiceReviewScreen(
     var reviewOpen by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var language by remember { mutableStateOf("ar-EG") }
+    var showVoiceSettings by remember { mutableStateOf(false) }
     val permission =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
                 listening = true
+                status = if (language == "ar-EG") "Listening in Arabic…" else "Listening in English…"
+                showVoiceSettings = false
                 startVoice(recognizer, language, {
                     transcript = it
                     listening = false
                     reviewOpen = true
                 }, {
                     status = it
+                    showVoiceSettings = it == resources.getString(app.mizan.R.string.p14_voice_language_unavailable)
                     listening = false
                 })
             } else {
@@ -119,9 +124,13 @@ fun V2VoiceReviewScreen(
         Text("Voice entry", style = MzTypography.title)
         VoiceWaveform(listening)
         Text(status, color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall)
+        if (showVoiceSettings) {
+            MzButton("Open Quick entry settings", onOpenVoiceSettings, Modifier.fillMaxWidth(), MzButtonStyle.SECONDARY)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(MzSpacing.gutter)) {
             MzButton("Speak Arabic", {
                 language = "ar-EG"
+                status = "Requesting microphone…"
                 permission.launch(android.Manifest.permission.RECORD_AUDIO)
             })
             MzButton("Speak English", {
@@ -130,6 +139,8 @@ fun V2VoiceReviewScreen(
                     android.content.pm.PackageManager.PERMISSION_GRANTED
                 ) {
                     listening = true
+                    status = "Listening in English…"
+                    showVoiceSettings = false
                     language = "en-US"
                     startVoice(recognizer, language, {
                         transcript = it
@@ -137,11 +148,13 @@ fun V2VoiceReviewScreen(
                         reviewOpen = true
                     }, {
                         status = it
+                        showVoiceSettings = it == resources.getString(app.mizan.R.string.p14_voice_language_unavailable)
                         listening =
                             false
                     })
                 } else {
                     language = "en-US"
+                    status = "Requesting microphone…"
                     permission.launch(android.Manifest.permission.RECORD_AUDIO)
                 }
             }, style = MzButtonStyle.SECONDARY)

@@ -394,15 +394,16 @@ internal fun CashFlowPage(
                     MzChip("Cumulative", cumulative, { cumulative = true })
                 }
                 Spacer(Modifier.height(8.dp))
-                MzBarChart(
-                    income = snapshot.daily.map { it.second.incomeMinor },
-                    expense = snapshot.daily.map { it.second.expenseMinor },
-                    modifier = Modifier.fillMaxWidth().height(155.dp),
+                Text(
+                    if (cumulative) "Running net cash flow" else "Net cash flow by day",
+                    color = tokens.textDim,
+                    style = MzTypography.bodySmall,
                 )
-                MzAreaChart(
-                    if (cumulative) snapshot.cumulative else snapshot.daily.map { it.second.netMinor },
-                    Modifier.fillMaxWidth().height(110.dp),
-                )
+                if (cumulative) {
+                    MzAreaChart(snapshot.cumulative, Modifier.fillMaxWidth().height(180.dp))
+                } else {
+                    MzLineChart(snapshot.daily.map { it.second.netMinor }, Modifier.fillMaxWidth().height(180.dp))
+                }
                 Text("Day index · 1 to ${snapshot.daily.size}", color = tokens.textDim, style = MzTypography.bodySmall)
             }
         }

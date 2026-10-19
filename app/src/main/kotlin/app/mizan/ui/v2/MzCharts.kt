@@ -155,6 +155,20 @@ fun MzAreaChart(
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
+fun MzLineChart(
+    values: List<Long>,
+    modifier: Modifier = Modifier,
+) {
+    val tokens = LocalMzTokens.current
+    Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
+        val chartPoints = points(values)
+        if (chartPoints.size < 2) return@Canvas
+        drawPath(pathFor(chartPoints), tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
 fun MzBarChart(
     income: List<Long>,
     expense: List<Long>,
@@ -474,8 +488,26 @@ private fun DrawScope.points(
 
 private fun pathFor(points: List<Offset>): Path =
     Path().apply {
-        points.forEachIndexed { index, point ->
-            if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
+        if (points.isEmpty()) return@apply
+        moveTo(points.first().x, points.first().y)
+        for (index in 0 until points.lastIndex) {
+            val start = points[index]
+            val end = points[index + 1]
+            val previous = points[(index - 1).coerceAtLeast(0)]
+            val next = points[(index + 2).coerceAtMost(points.lastIndex)]
+            val deltaX = end.x - start.x
+            val firstControl = Offset(start.x + deltaX / 3f, start.y + (end.y - previous.y) / 6f)
+            val secondControl = Offset(end.x - deltaX / 3f, end.y - (next.y - start.y) / 6f)
+            val lowY = min(start.y, end.y)
+            val highY = max(start.y, end.y)
+            cubicTo(
+                firstControl.x,
+                firstControl.y.coerceIn(lowY, highY),
+                secondControl.x,
+                secondControl.y.coerceIn(lowY, highY),
+                end.x,
+                end.y,
+            )
         }
     }
 

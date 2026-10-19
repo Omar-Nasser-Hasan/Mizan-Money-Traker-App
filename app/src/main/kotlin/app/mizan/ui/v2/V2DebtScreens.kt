@@ -166,7 +166,6 @@ fun V2DebtsScreen(
                     onRemind = { PlanningReminderScheduler.remindDebt(context, row.debt.id) },
                 )
             }
-            item { MzButton("＋  New debt", { onNavigate(V2Route.NewDebt) }, Modifier.fillMaxWidth()) }
         }
     }
     repaymentDebtId?.let { id ->
