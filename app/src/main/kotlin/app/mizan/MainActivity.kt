@@ -17,14 +17,10 @@ import app.mizan.data.repository.MizanRepository
 import app.mizan.quick.EXTRA_QUICK_ACTION
 import app.mizan.security.AppLock
 import app.mizan.security.StartupSettings
-import app.mizan.ui.mizanApp
-import app.mizan.ui.theme.MizanTheme
-import app.mizan.ui.v2.AppInterface
 import app.mizan.ui.v2.LocalMzTokens
 import app.mizan.ui.v2.MzSkeleton
 import app.mizan.ui.v2.V2OnboardingFlow
 import app.mizan.ui.v2.V2PrivacyGate
-import app.mizan.ui.v2.appInterface
 import app.mizan.ui.v2.v2MizanApp
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,23 +85,8 @@ class MainActivity : FragmentActivity() {
                                         V2OnboardingFlow(repository)
                                     }
 
-                                    appInterface(settings!!.newInterface) == AppInterface.V2 -> {
-                                        v2MizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
-                                    }
-
                                     else -> {
-                                        MizanTheme(
-                                            when (themeMode) {
-                                                app.mizan.ui.v2.MizanThemeMode.FOLLOW_SYSTEM -> {
-                                                    app.mizan.ui.theme.MizanThemeMode.SYSTEM
-                                                }
-
-                                                else -> {
-                                                    app.mizan.ui.theme.MizanThemeMode
-                                                        .valueOf(themeMode.name)
-                                                }
-                                            },
-                                        ) { mizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION)) }
+                                        v2MizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
                                     }
                                 }
                             }

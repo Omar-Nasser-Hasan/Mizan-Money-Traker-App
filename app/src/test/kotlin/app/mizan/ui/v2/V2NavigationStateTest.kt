@@ -28,7 +28,7 @@ class V2NavigationStateTest {
     }
 
     @Test
-    fun `settings routes to about so the interface flag remains reversible`() {
+    fun `settings routes to about and logs`() {
         val about = V2NavigationState().navigate(V2Route.Settings).navigate(V2Route.About)
 
         assertEquals(V2Route.About.path, about.activeRoute?.path)
@@ -55,12 +55,6 @@ class V2NavigationStateTest {
     }
 
     @Test
-    fun `new interface flag preserves legacy interface unless explicitly enabled`() {
-        assertEquals(AppInterface.LEGACY, appInterface(newInterfaceEnabled = false))
-        assertEquals(AppInterface.V2, appInterface(newInterfaceEnabled = true))
-    }
-
-    @Test
     fun `widget shortcuts and tile map to their exact v2 entry routes`() {
         assertEquals(V2Route.ExpenseEntry, quickEntryRoute("expense"))
         assertEquals(V2Route.IncomeEntry, quickEntryRoute("income"))
@@ -69,8 +63,8 @@ class V2NavigationStateTest {
     }
 
     @Test
-    fun `navigation state visits every registered placeholder route`() {
-        V2Route.placeholders.forEach { destination ->
+    fun `navigation state visits every registered route`() {
+        V2Route.destinations.forEach { destination ->
             val state = V2NavigationState().navigate(destination)
 
             assertEquals(destination.path, state.activeRoute?.path)

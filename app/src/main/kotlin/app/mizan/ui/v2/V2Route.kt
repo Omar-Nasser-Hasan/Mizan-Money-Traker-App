@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.ui.v2
 
-/** A typed destination. Screen implementations replace the V2 placeholder without changing navigation. */
+/** Typed destinations retained across activity and process recreation. */
 sealed interface V2Route {
     val path: String
     val title: String
@@ -22,12 +22,6 @@ sealed interface V2Route {
     data class CardPayment(
         val cardId: String,
     ) : V2Route by form("entry:card-payment:$cardId", "Pay card")
-
-    data object IncomeSplit : V2Route by sheet("entry:income-split", "Income split")
-
-    data object CategoryPicker : V2Route by sheet("entry:category", "Choose category")
-
-    data object RecordFilters : V2Route by sheet("records:filters", "Filter records")
 
     data class RecordDetail(
         val id: String,
@@ -67,13 +61,7 @@ sealed interface V2Route {
 
     data object More : V2Route by screen("more", "More")
 
-    data object MoreDetails : V2Route by sheet("more:details", "More details")
-
     data object OnboardingAccounts : V2Route by screen("onboarding:accounts", "Your accounts")
-
-    data object OnboardingSplit : V2Route by screen("onboarding:split", "Split your income")
-
-    data object OnboardingCategories : V2Route by screen("onboarding:categories", "Choose categories")
 
     data object Budgets : V2Route by screen("plan:budgets", "Budgets")
 
@@ -140,8 +128,6 @@ sealed interface V2Route {
     data object Prices : V2Route by screen("prices", "Update prices")
 
     // Destinations the existing backend requires but that did not have a supplied Stitch mockup.
-    data object Welcome : V2Route by screen("welcome", "Welcome")
-
     data object BackupPassphrase : V2Route by form("backup:passphrase", "Backup passphrase")
 
     data object DataSources : V2Route by screen("settings:data-sources", "Data sources")
@@ -164,14 +150,6 @@ sealed interface V2Route {
 
     data object AddHolding : V2Route by form("asset:holding:new", "Add holding")
 
-    data object AddRepayment : V2Route by sheet("debt:repayment", "Add repayment")
-
-    data object FixBalance : V2Route by sheet("account:fix-balance", "Fix balance")
-
-    data object BudgetSpending : V2Route by sheet("budget:spending", "Budget spending")
-
-    data object GoalDetail : V2Route by sheet("goal:detail", "Goal details")
-
     data object HyperOsGuide : V2Route by screen("battery-guide", "Battery and autostart")
 
     data object SecuritySettings : V2Route by screen("security:settings", "Security settings")
@@ -180,7 +158,7 @@ sealed interface V2Route {
 
     companion object {
         /** Concrete representatives make every destination navigable and testable without fabricated data. */
-        val placeholders: List<V2Route> =
+        val destinations: List<V2Route> =
             listOf(
                 Home,
                 Records,
@@ -188,9 +166,6 @@ sealed interface V2Route {
                 IncomeEntry,
                 TransferEntry,
                 CardPayment("sample"),
-                IncomeSplit,
-                CategoryPicker,
-                RecordFilters,
                 RecordDetail("sample"),
                 EditEntry("sample"),
                 InboxDraftEntry("sample"),
@@ -205,10 +180,7 @@ sealed interface V2Route {
                 Backup,
                 Security,
                 More,
-                MoreDetails,
                 OnboardingAccounts,
-                OnboardingSplit,
-                OnboardingCategories,
                 Budgets,
                 NewBudget,
                 PlannedPayments,
@@ -230,7 +202,6 @@ sealed interface V2Route {
                 AssetDetail("sample"),
                 AssetTrade("sample", false),
                 Prices,
-                Welcome,
                 BackupPassphrase,
                 DataSources,
                 QuickEntrySettings,
@@ -242,10 +213,6 @@ sealed interface V2Route {
                 Inbox,
                 VoiceReview,
                 AddHolding,
-                AddRepayment,
-                FixBalance,
-                BudgetSpending,
-                GoalDetail,
                 HyperOsGuide,
                 SecuritySettings,
                 RestrictedSettingsGuide,
@@ -333,7 +300,7 @@ sealed interface V2Route {
                 }
 
                 else -> {
-                    placeholders.firstOrNull { it.path == path }
+                    destinations.firstOrNull { it.path == path }
                 }
             }
     }

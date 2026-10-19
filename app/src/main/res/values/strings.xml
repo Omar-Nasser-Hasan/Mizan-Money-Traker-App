@@ -1,12 +1,9 @@
 <resources>
     <string name="app_name">Mizan</string>
-    <string name="tab_home">Home</string>
-    <string name="tab_records">Records</string>
-    <string name="tab_plan">Plan</string>
-    <string name="tab_insights">Insights</string>
-    <string name="tab_more">More</string>
-    <string name="empty_tab">This tab is intentionally empty in M0.</string>
     <string name="shortcut_add_expense">Add expense</string>
     <string name="shortcut_add_income">Add income</string>
     <string name="shortcut_voice_entry">Voice entry</string>
+    <string name="route_unavailable">This screen is unavailable</string>
+    <string name="route_unavailable_note">Return Home to continue.</string>
+    <string name="return_home">Return Home</string>
 </resources>

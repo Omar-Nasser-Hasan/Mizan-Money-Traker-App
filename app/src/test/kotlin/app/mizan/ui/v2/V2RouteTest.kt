@@ -8,16 +8,16 @@ import org.junit.Test
 
 class V2RouteTest {
     @Test
-    fun `every designed and backend route has a unique reachable placeholder`() {
-        assertEquals(67, V2Route.placeholders.size)
+    fun `registered release destinations have unique restorable paths`() {
+        assertTrue(V2Route.destinations.isNotEmpty())
         assertEquals(
-            V2Route.placeholders.size,
-            V2Route.placeholders
+            V2Route.destinations.size,
+            V2Route.destinations
                 .map(V2Route::path)
                 .toSet()
                 .size,
         )
-        V2Route.placeholders.forEach { route ->
+        V2Route.destinations.forEach { route ->
             assertNotNull("${route.title} is missing from route lookup", V2Route.fromPath(route.path))
         }
     }
@@ -26,9 +26,8 @@ class V2RouteTest {
     fun `entry forms and supporting sheets retain their requested presentation`() {
         assertEquals(V2Presentation.FORM, V2Route.ExpenseEntry.presentation)
         assertEquals(V2Presentation.FORM, V2Route.NewBudget.presentation)
-        assertEquals(V2Presentation.SHEET, V2Route.RecordFilters.presentation)
         assertEquals(V2Presentation.SHEET, V2Route.PeriodSelector.presentation)
-        assertTrue(V2Route.placeholders.any { it == V2Route.RestrictedSettingsGuide })
+        assertTrue(V2Route.destinations.any { it == V2Route.RestrictedSettingsGuide })
     }
 
     @Test

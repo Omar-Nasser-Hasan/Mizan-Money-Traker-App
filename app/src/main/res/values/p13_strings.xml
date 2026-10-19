@@ -131,7 +131,6 @@
     <string name="p13_inbox_note">Opt-in only. Messages become drafts for your confirmation and never post automatically.</string>
     <string name="p13_access_guide">SMS and restricted-settings guide</string>
     <string name="p13_version">Mizan · %1$s</string>
-    <string name="p13_new_interface">New interface</string>
     <string name="p13_licenses">Attributions</string>
     <string name="p13_font_license">Manrope · SIL Open Font License. Material Symbols · Apache License 2.0. AndroidX and Kotlin · Apache License 2.0.</string>
     <string name="p13_log_note">Crash diagnostics stay on this phone. Exception messages and financial values are excluded. Export opens the share sheet for your review.</string>

@@ -35,7 +35,6 @@ import app.mizan.data.backup.BackupPreview
 import app.mizan.data.repository.MizanRepository
 import app.mizan.data.settings.SettingFlag
 import app.mizan.data.settings.SettingText
-import app.mizan.ui.restartApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

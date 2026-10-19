@@ -540,17 +540,10 @@ class MizanRepository
 
         suspend fun hideAmountsEnabled(): Boolean = context.dataStore.data.first()[HIDE_AMOUNTS] ?: false
 
-        /**
-         * The V2 interface is deliberately opt-in until its screens replace their legacy equivalents.
-         * Keeping this preference here makes the choice survive activity recreation and app restarts.
-         */
-        fun observeNewInterface(): Flow<Boolean> = context.dataStore.data.map { it[NEW_INTERFACE] ?: false }
-
         fun observeStartupSettings(): Flow<app.mizan.security.StartupSettings> =
             context.dataStore.data.map { prefs ->
                 app.mizan.security.StartupSettings(
                     prefs[ONBOARDING_COMPLETED] ?: accounts.active().isNotEmpty(),
-                    prefs[NEW_INTERFACE] ?: false,
                     prefs[APP_LOCK_ENABLED] ?: false,
                     prefs[LOCK_TIMEOUT_SECONDS] ?: 30,
                     prefs[SECURE_SCREENS] ?: false,
@@ -659,8 +652,6 @@ class MizanRepository
         fun observeQuietHoursEnd(): Flow<String> = context.dataStore.data.map { it[QUIET_HOURS_END] ?: "07:00" }
 
         suspend fun setHideAmounts(enabled: Boolean) = context.dataStore.edit { it[HIDE_AMOUNTS] = enabled }
-
-        suspend fun setNewInterface(enabled: Boolean) = context.dataStore.edit { it[NEW_INTERFACE] = enabled }
 
         suspend fun setV2Period(
             kind: String,
@@ -1690,7 +1681,6 @@ class MizanRepository
             private const val THIRTY_DAYS_MILLIS = 30L * 24 * 60 * 60 * 1000
             private const val TWO_HOURS_MILLIS = 2L * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
-            private val NEW_INTERFACE = booleanPreferencesKey("new_interface")
             private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
             private val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
             private val V2_PERIOD_KIND = stringPreferencesKey("v2_period_kind")

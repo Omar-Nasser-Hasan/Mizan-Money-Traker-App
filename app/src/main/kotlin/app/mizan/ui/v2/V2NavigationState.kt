@@ -97,10 +97,6 @@ enum class StartupDestination { LOADING, ONBOARDING, SHELL }
 
 enum class StartupStage { APP_LOCK, ONBOARDING, SHELL }
 
-enum class AppInterface { LEGACY, V2 }
-
-fun appInterface(newInterfaceEnabled: Boolean): AppInterface = if (newInterfaceEnabled) AppInterface.V2 else AppInterface.LEGACY
-
 fun quickEntryRoute(action: String?): V2Route? =
     when (action) {
         ACTION_EXPENSE -> V2Route.ExpenseEntry

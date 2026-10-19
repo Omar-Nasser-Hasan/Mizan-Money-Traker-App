@@ -39,11 +39,6 @@ fun V2AboutScreen(repository: MizanRepository) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.p13_version, BuildConfig.VERSION_NAME), style = MzTypography.title)
                     Text(stringResource(R.string.p13_privacy))
-                    MzToggle(
-                        true,
-                        { enabled -> scope.launch { repository.setNewInterface(enabled) } },
-                        stringResource(R.string.p13_new_interface),
-                    )
                 }
             }
         }

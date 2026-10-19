@@ -23,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.R
 import app.mizan.data.repository.MizanRepository
-import app.mizan.ui.backupScreen
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -86,7 +85,7 @@ fun V2OnboardingFlow(repository: MizanRepository) {
         "RESTORE" -> {
             Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                 TextButton(onClick = { stage = "WELCOME" }) { Text(stringResource(R.string.setup_back)) }
-                backupScreen(repository, Modifier.weight(1f))
+                V2BackupScreen(repository)
             }
         }
 
