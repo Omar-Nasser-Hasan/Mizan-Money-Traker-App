@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,10 +69,15 @@ fun V2AssetDetailScreen(
     var range by rememberSaveable { mutableStateOf("6M") }
     var addOwnedLot by rememberSaveable { mutableStateOf(false) }
     var editAsset by rememberSaveable { mutableStateOf(false) }
+    var editType by rememberSaveable(assetId) { mutableStateOf(AssetType.GOLD.name) }
     var editName by rememberSaveable(assetId) { mutableStateOf("") }
     var editIdentifier by rememberSaveable(assetId) { mutableStateOf("") }
+    var editQuoteCurrency by rememberSaveable(assetId) { mutableStateOf("EGP") }
+    var editGoldForm by rememberSaveable(assetId) { mutableStateOf("GRAM") }
+    var editPriceMode by rememberSaveable(assetId) { mutableStateOf("MANUAL") }
     var editResaleDeduction by rememberSaveable(assetId) { mutableStateOf("") }
     var editError by remember(assetId) { mutableStateOf<String?>(null) }
+    var editingOwnedLotId by rememberSaveable(assetId) { mutableStateOf<String?>(null) }
     var lotQuantity by rememberSaveable(assetId) { mutableStateOf("") }
     var lotAmountPaid by rememberSaveable(assetId) { mutableStateOf("") }
     var lotUnitCost by rememberSaveable(assetId) { mutableStateOf("") }
@@ -131,23 +140,28 @@ fun V2AssetDetailScreen(
                 else -> LocalDate.MIN
             }
         }
+    val chartPriceKey = assetPriceKey(asset)
     val history =
-        remember(prices, assetTrades, range, cutoff, decimals) {
-            val saved =
-                prices
-                    .filter {
-                        it.key == assetPriceKey(asset) &&
-                            Instant.ofEpochMilli(it.asOf).atZone(ZoneId.of("Africa/Cairo")).toLocalDate() >= cutoff
-                    }.sortedBy { it.asOf }
-            if (saved.isNotEmpty()) {
-                saved.map { point ->
-                    BigDecimal(point.price).movePointRight(decimals).setScale(0, RoundingMode.HALF_UP).longValueExact()
-                }
-            } else {
-                assetTrades.asReversed().filter { LocalDate.parse(it.date) >= cutoff }.map { trade ->
-                    BigDecimal(trade.unitPrice).movePointRight(decimals).setScale(0, RoundingMode.HALF_UP).longValueExact()
-                }
-            }
+        remember(prices, assetTrades, chartPriceKey, range, cutoff, decimals) {
+            V2AssetDetailModels.chartHistory(
+                marketPoints =
+                    prices
+                        .filter { it.key == chartPriceKey }
+                        .map { point ->
+                            V2AssetHistoryPoint(
+                                Instant.ofEpochMilli(point.asOf).atZone(ZoneId.of("Africa/Cairo")).toLocalDate(),
+                                BigDecimal(point.price).movePointRight(decimals).setScale(0, RoundingMode.HALF_UP).longValueExact(),
+                            )
+                        },
+                tradePoints =
+                    assetTrades.map { trade ->
+                        V2AssetHistoryPoint(
+                            LocalDate.parse(trade.date),
+                            BigDecimal(trade.unitPrice).movePointRight(decimals).setScale(0, RoundingMode.HALF_UP).longValueExact(),
+                        )
+                    },
+                cutoff = cutoff,
+            )
         }
     val tokens = LocalMzTokens.current
     val age = position.ageHours?.let(::priceAgeLabel) ?: "No saved market price"
@@ -188,8 +202,12 @@ fun V2AssetDetailScreen(
                         MzButton(
                             "Edit",
                             {
+                                editType = asset.type
                                 editName = asset.name
                                 editIdentifier = asset.symbolOrKarats
+                                editQuoteCurrency = asset.quoteCurrency
+                                editGoldForm = asset.goldForm ?: "GRAM"
+                                editPriceMode = asset.priceMode
                                 editResaleDeduction = asset.resaleDeductionPct
                                 editError = null
                                 editAsset = true
@@ -228,8 +246,8 @@ fun V2AssetDetailScreen(
                             }
                             if (position.stale) Text("Stale · $age", style = MzTypography.bodySmall, color = tokens.warning)
                         }
-                        if (history.isNotEmpty()) {
-                            MzAreaChart(history, Modifier.fillMaxWidth())
+                        if (history.points.isNotEmpty()) {
+                            MzAreaChart(history.points.map { it.valueMinor }, Modifier.fillMaxWidth())
                         } else {
                             Text(
                                 "No price history yet. Saved prices and trades remain visible offline.",
@@ -239,7 +257,7 @@ fun V2AssetDetailScreen(
                         }
                         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                if (history.size >
+                                if (history.points.size >
                                     1
                                 ) {
                                     range
@@ -250,7 +268,7 @@ fun V2AssetDetailScreen(
                                 color = tokens.textDim,
                             )
                             Text(
-                                "${latestSnapshot?.source ?: position.sourceLabel} · $age",
+                                "${history.sourceLabel} · ${latestSnapshot?.source ?: position.sourceLabel} · $age",
                                 style = MzTypography.bodySmall,
                                 color = if (position.stale) tokens.warning else tokens.textDim,
                             )
@@ -331,7 +349,33 @@ fun V2AssetDetailScreen(
                     ) { Text("No trades recorded yet.", Modifier.padding(16.dp), color = tokens.textDim) }
                 }
             } else {
-                items(assetTrades, key = { it.id }) { trade -> AssetLotRow(trade, asset.unit, asset.quoteCurrency, hideAmounts) }
+                items(assetTrades, key = { it.id }) { trade ->
+                    AssetLotRow(
+                        trade,
+                        asset.unit,
+                        asset.quoteCurrency,
+                        hideAmounts,
+                        editable = trade.kind == "BUY" && trade.txnId == null,
+                    ) {
+                        editingOwnedLotId = trade.id
+                        lotQuantity = trade.quantity
+                        lotAmountPaid =
+                            BigDecimal
+                                .valueOf(trade.totalMinor)
+                                .movePointLeft(decimals)
+                                .stripTrailingZeros()
+                                .toPlainString()
+                        lotUnitCost = trade.unitPrice
+                        lotCurrentPrice =
+                            position.pricePerUnit
+                                ?.stripTrailingZeros()
+                                ?.toPlainString()
+                                .orEmpty()
+                        lotDate = trade.date
+                        lotError = null
+                        addOwnedLot = false
+                    }
+                }
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -346,18 +390,29 @@ fun V2AssetDetailScreen(
             MzButton("Buy", { onTrade(assetId, false) }, Modifier.weight(1f))
         }
     }
-    if (addOwnedLot) {
+    if (addOwnedLot || editingOwnedLotId != null) {
         val currencyDecimals = currencies.firstOrNull { it.code == asset.quoteCurrency }?.decimals ?: 2
+        val editingOwnedLot = editingOwnedLotId != null
         ModalBottomSheet(
-            onDismissRequest = { addOwnedLot = false },
+            onDismissRequest = {
+                addOwnedLot = false
+                editingOwnedLotId = null
+            },
             containerColor = LocalMzTokens.current.surface,
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(horizontal = MzSpacing.sideMargin).padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("Add an already owned lot", style = MzTypography.title)
-                Text("This adds the holding and cost basis without changing your cash balance.", style = MzTypography.bodySmall)
+                Text(if (editingOwnedLot) "Edit owned lot" else "Add an already owned lot", style = MzTypography.title)
+                Text(
+                    if (editingOwnedLot) {
+                        "Correct the quantity, purchase cost, and date. This does not change your cash balance."
+                    } else {
+                        "This adds the holding and cost basis without changing your cash balance."
+                    },
+                    style = MzTypography.bodySmall,
+                )
                 MzInput(lotQuantity, { lotQuantity = it }, "Quantity (${asset.unit})")
                 MzInput(lotAmountPaid, { lotAmountPaid = it }, "Total amount paid · ${asset.quoteCurrency}")
                 MzInput(lotUnitCost, { lotUnitCost = it }, "Purchase price per ${asset.unit} · ${asset.quoteCurrency}")
@@ -374,7 +429,7 @@ fun V2AssetDetailScreen(
                 )
                 lotError?.let { Text(it, color = tokens.expense, style = MzTypography.bodySmall) }
                 MzButton(
-                    "Save owned lot",
+                    if (editingOwnedLot) "Save lot changes" else "Save owned lot",
                     {
                         val quantity = runCatching { BigDecimal(lotQuantity) }.getOrNull()
                         val amount = runCatching { BigDecimal(lotAmountPaid) }.getOrNull()
@@ -400,15 +455,28 @@ fun V2AssetDetailScreen(
                             } else {
                                 scope.launch {
                                     runCatching {
-                                        repository.recordOwnedAssetHolding(
-                                            assetId,
-                                            date,
-                                            quantity,
-                                            unitCost,
-                                            currentPrice,
-                                            totalPaidMinor,
-                                        )
+                                        val editingId = editingOwnedLotId
+                                        if (editingId != null) {
+                                            repository.updateOwnedAssetHolding(
+                                                editingId,
+                                                date,
+                                                quantity,
+                                                unitCost,
+                                                currentPrice,
+                                                totalPaidMinor,
+                                            )
+                                        } else {
+                                            repository.recordOwnedAssetHolding(
+                                                assetId,
+                                                date,
+                                                quantity,
+                                                unitCost,
+                                                currentPrice,
+                                                totalPaidMinor,
+                                            )
+                                        }
                                         addOwnedLot = false
+                                        editingOwnedLotId = null
                                         lotQuantity = ""
                                         lotAmountPaid = ""
                                         lotUnitCost = ""
@@ -424,28 +492,122 @@ fun V2AssetDetailScreen(
         }
     }
     if (editAsset) {
+        val selectedEditType = runCatching { AssetType.valueOf(editType) }.getOrDefault(AssetType.OTHER)
+        val quoteOptions = currencies.filter { it.enabled || it.code == editQuoteCurrency }
         ModalBottomSheet(
             onDismissRequest = { editAsset = false },
             containerColor = LocalMzTokens.current.surface,
         ) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = MzSpacing.sideMargin).padding(bottom = 24.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = MzSpacing.sideMargin)
+                    .padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text("Edit holding", style = MzTypography.title)
-                Text("Changes here do not alter saved trades or cost basis.", style = MzTypography.bodySmall, color = tokens.textDim)
+                Text(
+                    "Type, currency, and unit changes also affect how saved lots are interpreted.",
+                    style = MzTypography.bodySmall,
+                    color = tokens.warning,
+                )
+                Text("Type", style = MzTypography.bodySmall)
+                AssetType.entries.chunked(2).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { option ->
+                            MzChip(
+                                option.name.lowercase().replaceFirstChar(Char::uppercase),
+                                selectedEditType == option,
+                                {
+                                    editType = option.name
+                                    if (option == AssetType.GOLD) {
+                                        if (editIdentifier !in listOf("24K", "21K", "18K")) editIdentifier = "21K"
+                                        if (editGoldForm !in listOf("GRAM", "BAR", "COIN")) editGoldForm = "GRAM"
+                                        editPriceMode = if (editIdentifier == "21K") "AUTO" else "DERIVED"
+                                    } else {
+                                        if (selectedEditType == AssetType.GOLD) editIdentifier = ""
+                                        editPriceMode = "MANUAL"
+                                    }
+                                },
+                            )
+                        }
+                    }
+                }
                 MzInput(editName, { editName = it }, "Name")
-                MzInput(editIdentifier, { editIdentifier = it }, if (asset.type == "GOLD") "Karat / form" else "Ticker / identifier")
+                if (selectedEditType == AssetType.GOLD) {
+                    Text("Gold form", style = MzTypography.bodySmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("GRAM", "BAR", "COIN").forEach { form ->
+                            MzChip(form.lowercase().replaceFirstChar(Char::uppercase), editGoldForm == form, {
+                                editGoldForm = form
+                                if (form == "COIN") {
+                                    editIdentifier = "21K"
+                                    editPriceMode = "AUTO"
+                                }
+                            })
+                        }
+                    }
+                    Text("Karat", style = MzTypography.bodySmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("24K", "21K", "18K").forEach { karat ->
+                            MzChip(karat, editIdentifier == karat, {
+                                editIdentifier = karat
+                                if (editGoldForm == "COIN" && karat != "21K") editGoldForm = "GRAM"
+                                editPriceMode = if (karat == "21K") "AUTO" else "DERIVED"
+                            })
+                        }
+                    }
+                } else {
+                    MzInput(
+                        editIdentifier,
+                        { editIdentifier = it.uppercase() },
+                        if (selectedEditType == AssetType.STOCK) "EGX ticker" else "Symbol or identifier",
+                    )
+                }
+                Text("Price mode", style = MzTypography.bodySmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (selectedEditType == AssetType.GOLD) {
+                        MzChip("Auto", editPriceMode == "AUTO", { editPriceMode = "AUTO" })
+                        MzChip("Manual", editPriceMode == "MANUAL", { editPriceMode = "MANUAL" })
+                        if (editIdentifier != "21K" && editGoldForm != "COIN") {
+                            MzChip("Derived", editPriceMode == "DERIVED", { editPriceMode = "DERIVED" })
+                        }
+                    } else {
+                        MzChip("Manual", true, { editPriceMode = "MANUAL" })
+                    }
+                }
+                var currencyMenuExpanded by remember(editAsset) { mutableStateOf(false) }
+                androidx.compose.foundation.layout.Box {
+                    MzButton(
+                        "Quote currency · $editQuoteCurrency",
+                        { currencyMenuExpanded = true },
+                        Modifier.fillMaxWidth(),
+                        MzButtonStyle.SECONDARY,
+                    )
+                    DropdownMenu(currencyMenuExpanded, { currencyMenuExpanded = false }) {
+                        quoteOptions.forEach { currency ->
+                            DropdownMenuItem(
+                                text = { Text("${currency.code} · ${currency.name}") },
+                                onClick = {
+                                    editQuoteCurrency = currency.code
+                                    currencyMenuExpanded = false
+                                },
+                            )
+                        }
+                    }
+                }
                 MzInput(editResaleDeduction, { editResaleDeduction = it }, "Resale deduction · %")
                 editError?.let { Text(it, color = tokens.expense, style = MzTypography.bodySmall) }
                 MzButton(
                     "Save changes",
                     {
                         val deduction = runCatching { BigDecimal(editResaleDeduction) }.getOrNull()
-                        if (editName.isBlank() || editIdentifier.isBlank() || deduction == null ||
+                        val enabledCurrency = currencies.any { it.enabled && it.code == editQuoteCurrency }
+                        if (editName.isBlank() || editIdentifier.isBlank() || !enabledCurrency || deduction == null ||
                             deduction < BigDecimal.ZERO || deduction > BigDecimal(100)
                         ) {
-                            editError = "Enter a name, identifier and a deduction from 0 to 100%."
+                            editError = "Enter a name and identifier, choose an enabled currency, and set deduction from 0 to 100%."
                         } else {
                             scope.launch {
                                 runCatching {
@@ -453,14 +615,19 @@ fun V2AssetDetailScreen(
                                         Asset(
                                             id = asset.id,
                                             name = editName.trim(),
-                                            type = runCatching { AssetType.valueOf(asset.type) }.getOrDefault(AssetType.OTHER),
+                                            type = selectedEditType,
                                             symbolOrKarats = editIdentifier.trim(),
-                                            quoteCurrency = asset.quoteCurrency,
-                                            unit = asset.unit,
+                                            quoteCurrency = editQuoteCurrency,
+                                            unit =
+                                                when (selectedEditType) {
+                                                    AssetType.GOLD -> if (editGoldForm == "COIN") "coin" else "g"
+                                                    AssetType.STOCK -> "share"
+                                                    else -> "unit"
+                                                },
                                             resaleDeductionPct = deduction,
                                             archived = asset.archived,
-                                            goldForm = asset.goldForm,
-                                            priceMode = asset.priceMode,
+                                            goldForm = editGoldForm.takeIf { selectedEditType == AssetType.GOLD },
+                                            priceMode = editPriceMode,
                                         ),
                                     )
                                     editAsset = false
@@ -507,6 +674,8 @@ private fun AssetLotRow(
     unit: String,
     currency: String,
     hideAmounts: Boolean,
+    editable: Boolean,
+    onEdit: () -> Unit,
 ) {
     MzCard(Modifier.fillMaxWidth()) {
         Row(
@@ -526,6 +695,7 @@ private fun AssetLotRow(
                     color = LocalMzTokens.current.textDim,
                 )
             }
+            if (editable) MzButton("Edit", onEdit, style = MzButtonStyle.GHOST)
             AmountText(trade.totalMinor, currency, hideAmounts = hideAmounts, textStyle = MzTypography.amountSmall)
         }
     }

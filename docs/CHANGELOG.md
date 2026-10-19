@@ -12,7 +12,9 @@
 
 ## Asset editing and app identity
 
-- Added an edit sheet to holding details for the name, ticker/karat identifier, and resale deduction; edits retain the asset ID, creation date, saved lots, and transaction history.
+- Expanded holding edits to cover the creation-form fields: type, name, gold form/karat or ticker, quote currency, price mode, and resale deduction; edits retain the asset ID, creation date, saved lots, and transaction history.
+- Added correction controls for already-owned buy lots without linked cash transactions. Lot edits update quantity, purchase cost, date, and the current quote without changing cash or ledger statistics.
+- Made the asset chart use selected-range market history when available and fall back to selected-range trade prices when saved market history is sparse; asset key changes now refresh the series.
 - Replaced the generic Android launcher icon and balance-scale welcome/onboarding/unlock marks with a custom champagne portal emblem on the Mizan charcoal palette.
 - Added a Room-backed journey assertion that edits holding metadata while preserving its original creation time and trade row.
 

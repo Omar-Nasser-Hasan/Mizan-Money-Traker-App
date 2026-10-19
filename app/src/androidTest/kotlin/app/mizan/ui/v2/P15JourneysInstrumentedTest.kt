@@ -154,6 +154,29 @@ class P15JourneysInstrumentedTest {
                     )
                 assertEquals(2_400_000L, wealth.summary.holdingsEgpMinor)
                 assertEquals(2_500_000L, wealth.summary.netWorthEgpMinor)
+
+                repository.updateOwnedAssetHolding(
+                    transactionId = lot.id,
+                    date = LocalDate.parse("2025-12-06"),
+                    quantity = BigDecimal("5"),
+                    unitCost = BigDecimal("5600"),
+                    currentPrice = BigDecimal("6100"),
+                    totalPaidMinor = 2_800_000L,
+                )
+                val correctedLot = repository.observeAllAssetTransactions().first().single()
+                assertEquals("5", correctedLot.quantity)
+                assertEquals("5600", correctedLot.unitPrice)
+                assertEquals("2025-12-06", correctedLot.date)
+                assertEquals(2_800_000L, correctedLot.totalMinor)
+                assertEquals(beforeCash, repository.observeAccountBalances().first().sumOf { it.openingMinor + it.entryMinor })
+                assertEquals(
+                    "6100",
+                    repository
+                        .observePriceHistory()
+                        .first()
+                        .maxBy { it.asOf }
+                        .price,
+                )
             }
         }
     }

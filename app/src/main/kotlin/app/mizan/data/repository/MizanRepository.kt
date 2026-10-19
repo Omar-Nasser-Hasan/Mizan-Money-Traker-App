@@ -1150,6 +1150,69 @@ class MizanRepository
             }
         }
 
+        /** Corrects an already-owned lot without creating or changing any cash ledger entries. */
+        suspend fun updateOwnedAssetHolding(
+            transactionId: String,
+            date: LocalDate,
+            quantity: BigDecimal,
+            unitCost: BigDecimal,
+            currentPrice: BigDecimal,
+            totalPaidMinor: Long,
+        ) {
+            require(quantity > BigDecimal.ZERO) { "Quantity must be positive" }
+            require(unitCost > BigDecimal.ZERO) { "Purchase price must be positive" }
+            require(currentPrice > BigDecimal.ZERO) { "Current price must be positive" }
+            require(totalPaidMinor >= 0L) { "Amount paid must not be negative" }
+            val existing = requireNotNull(assetDao.assetTransaction(transactionId)) { "Owned lot was not found" }
+            require(existing.kind == AssetTransactionKind.BUY.name && existing.txnId == null && existing.deletedAt == null) {
+                "Only an owned lot without a cash transaction can be edited here"
+            }
+            val asset = requireNotNull(observeAsset(existing.assetId).first()) { "Holding was not found" }
+            val currency =
+                observeCurrencies()
+                    .first()
+                    .firstOrNull { it.code == asset.quoteCurrency && it.enabled }
+                    ?: error("${asset.quoteCurrency} is not enabled")
+            val calculatedCostMinor =
+                quantity
+                    .multiply(unitCost)
+                    .movePointRight(currency.decimals)
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValueExact()
+            val feeMinor = (totalPaidMinor - calculatedCostMinor).coerceAtLeast(0L)
+            val now = clock.millis()
+            val priceKey =
+                when {
+                    asset.type != "GOLD" -> "MANUAL:${asset.id}"
+                    asset.goldForm == "COIN" -> "GOLD_POUND"
+                    else -> "GOLD_${asset.symbolOrKarats.uppercase()}"
+                }
+            database.withTransaction {
+                check(
+                    assetDao.updateOwnedAssetTransaction(
+                        transactionId,
+                        asset.id,
+                        date.toString(),
+                        quantity.toPlainString(),
+                        unitCost.toPlainString(),
+                        feeMinor,
+                        totalPaidMinor,
+                    ) == 1,
+                ) { "Owned lot could not be updated" }
+                assetDao.insertPrice(
+                    PriceSnapshotEntity(
+                        priceKey,
+                        asset.id.takeIf { asset.type != "GOLD" },
+                        currentPrice.toPlainString(),
+                        asset.quoteCurrency,
+                        now,
+                        "Manual opening price",
+                        true,
+                    ),
+                )
+            }
+        }
+
         fun records(query: RecordQuery): PagingSource<Int, PagedRecordRow> =
             ledger.records(
                 query.accountId,

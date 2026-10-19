@@ -1275,6 +1275,22 @@ interface AssetDao {
     @Query("SELECT * FROM asset_transactions WHERE assetId = :assetId AND deletedAt IS NULL ORDER BY date, id")
     fun observeTransactions(assetId: String): Flow<List<AssetTransactionEntity>>
 
+    @Query("SELECT * FROM asset_transactions WHERE id = :id LIMIT 1")
+    suspend fun assetTransaction(id: String): AssetTransactionEntity?
+
+    @Query(
+        "UPDATE asset_transactions SET date = :date, quantity = :quantity, unitPrice = :unitPrice, feeMinor = :feeMinor, totalMinor = :totalMinor WHERE id = :id AND assetId = :assetId AND kind = 'BUY' AND txnId IS NULL AND deletedAt IS NULL",
+    )
+    suspend fun updateOwnedAssetTransaction(
+        id: String,
+        assetId: String,
+        date: String,
+        quantity: String,
+        unitPrice: String,
+        feeMinor: Long,
+        totalMinor: Long,
+    ): Int
+
     @Query("SELECT * FROM asset_transactions WHERE deletedAt IS NULL ORDER BY date, id")
     fun observeAllTransactions(): Flow<List<AssetTransactionEntity>>
 

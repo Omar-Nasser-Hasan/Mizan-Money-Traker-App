@@ -17,7 +17,32 @@ data class V2AssetDetailMetrics(
     val xirr: BigDecimal?,
 )
 
+data class V2AssetHistoryPoint(
+    val date: LocalDate,
+    val valueMinor: Long,
+)
+
+data class V2AssetChartHistory(
+    val points: List<V2AssetHistoryPoint>,
+    val sourceLabel: String,
+)
+
 object V2AssetDetailModels {
+    fun chartHistory(
+        marketPoints: List<V2AssetHistoryPoint>,
+        tradePoints: List<V2AssetHistoryPoint>,
+        cutoff: LocalDate,
+    ): V2AssetChartHistory {
+        val market = marketPoints.filter { it.date >= cutoff }.sortedBy { it.date }
+        val trades = tradePoints.filter { it.date >= cutoff }.sortedBy { it.date }
+        return when {
+            market.size >= 2 -> V2AssetChartHistory(market, "Market prices")
+            trades.size >= 2 -> V2AssetChartHistory(trades, "Trade prices · limited market history")
+            market.isNotEmpty() -> V2AssetChartHistory(market, "Market prices")
+            else -> V2AssetChartHistory(trades, "Trade prices · no market history")
+        }
+    }
+
     fun metrics(
         position: V2WealthPosition,
         trades: List<AssetTransaction>,

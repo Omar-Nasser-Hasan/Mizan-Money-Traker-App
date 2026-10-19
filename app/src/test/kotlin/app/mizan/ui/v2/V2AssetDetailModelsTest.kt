@@ -14,6 +14,30 @@ import java.time.LocalDate
 
 class V2AssetDetailModelsTest {
     @Test
+    fun `chart history applies the selected cutoff and falls back to trades when market history is sparse`() {
+        val market =
+            listOf(
+                V2AssetHistoryPoint(LocalDate.parse("2025-01-01"), 100),
+                V2AssetHistoryPoint(LocalDate.parse("2025-07-01"), 200),
+                V2AssetHistoryPoint(LocalDate.parse("2025-10-01"), 300),
+            )
+        val trades =
+            listOf(
+                V2AssetHistoryPoint(LocalDate.parse("2025-09-15"), 250),
+                V2AssetHistoryPoint(LocalDate.parse("2025-10-01"), 300),
+            )
+
+        val sixMonths = V2AssetDetailModels.chartHistory(market, trades, LocalDate.parse("2025-04-01"))
+        val oneMonth = V2AssetDetailModels.chartHistory(market, trades, LocalDate.parse("2025-09-01"))
+        val all = V2AssetDetailModels.chartHistory(market, trades, LocalDate.MIN)
+
+        assertEquals(listOf(200L, 300L), sixMonths.points.map { it.valueMinor })
+        assertEquals("Trade prices · limited market history", oneMonth.sourceLabel)
+        assertEquals(listOf(250L, 300L), oneMonth.points.map { it.valueMinor })
+        assertEquals(listOf(100L, 200L, 300L), all.points.map { it.valueMinor })
+    }
+
+    @Test
     fun `detail figures preserve average cost realized and unrealized domain values and xirr`() {
         val day1 = LocalDate.parse("2025-01-01")
         val day2 = LocalDate.parse("2025-07-01")
