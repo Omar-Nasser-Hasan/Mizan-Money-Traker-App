@@ -52,4 +52,22 @@ object MzTypography {
         )
     val keypad = TextStyle(fontFamily = manrope, fontWeight = FontWeight.Medium, fontSize = 30.sp, lineHeight = 30.sp)
     val button = TextStyle(fontFamily = manrope, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 20.sp)
+    val material =
+        androidx.compose.material3.Typography(
+            displayLarge = hero,
+            displayMedium = hero,
+            displaySmall = headline,
+            headlineLarge = headline,
+            headlineMedium = headline,
+            headlineSmall = title,
+            titleLarge = title,
+            titleMedium = title,
+            titleSmall = body,
+            bodyLarge = body,
+            bodyMedium = body,
+            bodySmall = bodySmall,
+            labelLarge = button,
+            labelMedium = bodySmall,
+            labelSmall = labelCaps,
+        )
 }

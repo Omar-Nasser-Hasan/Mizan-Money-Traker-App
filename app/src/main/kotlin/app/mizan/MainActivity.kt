@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,7 +79,7 @@ class MainActivity : FragmentActivity() {
                         message,
                         prompting,
                     ) {
-                        Box(Modifier.fillMaxSize()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                             savedContent.SaveableStateProvider(if (settings!!.completed) "shell" else "setup") {
                                 when {
                                     !settings!!.completed -> {

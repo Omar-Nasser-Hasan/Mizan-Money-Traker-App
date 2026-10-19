@@ -65,38 +65,6 @@ data class V2NavigationState(
     }
 }
 
-/** AppLock is an Activity-level gate; after it releases, onboarding precedes the V2 shell. */
-object V2StartupGate {
-    fun next(hasAccounts: Boolean): V2Route? = if (hasAccounts) null else V2Route.OnboardingAccounts
-
-    fun destinationForAccounts(
-        accountsLoaded: Boolean,
-        hasAccounts: Boolean,
-    ): StartupDestination =
-        when {
-            !accountsLoaded -> StartupDestination.LOADING
-            !hasAccounts -> StartupDestination.ONBOARDING
-            else -> StartupDestination.SHELL
-        }
-
-    fun destination(
-        hasAccounts: Boolean,
-        quickAction: String?,
-    ): V2Route? = next(hasAccounts) ?: quickEntryRoute(quickAction)
-
-    /** AppLock remains Activity-owned; this sequence documents the shell handoff after authentication. */
-    fun order(hasAccounts: Boolean): List<StartupStage> =
-        buildList {
-            add(StartupStage.APP_LOCK)
-            if (!hasAccounts) add(StartupStage.ONBOARDING)
-            add(StartupStage.SHELL)
-        }
-}
-
-enum class StartupDestination { LOADING, ONBOARDING, SHELL }
-
-enum class StartupStage { APP_LOCK, ONBOARDING, SHELL }
-
 fun quickEntryRoute(action: String?): V2Route? =
     when (action) {
         ACTION_EXPENSE -> V2Route.ExpenseEntry

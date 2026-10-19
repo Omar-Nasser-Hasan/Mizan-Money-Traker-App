@@ -2,6 +2,7 @@
 package app.mizan.ui.v2
 
 import android.content.res.Configuration
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -13,7 +14,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 
 enum class MizanThemeMode { FOLLOW_SYSTEM, LIGHT, DARK, TRUE_BLACK }
 
-private val DarkTokens =
+internal val DarkTokens =
     MzTokens(
         canvas = Color(0xFF121316),
         surface = Color(0xFF292A2D),
@@ -32,9 +33,9 @@ private val DarkTokens =
         warning = Color(0xFFF0BD76),
     )
 
-private val TrueBlackTokens = DarkTokens.copy(canvas = Color.Black, lowestSurface = Color.Black)
+internal val TrueBlackTokens = DarkTokens.copy(canvas = Color.Black, lowestSurface = Color.Black)
 
-private val LightTokens =
+internal val LightTokens =
     MzTokens(
         canvas = Color(0xFFF5F2E9),
         surface = Color(0xFFFFFCF5),
@@ -96,7 +97,12 @@ fun MizanTheme(
                 outline = tokens.outline,
             )
         }
-    CompositionLocalProvider(LocalMzTokens provides tokens) {
-        MaterialTheme(colorScheme = colors, shapes = androidx.compose.material3.Shapes(), content = content)
+    CompositionLocalProvider(LocalMzTokens provides tokens, LocalContentColor provides tokens.text) {
+        MaterialTheme(
+            colorScheme = colors,
+            typography = MzTypography.material,
+            shapes = androidx.compose.material3.Shapes(),
+            content = content,
+        )
     }
 }

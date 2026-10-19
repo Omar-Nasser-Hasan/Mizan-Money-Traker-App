@@ -5,8 +5,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -35,7 +35,7 @@ fun MzIcon(
 ) {
     Text(
         text = directGlyphs[name]?.toChar()?.toString() ?: name,
-        modifier = modifier.semantics { this.contentDescription = contentDescription },
+        modifier = modifier.clearAndSetSemantics { this.contentDescription = contentDescription },
         color = tint,
         style =
             TextStyle(

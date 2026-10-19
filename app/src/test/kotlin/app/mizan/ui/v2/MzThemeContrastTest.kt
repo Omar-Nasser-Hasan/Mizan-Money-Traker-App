@@ -29,7 +29,25 @@ class MzThemeContrastTest {
                 Color(0xFF6F4A9E) to Color(0xFFFFFCF5),
                 Color(0xFF875A15) to Color(0xFFFFFCF5),
             )
-        pairs.forEach { (foreground, background) ->
+        val actualPairs =
+            listOf(DarkTokens, LightTokens, TrueBlackTokens).flatMap { tokens ->
+                listOf(tokens.canvas, tokens.surface, tokens.raisedSurface, tokens.lowestSurface).flatMap { background ->
+                    listOf(
+                        tokens.text,
+                        tokens.textDim,
+                        tokens.accentText,
+                        tokens.income,
+                        tokens.expense,
+                        tokens.transfer,
+                        tokens.investment,
+                        tokens.warning,
+                    ).map {
+                        it to
+                            background
+                    }
+                } + (tokens.onChampagne to tokens.champagne)
+            }
+        (pairs + actualPairs).forEach { (foreground, background) ->
             assertTrue("${foreground.value.toString(16)} on ${background.value.toString(16)}", contrast(foreground, background) >= 4.5)
         }
     }

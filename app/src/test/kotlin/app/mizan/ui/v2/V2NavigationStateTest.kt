@@ -35,26 +35,6 @@ class V2NavigationStateTest {
     }
 
     @Test
-    fun `startup gate sends a clean install to onboarding after activity lock`() {
-        assertEquals(V2Route.OnboardingAccounts, V2StartupGate.next(hasAccounts = false))
-        assertNull(V2StartupGate.next(hasAccounts = true))
-        assertEquals(V2Route.OnboardingAccounts, V2StartupGate.destination(hasAccounts = false, quickAction = "expense"))
-        assertEquals(V2Route.ExpenseEntry, V2StartupGate.destination(hasAccounts = true, quickAction = "expense"))
-        assertEquals(
-            listOf(StartupStage.APP_LOCK, StartupStage.ONBOARDING, StartupStage.SHELL),
-            V2StartupGate.order(hasAccounts = false),
-        )
-        assertEquals(listOf(StartupStage.APP_LOCK, StartupStage.SHELL), V2StartupGate.order(hasAccounts = true))
-    }
-
-    @Test
-    fun `startup gate waits for the accounts flow before treating it as a clean install`() {
-        assertEquals(StartupDestination.LOADING, V2StartupGate.destinationForAccounts(accountsLoaded = false, hasAccounts = false))
-        assertEquals(StartupDestination.ONBOARDING, V2StartupGate.destinationForAccounts(accountsLoaded = true, hasAccounts = false))
-        assertEquals(StartupDestination.SHELL, V2StartupGate.destinationForAccounts(accountsLoaded = true, hasAccounts = true))
-    }
-
-    @Test
     fun `widget shortcuts and tile map to their exact v2 entry routes`() {
         assertEquals(V2Route.ExpenseEntry, quickEntryRoute("expense"))
         assertEquals(V2Route.IncomeEntry, quickEntryRoute("income"))

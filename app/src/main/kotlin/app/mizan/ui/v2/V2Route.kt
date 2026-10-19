@@ -57,11 +57,7 @@ sealed interface V2Route {
 
     data object Backup : V2Route by screen("backup", "Backup")
 
-    data object Security : V2Route by screen("security", "App lock")
-
     data object More : V2Route by screen("more", "More")
-
-    data object OnboardingAccounts : V2Route by screen("onboarding:accounts", "Your accounts")
 
     data object Budgets : V2Route by screen("plan:budgets", "Budgets")
 
@@ -106,10 +102,6 @@ sealed interface V2Route {
 
     data object SpendingStats : V2Route by screen("stats:spending", "Spending")
 
-    data object OutlookStats : V2Route by screen("stats:outlook", "Outlook")
-
-    data object ReportsStats : V2Route by screen("stats:reports", "Reports")
-
     data object PeriodSelector : V2Route by sheet("stats:period", "Select period")
 
     data object Wealth : V2Route by screen("wealth", "Wealth")
@@ -128,8 +120,6 @@ sealed interface V2Route {
     data object Prices : V2Route by screen("prices", "Update prices")
 
     // Destinations the existing backend requires but that did not have a supplied Stitch mockup.
-    data object BackupPassphrase : V2Route by form("backup:passphrase", "Backup passphrase")
-
     data object DataSources : V2Route by screen("settings:data-sources", "Data sources")
 
     data object QuickEntrySettings : V2Route by screen("settings:quick-entry", "Quick entry")
@@ -178,9 +168,7 @@ sealed interface V2Route {
                 Settings,
                 Notifications,
                 Backup,
-                Security,
                 More,
-                OnboardingAccounts,
                 Budgets,
                 NewBudget,
                 PlannedPayments,
@@ -194,15 +182,12 @@ sealed interface V2Route {
                 BalanceStats,
                 CashFlowStats,
                 SpendingStats,
-                OutlookStats,
-                ReportsStats,
                 PeriodSelector,
                 Wealth,
                 BuyAsset,
                 AssetDetail("sample"),
                 AssetTrade("sample", false),
                 Prices,
-                BackupPassphrase,
                 DataSources,
                 QuickEntrySettings,
                 About,

@@ -15,11 +15,9 @@
     <string name="p13_quick">Quick entry</string>
     <string name="p13_about">About and logs</string>
     <string name="p13_more">More</string>
-    <string name="p13_settings">Settings</string>
     <string name="p13_save">Save</string>
     <string name="p13_cancel">Cancel</string>
     <string name="p13_error">Could not save. Check the value and try again.</string>
-    <string name="p13_retry">Try again</string>
     <string name="p13_empty">Nothing here yet</string>
     <string name="p13_add">Add</string>
     <string name="p13_edit">Edit</string>
@@ -160,7 +158,6 @@
     <string name="p13_wallet_fields">Date|Account|Category|Amount|Currency|Type|Note|Destination account</string>
     <string name="p13_dry_run">Run preview without saving</string>
     <string name="p13_import_count">%1$d transactions ready for review</string>
-    <string name="p13_bucket_delta">Change: %1$s %2$s</string>
     <string name="p13_commit_import">Commit reviewed import</string>
     <string name="p13_imported">Imported %1$d transactions. Repeating the same file and mapping does not duplicate them.</string>
     <string name="p13_zakat_disclaimer">Cash + included holdings + optional receivables − debts due within a year − card debt. Zakat is 2.5% if the total reaches nisab. This is a calculator, not a ruling: confirm treatment of jewelry and shares with your scholar.</string>

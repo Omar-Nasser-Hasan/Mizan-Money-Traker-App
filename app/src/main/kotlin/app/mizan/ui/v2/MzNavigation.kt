@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -54,7 +55,7 @@ fun MzTopBar(
     val tokens = LocalMzTokens.current
     Surface(modifier = modifier.fillMaxWidth(), color = tokens.canvas, contentColor = tokens.text) {
         Row(
-            modifier = Modifier.height(64.dp).padding(horizontal = 16.dp),
+            modifier = Modifier.heightIn(min = 64.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (navigationIcon != null) {
@@ -80,7 +81,7 @@ fun MzBottomNav(
         Column {
             HorizontalDivider(color = tokens.outline.copy(alpha = 0.4f), thickness = 1.dp)
             Row(
-                modifier = Modifier.height(72.dp).padding(horizontal = 8.dp),
+                modifier = Modifier.heightIn(min = 72.dp).padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -90,7 +91,7 @@ fun MzBottomNav(
                         modifier =
                             Modifier
                                 .weight(1f)
-                                .height(64.dp)
+                                .heightIn(min = 64.dp)
                                 .clip(MzShapes.utility)
                                 .clickable(role = Role.Tab) { onSelected(item.label) }
                                 .semantics { contentDescription = item.label },

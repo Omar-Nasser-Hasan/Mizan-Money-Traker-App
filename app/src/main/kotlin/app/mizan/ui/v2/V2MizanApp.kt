@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Scaffold
@@ -49,7 +51,7 @@ fun v2MizanApp(
     val lastAccountId by repository.observeLastUsedAccountId().collectAsStateWithLifecycle(null)
     val scope = rememberCoroutineScope()
     var navigation by rememberSaveable(stateSaver = V2NavigationState.Saver) { mutableStateOf(V2NavigationState()) }
-    var selectedStatsPage by rememberSaveable { mutableStateOf("Balance") }
+    var selectedStatsPage by rememberSaveable { mutableStateOf("Cash flow") }
     var selectedStatsCategory by rememberSaveable { mutableStateOf<String?>(null) }
     var wealthActionsExpanded by rememberSaveable { mutableStateOf(false) }
     val preferences by repository.settings.snapshots.collectAsStateWithLifecycle(
@@ -66,6 +68,7 @@ fun v2MizanApp(
     val selectedTab = navigation.selectedTab
     val isSheetRoute = activeRoute?.presentation == V2Presentation.SHEET
     Scaffold(
+        modifier = Modifier.widthIn(max = 1000.dp).fillMaxSize().safeDrawingPadding(),
         containerColor = LocalMzTokens.current.canvas,
         topBar = {
             MzTopBar(
@@ -197,7 +200,7 @@ fun v2MizanApp(
             }
         } else if (activeRoute == V2Route.WalletImport) {
             Box(Modifier.padding(padding)) { V2WalletImportScreen(repository) }
-        } else if (activeRoute == V2Route.Backup || activeRoute == V2Route.BackupPassphrase) {
+        } else if (activeRoute == V2Route.Backup) {
             Box(Modifier.padding(padding)) { V2BackupScreen(repository) }
         } else if (activeRoute == V2Route.About) {
             Box(Modifier.padding(padding)) { V2AboutScreen(repository) }
@@ -227,7 +230,7 @@ fun v2MizanApp(
             Box(Modifier.padding(padding)) { V2NotificationsScreen(repository) }
         } else if (activeRoute == V2Route.Settings) {
             Box(Modifier.padding(padding)) { V2SettingsScreen(repository) { navigation = navigation.navigate(it) } }
-        } else if (activeRoute == V2Route.SecuritySettings || activeRoute == V2Route.Security) {
+        } else if (activeRoute == V2Route.SecuritySettings) {
             Box(Modifier.padding(padding)) { V2SecuritySettingsScreen(repository) }
         } else if (activeRoute == V2Route.Goals) {
             Box(Modifier.padding(padding)) { V2GoalsScreen(repository, hideAmounts) { navigation = navigation.navigate(it) } }

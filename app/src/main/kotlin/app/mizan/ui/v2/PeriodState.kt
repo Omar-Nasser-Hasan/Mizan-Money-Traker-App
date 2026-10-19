@@ -63,11 +63,3 @@ data class PersistedPeriod(
     val start: String?,
     val end: String?,
 )
-
-data class V2GlobalState(
-    val hideAmounts: Boolean = false,
-    val period: PeriodState = PeriodState(),
-    val accountFilterId: String? = null,
-    val baseCurrency: String = "EGP",
-    val lastUsedAccountId: String? = null,
-)

@@ -49,10 +49,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.Instant
@@ -75,7 +80,7 @@ fun MzButton(
         MzButtonStyle.GHOST -> {
             TextButton(
                 onClick = onClick,
-                modifier = modifier.height(52.dp),
+                modifier = modifier.heightIn(min = 52.dp),
                 enabled = enabled,
                 shape = MzShapes.exterior,
             ) {
@@ -87,7 +92,7 @@ fun MzButton(
             val primary = style == MzButtonStyle.PRIMARY
             Button(
                 onClick = onClick,
-                modifier = modifier.height(52.dp),
+                modifier = modifier.heightIn(min = 52.dp),
                 enabled = enabled,
                 shape = MzShapes.exterior,
                 border = if (primary) null else BorderStroke(1.dp, tokens.outline.copy(alpha = 0.4f)),
@@ -219,9 +224,10 @@ fun MzInput(
                             strokeWidth = if (focused) 1.5.dp.toPx() else 1.dp.toPx(),
                         )
                     }.onFocusChanged { focused = it.isFocused }
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .semantics { contentDescription = label },
             enabled = enabled,
-            textStyle = MzTypography.body.copy(color = tokens.text),
+            textStyle = MzTypography.body.copy(color = tokens.text, textDirection = TextDirection.Content),
             cursorBrush = SolidColor(tokens.champagne),
             singleLine = singleLine,
             decorationBox = { innerTextField ->
@@ -252,9 +258,10 @@ fun MzSegmented(
                 modifier =
                     Modifier
                         .weight(1f)
-                        .height(32.dp)
+                        .heightIn(min = MzSpacing.touchTarget)
                         .clip(MzShapes.pill)
-                        .clickable { onSelected(index) },
+                        .clickable(role = Role.Tab) { onSelected(index) }
+                        .semantics { this.selected = selected },
                 shape = MzShapes.pill,
                 color = if (selected) tokens.raisedSurface else Color.Transparent,
             ) {
@@ -282,14 +289,22 @@ fun MzToggle(
 ) {
     val tokens = LocalMzTokens.current
     Row(
-        modifier = modifier.fillMaxWidth().heightIn(min = MzSpacing.touchTarget).clickable(enabled = enabled) { onCheckedChange(!checked) },
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .heightIn(min = MzSpacing.touchTarget)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = label
+                    role = Role.Switch
+                    toggleableState = ToggleableState(checked)
+                }.clickable(enabled = enabled) { onCheckedChange(!checked) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, modifier = Modifier.weight(1f), color = tokens.text, style = MzTypography.body)
         Switch(
             checked = checked,
             enabled = enabled,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = null,
             colors = SwitchDefaults.colors(checkedThumbColor = tokens.onChampagne, checkedTrackColor = tokens.champagne),
         )
     }
