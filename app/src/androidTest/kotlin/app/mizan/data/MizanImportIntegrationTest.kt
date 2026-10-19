@@ -4,6 +4,7 @@ package app.mizan.data
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.AppDatabase
 import app.mizan.data.db.CurrencyEntity
 import app.mizan.data.repository.MizanImportWriter
@@ -27,6 +28,20 @@ class MizanImportIntegrationTest {
             val database = db()
             try {
                 database.currencyDao().upsertAll(listOf(CurrencyEntity("EGP", "Pound", "EGP", 2, true)))
+                database.accountDao().upsert(
+                    AccountEntity(
+                        id = "essential",
+                        name = "Essential",
+                        type = "CASH",
+                        color = "#537A9A",
+                        icon = "account_balance",
+                        defaultCurrency = "EGP",
+                        openingDate = "2026-01-01",
+                        includeInTotals = true,
+                        archived = false,
+                        sortOrder = 0,
+                    ),
+                )
                 val writer =
                     MizanImportWriter(
                         database,
@@ -35,6 +50,7 @@ class MizanImportIntegrationTest {
                 val csv = manifest()
                 val preview = writer.preview(csv)
                 assertEquals(emptyList<String>(), preview.errors)
+                assertTrue(preview.errors.none { it.contains("account 'Essential'") })
                 assertEquals(5, preview.events.size)
                 assertEquals(-35_000L, preview.bucketTotalsMinor.values.single())
 
@@ -57,6 +73,14 @@ class MizanImportIntegrationTest {
                 assertEquals(10000L, database.planningDao().repayments("loan"))
                 assertEquals(27000L, database.planningDao().debt("historic")?.principalMinor)
                 assertEquals(25000L, database.planningDao().repayments("historic"))
+                assertEquals(
+                    "CASH",
+                    database
+                        .accountDao()
+                        .active()
+                        .single { it.name == "Essential" }
+                        .type,
+                )
                 val balance =
                     database
                         .ledgerDao()

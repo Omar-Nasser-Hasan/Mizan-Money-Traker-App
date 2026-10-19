@@ -74,11 +74,10 @@ class MizanImportWriter(
                 } else if (rate(event.currency, event.date) == null) {
                     errors += "${event.sourceRef}: no booking rate for ${event.currency} on ${event.date}."
                 }
-                val existingAccount = activeAccounts[event.account]
-                if (existingAccount != null && existingAccount.type != event.accountType.name) {
-                    errors +=
-                        "${event.sourceRef}: account '${event.account}' is ${existingAccount.type}, but the file says ${event.accountType.name}."
-                }
+                // The account name is the identity used by the wallet export. Its account_type
+                // is legacy metadata and must not override or conflict with the user's Mizan
+                // account setup (for example Essential can remain CASH even if the export says
+                // BANK). Existing account types are preserved when commit resolves the name.
                 event.destination?.let { destination ->
                     val existingDestination = activeAccounts[destination]
                     if (existingDestination != null && existingDestination.name == event.account) {

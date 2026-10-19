@@ -1,5 +1,10 @@
 # Changelog
 
+## Wallet account-name matching
+
+- Wallet imports now match existing accounts by their names (Essential, Fun, Investment) without treating legacy CASH/BANK labels as a conflicting account identity. Existing account types remain unchanged during import.
+- Added an Android Room integration assertion that an Essential account configured as CASH accepts a workbook row labeled BANK and remains CASH after import.
+
 ## Wallet workbook import fix
 
 - Made the Mizan workbook XML reader tolerate Android's built-in parser, which does not support the Xerces DOCTYPE feature, while explicitly rejecting DOCTYPE declarations and disabling external entity resolution.
