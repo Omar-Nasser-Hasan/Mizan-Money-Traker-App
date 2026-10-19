@@ -39,12 +39,12 @@ fun V2InboxScreen(
     onEdit: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val drafts by repository.observeInboxDrafts().collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
-    val expenses by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val incomes by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
-    val learnedCategories by repository.observeLearnedPayeeCategories().collectAsStateWithLifecycle(emptyMap())
+    val drafts by remember(repository) { repository.observeInboxDrafts() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val payees by remember(repository) { repository.observePayees() }.collectAsStateWithLifecycle(emptyList())
+    val expenses by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val incomes by remember(repository, "INCOME") { repository.observeCategories("INCOME") }.collectAsStateWithLifecycle(emptyList())
+    val learnedCategories by remember(repository) { repository.observeLearnedPayeeCategories() }.collectAsStateWithLifecycle(emptyMap())
     val categoryNames = remember(expenses, incomes) { (expenses + incomes).associate { it.id to it.name } }
     var duplicateIds by remember { mutableStateOf(emptySet<String>()) }
     val scope = rememberCoroutineScope()

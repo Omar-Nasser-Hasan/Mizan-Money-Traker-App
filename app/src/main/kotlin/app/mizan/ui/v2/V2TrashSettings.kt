@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit
 
 @Composable
 fun V2TrashScreen(repository: MizanRepository) {
-    val all by repository.observeTrash().collectAsStateWithLifecycle(null)
+    val all by remember(repository) { repository.observeTrash() }.collectAsStateWithLifecycle(null)
     val records = all?.filter { it.deletedAt >= System.currentTimeMillis() - TimeUnit.DAYS.toMillis(30) }
     val scope = rememberCoroutineScope()
     val manager = WorkManager.getInstance(LocalContext.current)

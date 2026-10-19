@@ -37,7 +37,7 @@ fun V2AddHoldingScreen(
     repository: MizanRepository,
     onSaved: () -> Unit,
 ) {
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
     val enabledCurrencies = currencies.filter { it.enabled }
     val scope = rememberCoroutineScope()
     var type by rememberSaveable { mutableStateOf(AssetType.GOLD.name) }

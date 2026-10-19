@@ -82,17 +82,19 @@ fun V2EntryScreen(
     onOpenVoice: () -> Unit = {},
     onDone: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val sources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
-    val templates by repository.observeSplitTemplates().collectAsStateWithLifecycle(emptyList())
-    val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
-    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
-    val labels by repository.observeLabels().collectAsStateWithLifecycle(emptyList())
-    val learnedPayeeCategories by repository.observeLearnedPayeeCategories().collectAsStateWithLifecycle(emptyMap())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val sources by remember(repository) { repository.observeIncomeSources() }.collectAsStateWithLifecycle(emptyList())
+    val templates by remember(repository) { repository.observeSplitTemplates() }.collectAsStateWithLifecycle(emptyList())
+    val budgets by remember(repository) { repository.observeBudgets() }.collectAsStateWithLifecycle(emptyList())
+    val payees by remember(repository) { repository.observePayees() }.collectAsStateWithLifecycle(emptyList())
+    val labels by remember(repository) { repository.observeLabels() }.collectAsStateWithLifecycle(emptyList())
+    val learnedPayeeCategories by remember(
+        repository,
+    ) { repository.observeLearnedPayeeCategories() }.collectAsStateWithLifecycle(emptyMap())
     val scope = rememberCoroutineScope()
     var kind by remember(initialKind) { mutableStateOf(initialKind) }
-    val recordTemplates by repository.observeRecordTemplates(kind).collectAsStateWithLifecycle(emptyList())
+    val recordTemplates by remember(repository, kind) { repository.observeRecordTemplates(kind) }.collectAsStateWithLifecycle(emptyList())
     val categories by repository
         .observeCategories(if (kind == "INCOME") "INCOME" else "EXPENSE")
         .collectAsStateWithLifecycle(emptyList())
@@ -112,7 +114,9 @@ fun V2EntryScreen(
     }
     var sourceId by remember { mutableStateOf<String?>(null) }
     var templateId by remember { mutableStateOf<String?>(null) }
-    val persistedLines by repository.observeSplitLines(templateId ?: "").collectAsStateWithLifecycle(emptyList())
+    val persistedLines by remember(repository, templateId ?: "") {
+        repository.observeSplitLines(templateId ?: "")
+    }.collectAsStateWithLifecycle(emptyList())
     var customSplitLines by remember { mutableStateOf<List<SplitLine>?>(null) }
     var showSplitSheet by remember { mutableStateOf(false) }
     var showRecordTemplates by remember { mutableStateOf(false) }
@@ -156,9 +160,12 @@ fun V2EntryScreen(
     }
     val account = accounts.firstOrNull { it.id == accountId }
     val target = accounts.firstOrNull { it.id == targetId }
-    val buckets by repository.observeBuckets(accountId).collectAsStateWithLifecycle(emptyList())
-    val bucketDeltas by repository.observeBucketDeltas(accountId).collectAsStateWithLifecycle(emptyList())
-    val targetBuckets by repository.observeBuckets(targetId).collectAsStateWithLifecycle(emptyList())
+    val buckets by remember(repository, accountId) { repository.observeBuckets(accountId) }.collectAsStateWithLifecycle(emptyList())
+    val bucketDeltas by remember(
+        repository,
+        accountId,
+    ) { repository.observeBucketDeltas(accountId) }.collectAsStateWithLifecycle(emptyList())
+    val targetBuckets by remember(repository, targetId) { repository.observeBuckets(targetId) }.collectAsStateWithLifecycle(emptyList())
     var currency by remember(accountId, account?.defaultCurrency) { mutableStateOf(account?.defaultCurrency ?: "EGP") }
     var targetCurrency by remember(targetId, target?.defaultCurrency) { mutableStateOf(target?.defaultCurrency ?: "EGP") }
     val decimals = currencies.firstOrNull { it.code == currency }?.decimals ?: 2
@@ -184,8 +191,12 @@ fun V2EntryScreen(
             null
         }
     var receivedExpression by remember(currency, targetCurrency) { mutableStateOf("") }
-    val editRows by repository.observeRecordRows(editTransactionId.orEmpty()).collectAsStateWithLifecycle(emptyList())
-    val inboxDraft by repository.observeInboxDraft(inboxDraftId.orEmpty()).collectAsStateWithLifecycle(null)
+    val editRows by remember(repository, editTransactionId.orEmpty()) {
+        repository.observeRecordRows(editTransactionId.orEmpty())
+    }.collectAsStateWithLifecycle(emptyList())
+    val inboxDraft by remember(repository, inboxDraftId.orEmpty()) {
+        repository.observeInboxDraft(inboxDraftId.orEmpty())
+    }.collectAsStateWithLifecycle(null)
     val receivedAmount =
         runCatching { EntryCalculator.minorUnits(receivedExpression, targetDecimals) }.getOrNull() ?: suggestedReceived ?: 0L
     val activeSplitLines =

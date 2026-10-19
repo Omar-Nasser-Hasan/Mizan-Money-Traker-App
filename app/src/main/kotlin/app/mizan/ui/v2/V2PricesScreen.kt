@@ -40,8 +40,8 @@ fun V2PricesScreen(
     hideAmounts: Boolean,
     onAddHolding: () -> Unit,
 ) {
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observeLatestPrices() }.collectAsStateWithLifecycle(emptyList())
     val goldQuote = prices.firstOrNull { it.key == "GOLD_21K" }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current

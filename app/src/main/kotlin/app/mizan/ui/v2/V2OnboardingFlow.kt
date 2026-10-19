@@ -30,8 +30,8 @@ import kotlinx.coroutines.launch
 fun V2OnboardingFlow(repository: MizanRepository) {
     var stage by rememberSaveable { mutableStateOf("WELCOME") }
     var draft by rememberSaveable(stateSaver = V2OnboardingDraft.StateSaver) { mutableStateOf(V2OnboardingDraft()) }
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val categories by repository.observeSetupCategories().collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository) { repository.observeSetupCategories() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val accountError = stringResource(R.string.setup_error_accounts)
     val saveError = stringResource(R.string.setup_save_error)

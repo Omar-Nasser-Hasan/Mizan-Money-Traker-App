@@ -38,8 +38,8 @@ import java.util.UUID
 
 @Composable
 fun V2ReferenceSettingsScreen(repository: MizanRepository) {
-    val rows by repository.observeSetupCategories().collectAsStateWithLifecycle(null)
-    val labels by repository.observeAllLabels().collectAsStateWithLifecycle(emptyList())
+    val rows by remember(repository) { repository.observeSetupCategories() }.collectAsStateWithLifecycle(null)
+    val labels by remember(repository) { repository.observeAllLabels() }.collectAsStateWithLifecycle(emptyList())
     val settings by repository.settings.snapshots.collectAsStateWithLifecycle(null)
     val order = settings?.get(SettingText.LABEL_ORDER).orEmpty().split("|")
     val orderedLabels = labels.sortedWith(compareBy({ order.indexOf(it.id).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }, { it.name }))

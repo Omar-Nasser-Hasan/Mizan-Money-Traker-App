@@ -43,12 +43,12 @@ fun V2DebtsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
-    val repayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val debts by remember(repository) { repository.observeAllDebts() }.collectAsStateWithLifecycle(emptyList())
+    val repayments by remember(repository) { repository.observeDebtRepaymentTotals() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val totals = repayments.associate { it.debtId to it.repaidMinor }
     val cardData = debts.map { GoalDebtCalculations.debt(it, totals[it.id] ?: 0L, today) }
@@ -222,10 +222,10 @@ fun V2DebtForm(
     onSaved: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val debts by remember(repository) { repository.observeAllDebts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var direction by rememberSaveable(debtId) { mutableStateOf("LENT") }
     var person by rememberSaveable(debtId) { mutableStateOf("") }

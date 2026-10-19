@@ -54,10 +54,10 @@ fun V2AccountDetailScreen(
     onNavigate: (V2Route) -> Unit,
     onBack: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val buckets by repository.observeBuckets(accountId).collectAsStateWithLifecycle(emptyList())
-    val fx by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val buckets by remember(repository, accountId) { repository.observeBuckets(accountId) }.collectAsStateWithLifecycle(emptyList())
+    val fx by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
     val accountRecordsFlow = remember(accountId) { repository.observeRecentRecordsForAccount(accountId, 8) }
     val accountRecords by accountRecordsFlow.collectAsStateWithLifecycle(emptyList())
     val deltaFlow = remember(accountId) { repository.observeBucketDeltas(accountId) }
@@ -294,8 +294,8 @@ fun V2WealthAccountsScreen(
     hideAmounts: Boolean,
     onOpenAccount: (String) -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val rows by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val rows by remember(repository) { repository.observeAllAccountBalances() }.collectAsStateWithLifecycle(emptyList())
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(MzSpacing.sideMargin, 12.dp),
@@ -388,10 +388,12 @@ fun V2AccountForm(
     onSaved: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
     val existing = accounts.firstOrNull { it.id == accountId }
-    val existingBuckets by repository.observeBuckets(accountId.orEmpty()).collectAsStateWithLifecycle(emptyList())
+    val existingBuckets by remember(repository, accountId.orEmpty()) {
+        repository.observeBuckets(accountId.orEmpty())
+    }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     var name by remember(existing) { mutableStateOf(existing?.name ?: "") }

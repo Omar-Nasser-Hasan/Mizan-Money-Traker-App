@@ -52,19 +52,19 @@ fun V2PlanScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
-    val payments by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
-    val occurrences by repository.observePlannedOccurrences().collectAsStateWithLifecycle(emptyList())
-    val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
-    val debtRepayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val rows by repository.observeStatsRows().collectAsStateWithLifecycle(emptyList())
-    val entries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
+    val budgets by remember(repository) { repository.observeBudgets() }.collectAsStateWithLifecycle(emptyList())
+    val payments by remember(repository) { repository.observePlannedPayments() }.collectAsStateWithLifecycle(emptyList())
+    val occurrences by remember(repository) { repository.observePlannedOccurrences() }.collectAsStateWithLifecycle(emptyList())
+    val debts by remember(repository) { repository.observeDebts() }.collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by remember(repository) { repository.observeDebtRepaymentTotals() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val rows by remember(repository) { repository.observeStatsRows() }.collectAsStateWithLifecycle(emptyList())
+    val entries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val payees by remember(repository) { repository.observePayees() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
     var budgetPeriod by rememberSaveable { mutableStateOf(BudgetPeriod.MONTHLY.name) }
     var anchor by rememberSaveable { mutableStateOf(LocalDate.now(java.time.ZoneId.of("Africa/Cairo")).toString()) }
     val today = LocalDate.now(java.time.ZoneId.of("Africa/Cairo"))
@@ -339,8 +339,8 @@ fun V2BudgetForm(
     onSaved: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var name by rememberSaveable(budgetId) { mutableStateOf("") }
     var budgetScope by rememberSaveable(budgetId) { mutableStateOf("ALL") }
@@ -562,11 +562,14 @@ fun V2PlannedPaymentForm(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val incomeCategories by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
-    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val incomeCategories by remember(
+        repository,
+        "INCOME",
+    ) { repository.observeCategories("INCOME") }.collectAsStateWithLifecycle(emptyList())
+    val payees by remember(repository) { repository.observePayees() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var kind by rememberSaveable(paymentId) { mutableStateOf("EXPENSE") }
     var name by rememberSaveable(paymentId) { mutableStateOf("") }

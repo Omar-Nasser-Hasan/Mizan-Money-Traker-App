@@ -39,8 +39,8 @@ import java.math.BigDecimal
 
 @Composable
 fun V2CurrenciesScreen(repository: MizanRepository) {
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(null)
-    val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(null)
+    val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
     val settings by repository.settings.snapshots.collectAsStateWithLifecycle(SettingsSnapshot())
     val scope = rememberCoroutineScope()
     var error by remember { mutableStateOf<String?>(null) }

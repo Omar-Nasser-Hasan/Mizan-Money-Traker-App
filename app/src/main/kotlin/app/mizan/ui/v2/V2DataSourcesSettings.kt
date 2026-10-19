@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,7 +30,7 @@ fun V2DataSourcesScreen(
     onNavigate: (V2Route) -> Unit,
 ) {
     val state by repository.settings.snapshots.collectAsStateWithLifecycle(null)
-    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observeLatestPrices() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     V2SettingsList {

@@ -90,12 +90,15 @@ fun V2RecordsScreen(
     onAccountSelected: (String?) -> Unit,
     initialCategoryId: String? = null,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val categories by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val incomeCategories by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
-    val labels by repository.observeLabels().collectAsStateWithLifecycle(emptyList())
-    val drafts by repository.observeInboxDrafts().collectAsStateWithLifecycle(emptyList())
-    val uncategorized by repository.observeUncategorizedExpenseCount().collectAsStateWithLifecycle(0)
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val incomeCategories by remember(
+        repository,
+        "INCOME",
+    ) { repository.observeCategories("INCOME") }.collectAsStateWithLifecycle(emptyList())
+    val labels by remember(repository) { repository.observeLabels() }.collectAsStateWithLifecycle(emptyList())
+    val drafts by remember(repository) { repository.observeInboxDrafts() }.collectAsStateWithLifecycle(emptyList())
+    val uncategorized by remember(repository) { repository.observeUncategorizedExpenseCount() }.collectAsStateWithLifecycle(0)
     var query by remember(period, selectedAccountId) {
         mutableStateOf(
             RecordQuery(

@@ -40,15 +40,15 @@ fun V2TemplatesScreen(
     repository: MizanRepository,
     onCreateAccount: () -> Unit,
 ) {
-    val splits by repository.observeSplitTemplates().collectAsStateWithLifecycle(null)
-    val lines by repository.observeAllSplitLines().collectAsStateWithLifecycle(emptyList())
-    val sources by repository.observeIncomeSources().collectAsStateWithLifecycle(emptyList())
-    val records by repository.observeAllRecordTemplates().collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val categories by repository.observeSetupCategories().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val payees by repository.observePayees().collectAsStateWithLifecycle(emptyList())
-    val hidden by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
+    val splits by remember(repository) { repository.observeSplitTemplates() }.collectAsStateWithLifecycle(null)
+    val lines by remember(repository) { repository.observeAllSplitLines() }.collectAsStateWithLifecycle(emptyList())
+    val sources by remember(repository) { repository.observeIncomeSources() }.collectAsStateWithLifecycle(emptyList())
+    val records by remember(repository) { repository.observeAllRecordTemplates() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val categories by remember(repository) { repository.observeSetupCategories() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val payees by remember(repository) { repository.observePayees() }.collectAsStateWithLifecycle(emptyList())
+    val hidden by remember(repository) { repository.observeHideAmounts() }.collectAsStateWithLifecycle(false)
     val scope = rememberCoroutineScope()
     var error by remember { mutableStateOf(false) }
     var undo by remember { mutableStateOf<(() -> Unit)?>(null) }

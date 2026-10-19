@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun V2SecuritySettingsScreen(repository: MizanRepository) {
     val state by repository.settings.snapshots.collectAsStateWithLifecycle(null)
-    val timeout by repository.observeLockTimeoutSeconds().collectAsStateWithLifecycle(30)
+    val timeout by remember(repository) { repository.observeLockTimeoutSeconds() }.collectAsStateWithLifecycle(30)
     val available = DeviceSecurity.available(LocalContext.current)
     val scope = rememberCoroutineScope()
     var error by remember { mutableStateOf(false) }

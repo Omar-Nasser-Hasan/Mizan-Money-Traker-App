@@ -51,11 +51,11 @@ fun V2AssetTradeScreen(
     hideAmounts: Boolean,
     onSaved: (String) -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observePriceHistory().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val trades by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observePriceHistory() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     var selectedAssetId by rememberSaveable(initialAssetId) { mutableStateOf(initialAssetId) }
     var selectedAccountId by rememberSaveable { mutableStateOf<String?>(null) }

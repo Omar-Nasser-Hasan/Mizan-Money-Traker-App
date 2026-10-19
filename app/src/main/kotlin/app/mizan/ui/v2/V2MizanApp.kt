@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -42,13 +43,13 @@ fun v2MizanApp(
     repository: MizanRepository,
     quickAction: String? = null,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val hideAmounts by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
-    val periodKind by repository.observeV2PeriodKind().collectAsStateWithLifecycle("MONTH")
-    val periodStart by repository.observeV2PeriodStart().collectAsStateWithLifecycle(null)
-    val periodEnd by repository.observeV2PeriodEnd().collectAsStateWithLifecycle(null)
-    val accountFilterId by repository.observeV2AccountFilter().collectAsStateWithLifecycle(null)
-    val lastAccountId by repository.observeLastUsedAccountId().collectAsStateWithLifecycle(null)
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val hideAmounts by remember(repository) { repository.observeHideAmounts() }.collectAsStateWithLifecycle(false)
+    val periodKind by remember(repository) { repository.observeV2PeriodKind() }.collectAsStateWithLifecycle("MONTH")
+    val periodStart by remember(repository) { repository.observeV2PeriodStart() }.collectAsStateWithLifecycle(null)
+    val periodEnd by remember(repository) { repository.observeV2PeriodEnd() }.collectAsStateWithLifecycle(null)
+    val accountFilterId by remember(repository) { repository.observeV2AccountFilter() }.collectAsStateWithLifecycle(null)
+    val lastAccountId by remember(repository) { repository.observeLastUsedAccountId() }.collectAsStateWithLifecycle(null)
     val scope = rememberCoroutineScope()
     var navigation by rememberSaveable(stateSaver = V2NavigationState.Saver) { mutableStateOf(V2NavigationState()) }
     var selectedStatsPage by rememberSaveable { mutableStateOf("Cash flow") }

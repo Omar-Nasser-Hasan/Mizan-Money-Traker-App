@@ -85,17 +85,17 @@ fun V2GoalsScreen(
     hideAmounts: Boolean,
     onNavigate: (V2Route) -> Unit,
 ) {
-    val goals by repository.observeGoals().collectAsStateWithLifecycle(emptyList())
-    val links by repository.observeAllGoalLinks().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
-    val cashFlows by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
-    val allContributions by repository.observeAllGoalContributions().collectAsStateWithLifecycle(emptyList())
+    val goals by remember(repository) { repository.observeGoals() }.collectAsStateWithLifecycle(emptyList())
+    val links by remember(repository) { repository.observeAllGoalLinks() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val trades by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observeLatestPrices() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
+    val cashFlows by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
+    val allContributions by remember(repository) { repository.observeAllGoalContributions() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
     val cards =
@@ -354,15 +354,15 @@ fun V2GoalForm(
     onSaved: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
-    val cashFlows by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
-    val allLinks by repository.observeAllGoalLinks().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val trades by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observeLatestPrices() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
+    val cashFlows by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
+    val allLinks by remember(repository) { repository.observeAllGoalLinks() }.collectAsStateWithLifecycle(emptyList())
     val existingLinks by goalId?.let(repository::observeGoalLinks)?.collectAsStateWithLifecycle(emptyList())
         ?: remember { mutableStateOf(emptyList()) }
     val scope = rememberCoroutineScope()

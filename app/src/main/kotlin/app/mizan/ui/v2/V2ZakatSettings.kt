@@ -60,15 +60,15 @@ fun V2ZakatScreen(
     hideAmounts: Boolean,
     onPay: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observePriceHistory().collectAsStateWithLifecycle(emptyList())
-    val fx by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
-    val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
-    val repayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAllAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val trades by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observePriceHistory() }.collectAsStateWithLifecycle(emptyList())
+    val fx by remember(repository) { repository.observeFxHistory() }.collectAsStateWithLifecycle(emptyList())
+    val debts by remember(repository) { repository.observeDebts() }.collectAsStateWithLifecycle(emptyList())
+    val repayments by remember(repository) { repository.observeDebtRepaymentTotals() }.collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }

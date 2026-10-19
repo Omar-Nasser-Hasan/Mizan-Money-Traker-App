@@ -58,7 +58,7 @@ fun V2RecordDetailScreen(
     onBack: () -> Unit,
     onDuplicated: (String) -> Unit,
 ) {
-    val rows by repository.observeRecordRows(transactionId).collectAsStateWithLifecycle(emptyList())
+    val rows by remember(repository, transactionId) { repository.observeRecordRows(transactionId) }.collectAsStateWithLifecycle(emptyList())
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var confirmReconciledEdit by remember(transactionId) { mutableStateOf(false) }

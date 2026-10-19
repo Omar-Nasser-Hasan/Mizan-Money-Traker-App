@@ -33,7 +33,7 @@ import kotlinx.coroutines.withContext
 fun V2WalletImportScreen(repository: MizanRepository) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val hidden by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
+    val hidden by remember(repository) { repository.observeHideAmounts() }.collectAsStateWithLifecycle(false)
     var csv by remember { mutableStateOf<String?>(null) }
     var headers by remember { mutableStateOf(emptyList<String>()) }
     var mapping by remember { mutableStateOf(emptyMap<String, String>()) }

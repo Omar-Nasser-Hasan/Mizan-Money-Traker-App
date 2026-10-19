@@ -70,10 +70,10 @@ fun V2VoiceReviewScreen(
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val expenses by repository.observeCategories("EXPENSE").collectAsStateWithLifecycle(emptyList())
-    val incomes by repository.observeCategories("INCOME").collectAsStateWithLifecycle(emptyList())
-    val learned by repository.observeLearnedPayeeCategories().collectAsStateWithLifecycle(emptyMap())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val expenses by remember(repository, "EXPENSE") { repository.observeCategories("EXPENSE") }.collectAsStateWithLifecycle(emptyList())
+    val incomes by remember(repository, "INCOME") { repository.observeCategories("INCOME") }.collectAsStateWithLifecycle(emptyList())
+    val learned by remember(repository) { repository.observeLearnedPayeeCategories() }.collectAsStateWithLifecycle(emptyMap())
     val recognizer = remember { OnDeviceVoiceRecognizer(context) }
     val scope = rememberCoroutineScope()
     var transcript by remember { mutableStateOf("") }
