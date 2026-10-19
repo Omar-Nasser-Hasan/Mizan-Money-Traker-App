@@ -173,3 +173,7 @@
 ### P13 — Export
 
 - CSV, XLSX and PDF export through real writers and the Android share sheet.
+
+### P13 — Trash
+
+- Thirty-day Trash, original-entry restore and confirmed permanent deletion with a ten-second Undo window.
