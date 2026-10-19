@@ -157,3 +157,7 @@
 ### P13 — Quick entry
 
 - Widget pinning and enable state, explicit online speech opt-in, lazy SMS permission and notification access guidance.
+
+### P13 — About and logs
+
+- Real app version, attributions, runtime interface flag and user-initiated private log export.
