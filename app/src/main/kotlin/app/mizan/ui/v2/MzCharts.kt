@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,11 +33,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.mizan.R
 import kotlin.math.max
 import kotlin.math.min
 
@@ -124,32 +127,36 @@ fun MzAreaChart(
     values: List<Long>,
     modifier: Modifier = Modifier,
     onPointSelected: (Int) -> Unit = {},
+    hideAmounts: Boolean = false,
 ) {
     val tokens = LocalMzTokens.current
-    Canvas(
-        modifier =
-            modifier.fillMaxWidth().height(180.dp).pointerInput(values) {
-                detectTapGestures { offset ->
-                    if (values.isNotEmpty()) {
-                        onPointSelected(
-                            ((offset.x / size.width) * values.lastIndex).toInt().coerceIn(0, values.lastIndex),
-                        )
+    Row(modifier.fillMaxWidth().height(180.dp), verticalAlignment = Alignment.CenterVertically) {
+        ChartYAxisLabels(values, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
+        Canvas(
+            modifier =
+                Modifier.weight(1f).fillMaxHeight().pointerInput(values) {
+                    detectTapGestures { offset ->
+                        if (values.isNotEmpty()) {
+                            onPointSelected(
+                                ((offset.x / size.width) * values.lastIndex).toInt().coerceIn(0, values.lastIndex),
+                            )
+                        }
                     }
+                },
+        ) {
+            val points = points(values)
+            if (points.isEmpty()) return@Canvas
+            val path = pathFor(points)
+            val fill =
+                Path().apply {
+                    addPath(path)
+                    lineTo(points.last().x, size.height)
+                    lineTo(points.first().x, size.height)
+                    close()
                 }
-            },
-    ) {
-        val points = points(values)
-        if (points.isEmpty()) return@Canvas
-        val path = pathFor(points)
-        val fill =
-            Path().apply {
-                addPath(path)
-                lineTo(points.last().x, size.height)
-                lineTo(points.first().x, size.height)
-                close()
-            }
-        drawPath(fill, tokens.champagne.copy(alpha = 0.24f))
-        drawPath(path, tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+            drawPath(fill, tokens.champagne.copy(alpha = 0.24f))
+            drawPath(path, tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+        }
     }
 }
 
@@ -158,12 +165,16 @@ fun MzAreaChart(
 fun MzLineChart(
     values: List<Long>,
     modifier: Modifier = Modifier,
+    hideAmounts: Boolean = false,
 ) {
     val tokens = LocalMzTokens.current
-    Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
-        val chartPoints = points(values)
-        if (chartPoints.size < 2) return@Canvas
-        drawPath(pathFor(chartPoints), tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+    Row(modifier.fillMaxWidth().height(180.dp), verticalAlignment = Alignment.CenterVertically) {
+        ChartYAxisLabels(values, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
+        Canvas(Modifier.weight(1f).fillMaxHeight()) {
+            val chartPoints = points(values)
+            if (chartPoints.size < 2) return@Canvas
+            drawPath(pathFor(chartPoints), tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+        }
     }
 }
 
@@ -200,15 +211,63 @@ fun MzMultiLine(
     previous: List<Long>,
     lastYear: List<Long>?,
     modifier: Modifier = Modifier,
+    hideAmounts: Boolean = false,
 ) {
     val tokens = LocalMzTokens.current
-    Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
-        val all = current + previous + (lastYear ?: emptyList())
-        val scale = scaleFor(all)
-        drawLineSeries(current, tokens.champagne, 2.dp.toPx(), scale)
-        drawLineSeries(previous, tokens.textDim, 1.dp.toPx(), scale)
-        lastYear?.let { drawLineSeries(it, tokens.transfer, 1.dp.toPx(), scale, dashed = true) }
+    val all = current + previous + (lastYear ?: emptyList())
+    Row(modifier.fillMaxWidth().height(180.dp), verticalAlignment = Alignment.CenterVertically) {
+        ChartYAxisLabels(all, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
+        Canvas(Modifier.weight(1f).fillMaxHeight()) {
+            val scale = scaleFor(all)
+            drawLineSeries(current, tokens.champagne, 2.dp.toPx(), scale)
+            drawLineSeries(previous, tokens.textDim, 1.dp.toPx(), scale)
+            lastYear?.let { drawLineSeries(it, tokens.transfer, 1.dp.toPx(), scale, dashed = true) }
+        }
     }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+fun ChartYAxisLabels(
+    values: List<Long>,
+    hideAmounts: Boolean,
+    modifier: Modifier = Modifier,
+    formatValue: ((Long) -> String)? = null,
+) {
+    val tokens = LocalMzTokens.current
+    val scale = scaleFor(values)
+    val midpoint = scale.min + (scale.max - scale.min) / 2L
+    Column(modifier, verticalArrangement = Arrangement.SpaceBetween) {
+        listOf(scale.max, midpoint, scale.min).forEach { value ->
+            Text(
+                if (hideAmounts) "•••" else formatValue?.invoke(value) ?: stringResource(R.string.chart_axis_egp, compactMoney(value)),
+                color = tokens.textDim,
+                style = MzTypography.labelCaps.copy(fontSize = 9.sp),
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
+    }
+}
+
+private fun compactMoney(valueMinor: Long): String {
+    val value = java.math.BigDecimal.valueOf(valueMinor, 2)
+    val absolute = value.abs()
+    val divisor =
+        when {
+            absolute >= java.math.BigDecimal("1000000") -> java.math.BigDecimal("1000000")
+            absolute >= java.math.BigDecimal("1000") -> java.math.BigDecimal("1000")
+            else -> java.math.BigDecimal.ONE
+        }
+    val suffix =
+        when (divisor.toInt()) {
+            1_000_000 -> "M"
+            1_000 -> "k"
+            else -> ""
+        }
+    val digits = if (suffix.isBlank()) 2 else 1
+    val number = value.divide(divisor, digits, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
+    return number + suffix
 }
 
 @Composable

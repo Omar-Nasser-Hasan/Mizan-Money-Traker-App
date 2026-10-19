@@ -102,6 +102,7 @@ fun V2StatsScreen(
     periodState: PeriodState,
     accountFilterId: String?,
     hideAmounts: Boolean,
+    investmentRateTargetBps: Long = 1_500L,
     selectedPage: String,
     onPageSelected: (String) -> Unit,
     onOpenPeriod: () -> Unit,
@@ -327,7 +328,7 @@ fun V2StatsScreen(
             }
 
             StatsPage.REPORTS -> {
-                reports?.let { data -> V2StatsReportsPage(data, hideAmounts, onGoDeeper, share) }
+                reports?.let { data -> V2StatsReportsPage(data, selectedPeriod, investmentRateTargetBps, hideAmounts, onGoDeeper, share) }
                     ?: StatsLoadingPage("Loading reports")
             }
         }
@@ -483,7 +484,7 @@ internal fun CashFlowPage(
     hide: Boolean,
     share: (String, androidx.compose.ui.geometry.Rect) -> Unit,
 ) {
-    var cumulative by remember { mutableStateOf(false) }
+    var cumulative by rememberSaveable { mutableStateOf(true) }
     var metric by remember { mutableStateOf("Cash flow") }
     var compareLastYear by remember { mutableStateOf(false) }
     val tokens = LocalMzTokens.current
@@ -522,9 +523,9 @@ internal fun CashFlowPage(
                     style = MzTypography.bodySmall,
                 )
                 if (cumulative) {
-                    MzAreaChart(snapshot.cumulative, Modifier.fillMaxWidth().height(180.dp))
+                    MzAreaChart(snapshot.cumulative, Modifier.fillMaxWidth().height(180.dp), hideAmounts = hide)
                 } else {
-                    MzLineChart(snapshot.daily.map { it.second.netMinor }, Modifier.fillMaxWidth().height(180.dp))
+                    MzLineChart(snapshot.daily.map { it.second.netMinor }, Modifier.fillMaxWidth().height(180.dp), hideAmounts = hide)
                 }
                 Text("Day index · 1 to ${snapshot.daily.size}", color = tokens.textDim, style = MzTypography.bodySmall)
             }
@@ -539,6 +540,7 @@ internal fun CashFlowPage(
                     previous = snapshot.series(metric)[1],
                     lastYear = if (compareLastYear) snapshot.series(metric)[2] else null,
                     modifier = Modifier.fillMaxWidth().height(190.dp),
+                    hideAmounts = hide,
                 )
                 Text("Current · Previous · Last year (day index)", color = tokens.textDim, style = MzTypography.bodySmall)
                 MzToggle(compareLastYear, { compareLastYear = it }, "Compare with last year")
@@ -776,7 +778,7 @@ internal fun BalancePage(
                 val shownChange = if (netWorth) snapshot.netWorthChange else snapshot.balanceChange
                 Text(if (hide) "••••••" else amount(shownTrend.lastOrNull() ?: 0L), style = MzTypography.amountLarge)
                 Text("${changeText(shownChange)} vs same day last month", color = tokens.income, style = MzTypography.bodySmall)
-                MzAreaChart(shownTrend, Modifier.fillMaxWidth().height(180.dp))
+                MzAreaChart(shownTrend, Modifier.fillMaxWidth().height(180.dp), hideAmounts = hide)
                 Text(
                     "Unrealized exchange gain or loss is shown in wealth, not income.",
                     color = tokens.textDim,

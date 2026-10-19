@@ -33,6 +33,7 @@ import app.mizan.data.repository.MizanRepository
 import app.mizan.data.settings.SettingText
 import app.mizan.data.settings.SettingsSnapshot
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 @Composable
 fun V2SettingsList(content: LazyListScope.() -> Unit) {
@@ -76,6 +77,9 @@ fun V2SettingsHub(
 ) {
     val days = stringArrayResource(R.array.p13_week_days)
     var showDays by remember { mutableStateOf(false) }
+    var investmentTarget by remember(state?.get(SettingText.INVEST_RATE_TARGET)) {
+        mutableStateOf(state?.get(SettingText.INVEST_RATE_TARGET) ?: "15")
+    }
     val destinations =
         listOf(
             Triple(V2Route.Currencies, R.string.p13_currencies, "payments"),
@@ -127,6 +131,36 @@ fun V2SettingsHub(
                                 showDays = false
                             })
                         }
+                    }
+                }
+            }
+            item {
+                MzCard(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(stringResource(R.string.settings_stats_targets), style = MzTypography.title)
+                        Text(
+                            stringResource(R.string.settings_invest_target_explanation),
+                            color = LocalMzTokens.current.textDim,
+                            style = MzTypography.bodySmall,
+                        )
+                        MzInput(investmentTarget, { investmentTarget = it }, stringResource(R.string.settings_investing_target))
+                        val validTarget =
+                            runCatching {
+                                BigDecimal(investmentTarget).let { it >= BigDecimal.ZERO && it <= BigDecimal("100") }
+                            }.getOrDefault(false)
+                        MzButton(
+                            stringResource(R.string.settings_save_target),
+                            {
+                                if (validTarget) {
+                                    onChange(
+                                        SettingText.INVEST_RATE_TARGET,
+                                        BigDecimal(investmentTarget).stripTrailingZeros().toPlainString(),
+                                    )
+                                }
+                            },
+                            Modifier.fillMaxWidth(),
+                            enabled = validTarget,
+                        )
                     }
                 }
             }

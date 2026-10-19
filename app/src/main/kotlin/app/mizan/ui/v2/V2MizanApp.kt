@@ -61,6 +61,13 @@ fun v2MizanApp(
             .SettingsSnapshot(),
     )
     val period = PeriodState.fromPersisted(periodKind, periodStart, periodEnd).copy(weekStart = preferences.weekStart)
+    val investmentRateTargetBps =
+        runCatching {
+            java.math
+                .BigDecimal(preferences[app.mizan.data.settings.SettingText.INVEST_RATE_TARGET])
+                .movePointRight(2)
+                .longValueExact()
+        }.getOrDefault(1_500L)
 
     LaunchedEffect(quickAction) {
         quickEntryRoute(quickAction)?.let { navigation = navigation.navigate(it) }
@@ -321,6 +328,7 @@ fun v2MizanApp(
                     periodState = period,
                     accountFilterId = accountFilterId,
                     hideAmounts = hideAmounts,
+                    investmentRateTargetBps = investmentRateTargetBps,
                     selectedPage = selectedStatsPage,
                     onPageSelected = { selectedStatsPage = it },
                     onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },
@@ -363,6 +371,7 @@ fun v2MizanApp(
                         periodState = period,
                         accountFilterId = accountFilterId,
                         hideAmounts = hideAmounts,
+                        investmentRateTargetBps = investmentRateTargetBps,
                         selectedPage = selectedStatsPage,
                         onPageSelected = { selectedStatsPage = it },
                         onOpenPeriod = {},
@@ -407,6 +416,7 @@ fun v2MizanApp(
                     periodState = period,
                     accountFilterId = accountFilterId,
                     hideAmounts = hideAmounts,
+                    investmentRateTargetBps = investmentRateTargetBps,
                     selectedPage = routePage,
                     onPageSelected = { selectedStatsPage = it },
                     onOpenPeriod = { navigation = navigation.navigate(V2Route.PeriodSelector) },

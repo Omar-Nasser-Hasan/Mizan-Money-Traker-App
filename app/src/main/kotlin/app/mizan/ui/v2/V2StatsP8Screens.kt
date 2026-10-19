@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -32,15 +34,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import app.mizan.R
 import app.mizan.domain.plan.Forecast
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private const val INVEST_RATE_TARGET_BPS = 1_500L
 private const val DEBT_TO_INCOME_CEILING_BPS = 3_500L
 
 @Composable
@@ -247,6 +250,8 @@ private fun ForecastWaterfall(
 @Suppress("ktlint:standard:function-naming")
 internal fun V2StatsReportsPage(
     data: ReportsStats,
+    period: app.mizan.domain.stats.Period,
+    investmentRateTargetBps: Long,
     hideAmounts: Boolean,
     goDeeper: (String) -> Unit,
     share: (String, androidx.compose.ui.geometry.Rect) -> Unit,
@@ -329,18 +334,50 @@ internal fun V2StatsReportsPage(
         }
         item {
             ShareableCard("Savings & investing", share) {
-                Text("How much am I putting away?", color = tokens.textDim, style = MzTypography.bodySmall)
+                Text(stringResource(R.string.reports_savings_prompt), color = tokens.textDim, style = MzTypography.bodySmall)
+                Text(
+                    stringResource(R.string.reports_selected_period, period.start, period.end),
+                    color = tokens.textDim,
+                    style = MzTypography.bodySmall,
+                )
+                Text(
+                    stringResource(R.string.reports_rates_period_explanation),
+                    color = tokens.textDim,
+                    style = MzTypography.bodySmall,
+                )
                 Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    RateTile("Savings rate", data.savingsRate, data.savingsSeries, null, hideAmounts, Modifier.weight(1f))
+                    RateTile(
+                        "Savings rate",
+                        data.savingsRate,
+                        data.savingsSeries,
+                        null,
+                        stringResource(
+                            R.string.reports_saved_from_income,
+                            displaySigned(data.savingsMinor, hideAmounts),
+                            displayAmount(data.incomeMinor, hideAmounts),
+                        ),
+                        hideAmounts,
+                        Modifier.weight(1f),
+                    )
                     RateTile(
                         "Invest rate",
                         data.investRate,
                         data.investSeries,
-                        INVEST_RATE_TARGET_BPS,
+                        investmentRateTargetBps,
+                        stringResource(
+                            R.string.reports_invested_from_income,
+                            displayAmount(data.investedMinor, hideAmounts),
+                            displayAmount(data.incomeMinor, hideAmounts),
+                        ),
                         hideAmounts,
                         Modifier.weight(1f),
                     )
                 }
+                Text(
+                    stringResource(R.string.reports_invest_rate_explanation),
+                    color = tokens.textDim,
+                    style = MzTypography.bodySmall,
+                )
             }
         }
         item {
@@ -474,6 +511,7 @@ private fun RateTile(
     rate: Long?,
     history: List<Long>,
     target: Long?,
+    detail: String,
     hideAmounts: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -482,7 +520,11 @@ private fun RateTile(
         Text(label.uppercase(), color = tokens.textDim, style = MzTypography.labelCaps)
         Text(if (hideAmounts) "•••" else rate?.let(::percent) ?: "—", style = MzTypography.amountLarge)
         if (target != null) Text("Target · ${percent(target)}", color = tokens.accentText, style = MzTypography.bodySmall)
-        MzSparkline(history, Modifier.fillMaxWidth().padding(top = 6.dp), tokens.income)
+        Text(detail, color = tokens.textDim, style = MzTypography.bodySmall)
+        Row(Modifier.fillMaxWidth().height(42.dp).padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            ChartYAxisLabels(history, hideAmounts, Modifier.width(58.dp).fillMaxHeight(), ::percent)
+            MzSparkline(history, Modifier.weight(1f).fillMaxWidth().height(36.dp), tokens.income)
+        }
     }
 }
 

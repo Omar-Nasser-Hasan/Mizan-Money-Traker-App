@@ -38,6 +38,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -47,6 +48,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import app.mizan.R
 import app.mizan.data.db.AccountBalanceRow
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.AssetEntity
@@ -327,12 +329,35 @@ private fun NetWorthHero(
             .background(Brush.verticalGradient(listOf(tokens.champagne.copy(alpha = 0.20f), Color.Transparent)), MzShapes.exterior),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            androidx.compose.material3.Text("NET WORTH", color = tokens.textDim, style = MzTypography.labelCaps)
-            AmountText(summary.netWorthMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.hero)
-            MzSparkline(summary.sparkline, Modifier.fillMaxWidth().height(42.dp))
-            AmountText(summary.cashMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.body)
-            androidx.compose.material3.Text("Cash", color = tokens.textDim, style = MzTypography.bodySmall)
-            androidx.compose.material3.Text(changeText(summary.cashFlowChange), color = tokens.textDim, style = MzTypography.bodySmall)
+            androidx.compose.material3.Text(
+                stringResource(R.string.home_cash_available).uppercase(),
+                color = tokens.textDim,
+                style = MzTypography.labelCaps,
+            )
+            AmountText(summary.cashMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.hero)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Text(
+                    stringResource(R.string.home_net_worth).uppercase(),
+                    color = tokens.textDim,
+                    style = MzTypography.labelCaps,
+                )
+                Spacer(Modifier.width(8.dp))
+                AmountText(summary.netWorthMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.amountSmall)
+            }
+            androidx.compose.material3.Text(
+                stringResource(R.string.home_net_worth_history),
+                color = tokens.textDim,
+                style = MzTypography.bodySmall,
+            )
+            Row(Modifier.fillMaxWidth().height(42.dp), verticalAlignment = Alignment.CenterVertically) {
+                ChartYAxisLabels(summary.sparkline, hideAmounts, Modifier.width(70.dp))
+                MzSparkline(summary.sparkline, Modifier.weight(1f).fillMaxWidth().height(42.dp))
+            }
+            androidx.compose.material3.Text(
+                stringResource(R.string.home_cash_flow_change, changeText(summary.cashFlowChange)),
+                color = tokens.textDim,
+                style = MzTypography.bodySmall,
+            )
         }
     }
 }
@@ -578,7 +603,7 @@ private data class HomeUiData(
             val summary =
                 HomeSummaryCalculator.calculate(
                     statRows,
-                    accounts.map { account ->
+                    accounts.filter { it.includeInTotals }.map { account ->
                         HomeAccountValue(account.id, account.name, accountBuckets[account.id].orEmpty().sumOf { it.egpMinor })
                     },
                     holdings,
@@ -740,7 +765,12 @@ private data class HomeUiData(
                                 )
                             },
                     )
-                val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
+                val key =
+                    if (asset.type == "GOLD") {
+                        if (asset.goldForm == "COIN") "GOLD_POUND" else "GOLD_${asset.symbolOrKarats.uppercase()}"
+                    } else {
+                        "MANUAL:${asset.id}"
+                    }
                 val price = prices.firstOrNull { it.key == key }
                 val lastTrade = trades.filter { it.assetId == asset.id && it.deletedAt == null }.maxByOrNull { it.date }
                 val unitPrice = price?.price?.let(::BigDecimal) ?: lastTrade?.unitPrice?.let(::BigDecimal) ?: return@sumOf 0L

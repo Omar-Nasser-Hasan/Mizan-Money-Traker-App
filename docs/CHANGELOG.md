@@ -1,5 +1,13 @@
 # Changelog
 
+## Chart clarity and savings targets
+
+- Home now leads with included cash, shows net worth as a secondary figure, labels its 30-day net-worth chart, and corrects coin-price key and included-account handling so its total follows Wealth valuation.
+- Added EGP value ticks to Stats line and area charts, honoring hide-amounts; Cash Flow now opens on cumulative net cash flow and retains the Trend switch.
+- Reports now identify the selected period and show the saved/invested and income amounts behind each rate. Existing holdings are clarified as portfolio value rather than purchases during the selected period.
+- Added a user-editable investing-rate target in Settings, defaulting to 15%, with validation from 0% to 100%.
+- Added SettingsStore coverage for the investing target value and range validation.
+
 ## Wallet CSV classification
 
 - Wallet CSV imports now classify transactions from the export's explicit type and transfer fields. Category names no longer create a transfer destination, preventing same-account transfer errors for expenses categorized as Financial investments. Typed asset purchases belong in the Mizan workbook, which carries holding details.

@@ -43,6 +43,7 @@ enum class SettingText(
     QUIET_START("quiet_hours_start", "22:00"),
     QUIET_END("quiet_hours_end", "07:00"),
     LAST_SHARED("last_backup_shared", "0"),
+    INVEST_RATE_TARGET("invest_rate_target_percent", "15"),
 }
 
 data class SettingsSnapshot(
@@ -122,6 +123,11 @@ class SettingsStore(
                         .distinct()
                         .joinToString("|") == value,
                 )
+            }
+
+            SettingText.INVEST_RATE_TARGET -> {
+                val target = BigDecimal(value)
+                require(target >= BigDecimal.ZERO && target <= BigDecimal("100"))
             }
         }
         data.edit { it[stringPreferencesKey(text.key)] = value }
