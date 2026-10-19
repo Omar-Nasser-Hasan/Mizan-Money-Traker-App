@@ -6,6 +6,8 @@ import app.mizan.data.db.AccountEntity
 import app.mizan.data.db.AssetEntity
 import app.mizan.data.db.AssetTransactionEntity
 import app.mizan.data.db.CurrencyEntity
+import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.DebtRepaymentRow
 import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.PriceSnapshotEntity
 import app.mizan.data.db.StatsEntryRow
@@ -58,6 +60,8 @@ object V2WealthModels {
         fxHistory: List<FxRateEntity>,
         statsEntries: List<StatsEntryRow>,
         now: Instant,
+        debts: List<DebtEntity> = emptyList(),
+        debtRepayments: List<DebtRepaymentRow> = emptyList(),
     ): V2WealthSnapshot {
         val activeAccounts = accounts.filter { it.includeInTotals }.associateBy { it.id }
         val includedBalances = balances.filter { it.accountId in activeAccounts }
@@ -92,8 +96,24 @@ object V2WealthModels {
             assets.mapNotNull { asset ->
                 holdingInput(asset, transactions, prices, fxHistory, currencies, monthAgo, now, beforeOrOn = monthAgo)
             }
-        val previousNetWorth = WealthCalculator.calculate(previousCash, previousInputs).netWorthEgpMinor
-        val summary = WealthCalculator.calculate(cash, currentInputs, previousNetWorth)
+        val previousDebts = valuedDebtBalances(debts, debtRepayments, currencies, fxHistory, monthAgo)
+        val currentDebts = valuedDebtBalances(debts, debtRepayments, currencies, fxHistory, today)
+        val previousNetWorth =
+            WealthCalculator
+                .calculate(
+                    previousCash,
+                    previousInputs,
+                    receivablesEgpMinor = previousDebts.filter { it.direction == "LENT" }.sumOf { it.principalMinor },
+                    payablesEgpMinor = previousDebts.filter { it.direction == "BORROWED" }.sumOf { it.principalMinor },
+                ).netWorthEgpMinor
+        val summary =
+            WealthCalculator.calculate(
+                cash,
+                currentInputs,
+                previousNetWorth,
+                receivablesEgpMinor = currentDebts.filter { it.direction == "LENT" }.sumOf { it.principalMinor },
+                payablesEgpMinor = currentDebts.filter { it.direction == "BORROWED" }.sumOf { it.principalMinor },
+            )
         val valuesById = summary.holdings.associateBy { it.assetId }
         val positions =
             assets.map { asset ->

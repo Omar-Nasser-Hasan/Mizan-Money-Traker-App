@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -30,6 +31,8 @@ import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetValuation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
@@ -53,12 +56,23 @@ fun V2AssetDetailScreen(
     val fxHistory by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
     val statsEntries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
     var range by rememberSaveable { mutableStateOf("6M") }
-    val now = Instant.now()
-    val snapshot =
-        remember(accounts, balances, currencies, assets, transactions, prices, fxHistory, statsEntries, now) {
-            V2WealthModels.build(accounts, balances, currencies, assets, transactions, prices, fxHistory, statsEntries, now)
-        }
-    val position = snapshot.positions.firstOrNull { it.asset.id == assetId }
+    val snapshot by produceState<V2WealthSnapshot?>(
+        null,
+        accounts,
+        balances,
+        currencies,
+        assets,
+        transactions,
+        prices,
+        fxHistory,
+        statsEntries,
+    ) {
+        value =
+            withContext(Dispatchers.Default) {
+                V2WealthModels.build(accounts, balances, currencies, assets, transactions, prices, fxHistory, statsEntries, Instant.now())
+            }
+    }
+    val position = snapshot?.positions?.firstOrNull { it.asset.id == assetId }
     if (position == null) {
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             MzSkeleton(Modifier.fillMaxWidth().height(140.dp))
@@ -76,9 +90,16 @@ fun V2AssetDetailScreen(
             AssetValuation.valueMinor(position.quantity, price, decimals, BigDecimal(asset.resaleDeductionPct))
         } ?: 0L
     val today = LocalDate.now(ZoneId.of("Africa/Cairo"))
+    val metrics by produceState<V2AssetDetailMetrics?>(null, position, assetTrades, currentValueMinor, today) {
+        value =
+            withContext(
+                Dispatchers.Default,
+            ) { V2AssetDetailModels.metrics(position, assetTrades.map(::toDomainTrade), currentValueMinor, today) }
+    }
     val detailMetrics =
-        remember(position, assetTrades, currentValueMinor, today) {
-            V2AssetDetailModels.metrics(position, assetTrades.map(::toDomainTrade), currentValueMinor, today)
+        metrics ?: run {
+            MzSkeleton(Modifier.fillMaxWidth().height(140.dp))
+            return
         }
     val cutoff =
         remember(range) {

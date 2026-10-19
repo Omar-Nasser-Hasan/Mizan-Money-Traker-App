@@ -22,17 +22,23 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mizan.R
 import app.mizan.data.db.AccountEntity
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.assets.AssetType
 import app.mizan.domain.money.MoneyMath
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.ZoneId
@@ -54,10 +60,42 @@ fun V2WealthScreen(
     val prices by repository.observePriceHistory().collectAsStateWithLifecycle(emptyList())
     val fxHistory by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
     val statsEntries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
-    val now = Instant.now()
+    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by repository.observeDebtRepaymentRows().collectAsStateWithLifecycle(emptyList())
+    val snapshotState by produceState<V2WealthSnapshot?>(
+        null,
+        accounts,
+        balances,
+        currencies,
+        assets,
+        trades,
+        prices,
+        fxHistory,
+        statsEntries,
+        debts,
+        debtRepayments,
+    ) {
+        value =
+            withContext(Dispatchers.Default) {
+                V2WealthModels.build(
+                    accounts,
+                    balances,
+                    currencies,
+                    assets,
+                    trades,
+                    prices,
+                    fxHistory,
+                    statsEntries,
+                    Instant.now(),
+                    debts,
+                    debtRepayments,
+                )
+            }
+    }
     val snapshot =
-        remember(accounts, balances, currencies, assets, trades, prices, fxHistory, statsEntries, now) {
-            V2WealthModels.build(accounts, balances, currencies, assets, trades, prices, fxHistory, statsEntries, now)
+        snapshotState ?: run {
+            MzSkeleton(Modifier.fillMaxWidth().height(220.dp))
+            return
         }
     val chips = listOf("All", "Gold", "Stocks", "Funds", "Other")
     val selected =
@@ -87,7 +125,7 @@ fun V2WealthScreen(
         }
     val basisPoints = snapshot.summary.monthChange?.percentBasisPoints
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().then(if (snapshot.positions.isNotEmpty()) Modifier.testTag("wealth-ready") else Modifier),
         contentPadding = PaddingValues(horizontal = MzSpacing.sideMargin, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -122,6 +160,28 @@ fun V2WealthScreen(
                             }
                         }
                         AmountText(snapshot.summary.netWorthEgpMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.hero)
+                        if (snapshot.summary.receivablesEgpMinor > 0) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(stringResource(R.string.p15_receivables), style = MzTypography.bodySmall)
+                                AmountText(
+                                    snapshot.summary.receivablesEgpMinor,
+                                    "EGP",
+                                    hideAmounts = hideAmounts,
+                                    textStyle = MzTypography.amountSmall,
+                                )
+                            }
+                        }
+                        if (snapshot.summary.payablesEgpMinor > 0) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(stringResource(R.string.p15_payables), style = MzTypography.bodySmall)
+                                AmountText(
+                                    snapshot.summary.payablesEgpMinor,
+                                    "EGP",
+                                    hideAmounts = hideAmounts,
+                                    textStyle = MzTypography.amountSmall,
+                                )
+                            }
+                        }
                     }
                     HorizontalDivider(color = tokens.outline.copy(alpha = 0.35f))
                     Row(Modifier.fillMaxWidth()) {
