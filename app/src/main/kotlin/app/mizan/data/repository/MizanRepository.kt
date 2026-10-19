@@ -134,6 +134,8 @@ class MizanRepository
     ) {
         val walletImport = WalletImportWriter(database, clock, ::effectiveRate)
 
+        val mizanImport = MizanImportWriter(database, clock, ::effectiveRate)
+
         val templateSettings = TemplateSettingsWriter(database)
 
         val referenceSettings = ReferenceSettingsWriter(database)
