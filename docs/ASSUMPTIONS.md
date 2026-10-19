@@ -110,7 +110,7 @@
 - P13: Sharing records the last share request, not confirmed off-device delivery. The warning explicitly distinguishes those states.
 
 - Voice recognition tries an available on-device recognizer first and automatically falls back to Android’s speech service when there is no offline recognizer or language pack. The Quick entry setting can force the online service; this choice is stored locally and recognition still only creates drafts for review.
-- Stats cash, bank and card-owed amounts are independent EGP balances. Users enter their current starting figures manually; subsequently confirmed ledger postings adjust them from their payment source, and transfers use the involved account types. Editing the Stats figures changes only this independent tracker. Savings and e-wallet account types count as bank for transfer movements; investment and other account types are excluded. Historical transactions are not backfilled into the tracker.
+- Stats cash and bank are user-assigned EGP portions of included non-card account balances; the remaining balance is shown as Unallocated. Card owed is tracked separately as a liability. Confirmed postings update the selected source and the ledger atomically, while editing source portions never changes account balances. Transfers use the involved account types; savings and e-wallet count as bank, and investment-account cash remains available to classify. Historical balances are unallocated until the user assigns a source.
 
 - P13: Split template fixed values retain the existing domain minor-unit semantics and are displayed using the destination default currency; review allocations in Entry when applying a preset to income in a different currency. Percentage presets are currency-independent.
 

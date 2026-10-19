@@ -123,15 +123,6 @@ fun V2WealthScreen(
                 Math.addExact(sum, MoneyMath.baseMinor(row.openingMinor + row.entryMinor, row.decimals, BigDecimal(row.egpPerUnit)))
             }
         }
-    val physicalSourceTotals =
-        listOf("CASH", "BANK", "CREDIT_CARD").associateWith { type ->
-            balances
-                .filter { accountMap[it.accountId]?.includeInTotals == true && accountMap[it.accountId]?.type == type }
-                .fold(0L) { total, row ->
-                    val value = MoneyMath.baseMinor(row.openingMinor + row.entryMinor, row.decimals, BigDecimal(row.egpPerUnit))
-                    Math.addExact(total, if (type == "CREDIT_CARD") (-value).coerceAtLeast(0L) else value)
-                }
-        }
     val basisPoints = snapshot.summary.monthChange?.percentBasisPoints
     LazyColumn(
         modifier = Modifier.fillMaxSize().then(if (snapshot.positions.isNotEmpty()) Modifier.testTag("wealth-ready") else Modifier),
@@ -197,24 +188,6 @@ fun V2WealthScreen(
                         WealthSplit("Cash", snapshot.summary.cashEgpMinor, Color(0xFF267EB8), hideAmounts, Modifier.weight(1f))
                         HorizontalDivider(Modifier.width(1.dp).height(58.dp), color = tokens.outline.copy(alpha = 0.35f))
                         WealthSplit("Holdings", snapshot.summary.holdingsEgpMinor, tokens.champagne, hideAmounts, Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-        item {
-            MzCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Cash, bank and card", style = MzTypography.title)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        WealthSplit("Cash", physicalSourceTotals["CASH"] ?: 0L, Color(0xFF267EB8), hideAmounts, Modifier.weight(1f))
-                        WealthSplit("Bank", physicalSourceTotals["BANK"] ?: 0L, tokens.investment, hideAmounts, Modifier.weight(1f))
-                        WealthSplit(
-                            "Card owed",
-                            physicalSourceTotals["CREDIT_CARD"] ?: 0L,
-                            tokens.expense,
-                            hideAmounts,
-                            Modifier.weight(1f),
-                        )
                     }
                 }
             }

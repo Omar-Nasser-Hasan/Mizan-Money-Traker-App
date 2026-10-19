@@ -6,6 +6,7 @@
 - Voice sessions now continue across speech-recognizer segments until Stop, then review all recognized clauses together. Income drafts use the saved default split dynamically; an explicitly named destination overrides it, and cash/bank source is confirmed before saving.
 - Made the expense category picker vertically scrollable so categories below the initially visible rows remain reachable.
 - Added editable EGP cash, bank, and credit-card-owed balances to Stats. Confirmed records adjust the selected source, transfers between supported account types move the totals, and editing the figures never changes account balances.
+- Kept the cash/bank/card source summary only on the Stats Balance tab and reconciled it to included non-card account totals. Cash and bank portions reduce the Unallocated amount; card debt stays separate, and unclassified account money is no longer implicitly presented as cash.
 - Voice review now requires an account and category, plus Cash, Debit card, or Credit card for each expense before saving; missing fields open for review.
 - Expense entry filters source accounts by Cash, Bank, or Credit Card. Wealth shows aggregated cash, bank, and card owed; card payoff opens a prefilled transfer, and asset buys can use a card account.
 - Extended Room journey assertions to verify actual paid cost, historical unit price, owned-lot premium, and card balance changes through manual payment.

@@ -300,11 +300,6 @@ fun V2StatsScreen(
             MzChip(label = "${selectedPeriod.start} – ${selectedPeriod.end}", selected = false, onClick = onOpenPeriod)
             AccountFilter(accounts, accountFilterId, onAccountSelected, Modifier.weight(1f))
         }
-        PaymentSourceBalancesCard(
-            repository,
-            sourceBalances ?: PaymentSourceBalanceEntity(),
-            hideAmounts,
-        )
         when (page) {
             StatsPage.CASH_FLOW -> {
                 CashFlowPage(snapshot, hideAmounts, share)
@@ -316,9 +311,12 @@ fun V2StatsScreen(
 
             StatsPage.BALANCE -> {
                 BalancePage(
-                    snapshot,
-                    hideAmounts,
-                    share,
+                    snapshot = snapshot,
+                    hide = hideAmounts,
+                    repository = repository,
+                    sourceBalances = sourceBalances ?: PaymentSourceBalanceEntity(),
+                    totalIncludedNonCardBalanceMinor = totalIncludedNonCardBalance(balances, accounts),
+                    share = share,
                 )
             }
 
@@ -368,6 +366,7 @@ private fun AccountFilter(
 private fun PaymentSourceBalancesCard(
     repository: MizanRepository,
     balances: PaymentSourceBalanceEntity,
+    totalIncludedNonCardBalanceMinor: Long,
     hideAmounts: Boolean,
 ) {
     var editing by remember { mutableStateOf(false) }
@@ -378,6 +377,13 @@ private fun PaymentSourceBalancesCard(
     val cashMinor = sourceAmountMinor(cash)
     val bankMinor = sourceAmountMinor(bank)
     val creditMinor = sourceAmountMinor(credit)?.takeIf { it >= 0 }
+    val reconciliation =
+        app.mizan.domain.stats.PaymentSourceBalancesCalculator.reconcile(
+            totalIncludedNonCardBalanceMinor,
+            balances.cashMinor,
+            balances.bankMinor,
+            balances.creditOwedMinor,
+        )
     Column(Modifier.padding(horizontal = 16.dp)) {
         MzCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -394,6 +400,16 @@ private fun PaymentSourceBalancesCard(
                     SourceBalanceCell("Bank", balances.bankMinor, hideAmounts, Modifier.weight(1f))
                     SourceBalanceCell("Card owed", balances.creditOwedMinor, hideAmounts, Modifier.weight(1f))
                 }
+                MzCard(Modifier.align(Alignment.End)) {
+                    Row(
+                        Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Unallocated", style = MzTypography.labelCaps, color = LocalMzTokens.current.textDim)
+                        AmountText(reconciliation.unallocatedMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.bodySmall)
+                    }
+                }
             }
         }
     }
@@ -401,7 +417,7 @@ private fun PaymentSourceBalancesCard(
         MzSheet(onDismissRequest = { editing = false }) {
             Text("Edit cash, bank & card", style = MzTypography.title)
             Text(
-                "Enter your current EGP starting figures. New confirmed records update them separately from account balances.",
+                "Set the cash, bank and card portions of your included account balances. Any remaining account balance stays unallocated.",
                 style = MzTypography.bodySmall,
             )
             OutlinedTextField(cash, { cash = it }, label = { Text("Cash on hand · EGP") }, singleLine = true)
@@ -445,6 +461,20 @@ private fun sourceAmountMinor(value: String): Long? =
     runCatching {
         BigDecimal(value.trim()).movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact()
     }.getOrNull()
+
+private fun totalIncludedNonCardBalance(
+    balances: List<AccountBalanceRow>,
+    accounts: List<AccountEntity>,
+): Long {
+    val includedAccounts = accounts.filter { it.includeInTotals && it.type != "CREDIT_CARD" }.mapTo(hashSetOf()) { it.id }
+    return balances
+        .asSequence()
+        .filter { it.accountId in includedAccounts }
+        .fold(0L) { total, row ->
+            val balanceMinor = Math.addExact(row.openingMinor, row.entryMinor)
+            Math.addExact(total, MoneyMath.baseMinor(balanceMinor, row.decimals, BigDecimal(row.egpPerUnit)))
+        }
+}
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
@@ -715,6 +745,9 @@ internal fun SpendingPage(
 internal fun BalancePage(
     snapshot: StatsSnapshot,
     hide: Boolean,
+    repository: MizanRepository? = null,
+    sourceBalances: PaymentSourceBalanceEntity? = null,
+    totalIncludedNonCardBalanceMinor: Long = 0,
     share: (String, androidx.compose.ui.geometry.Rect) -> Unit,
 ) {
     var netWorth by remember { mutableStateOf(false) }
@@ -727,6 +760,11 @@ internal fun BalancePage(
                 .PaddingValues(horizontal = 16.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        if (repository != null && sourceBalances != null) {
+            item {
+                PaymentSourceBalancesCard(repository, sourceBalances, totalIncludedNonCardBalanceMinor, hide)
+            }
+        }
         item {
             ShareableCard("Balance trend", share) {
                 Text("Do I have more money than before?", color = tokens.textDim, style = MzTypography.bodySmall)
