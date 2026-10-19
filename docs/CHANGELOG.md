@@ -129,3 +129,7 @@
 ### P13 — Categories and labels
 
 - Expense, Income and Labels tabs with stable-id editing, subcategories, ordering, archive/Undo and locked debt-service meaning.
+
+### P13 — Templates
+
+- CRUD for income splits, income sources and record presets, using existing repositories and split validation.
