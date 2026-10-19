@@ -24,7 +24,10 @@ class BackupArchive(
     private val database: RoomDatabase,
     private val databaseName: String = "mizan.db",
 ) {
-    fun create(passphrase: CharArray): File {
+    fun create(
+        passphrase: CharArray,
+        preferences: ByteArray? = null,
+    ): File {
         val directory = File(context.filesDir, "backups").apply { mkdirs() }
         val snapshot = File.createTempFile("snapshot-", ".db", context.cacheDir)
         val databaseBytes =
@@ -44,7 +47,7 @@ class BackupArchive(
             "{\"schemaVersion\":$schemaVersion,\"createdAt\":\"${Instant.now()}\",\"databaseSha256\":\"$hash\"," +
                 "\"databaseBytes\":${databaseBytes.size},\"attachmentSha256\":\"${attachmentHash(attachments)}\",\"rowCounts\":{$rows}}"
         return File(directory, "mizan-${System.currentTimeMillis()}.mzbak").also {
-            it.writeBytes(BackupCrypto.encrypt(BackupPayload(databaseBytes, manifest, attachments), passphrase))
+            it.writeBytes(BackupCrypto.encrypt(BackupPayload(databaseBytes, manifest, attachments, preferences), passphrase))
             rotate(directory)
         }
     }

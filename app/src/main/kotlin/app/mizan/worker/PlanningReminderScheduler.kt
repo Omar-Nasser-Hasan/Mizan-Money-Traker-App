@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object PlanningReminderScheduler {
     fun refresh(context: Context) {
-        val request = OneTimeWorkRequestBuilder<ReminderWorker>().setInitialDelay(1, TimeUnit.SECONDS).build()
+        val request = OneTimeWorkRequestBuilder<ReminderWorker>().addTag("planning").setInitialDelay(1, TimeUnit.SECONDS).build()
         WorkManager.getInstance(context).enqueueUniqueWork("planning-refresh", ExistingWorkPolicy.REPLACE, request)
     }
 
@@ -20,6 +20,7 @@ object PlanningReminderScheduler {
     ) {
         val request =
             OneTimeWorkRequestBuilder<ReminderWorker>()
+                .addTag("planning")
                 .setInitialDelay(1, TimeUnit.HOURS)
                 .setInputData(ReminderWorker.input(plannedId, dueDate))
                 .build()
@@ -30,7 +31,7 @@ object PlanningReminderScheduler {
         context: Context,
         debtId: String,
     ) {
-        val request = OneTimeWorkRequestBuilder<ReminderWorker>().setInputData(ReminderWorker.debtInput(debtId)).build()
+        val request = OneTimeWorkRequestBuilder<ReminderWorker>().addTag("planning").setInputData(ReminderWorker.debtInput(debtId)).build()
         WorkManager.getInstance(context).enqueueUniqueWork("debt-reminder-$debtId", ExistingWorkPolicy.REPLACE, request)
     }
 }

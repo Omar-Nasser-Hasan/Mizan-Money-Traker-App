@@ -8,12 +8,15 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.paging.PagingSource
 import androidx.room.withTransaction
 import app.mizan.data.backup.BackupArchive
+import app.mizan.data.backup.BackupCrypto
 import app.mizan.data.backup.BackupPassphraseVault
+import app.mizan.data.backup.PreferenceBackup
 import app.mizan.data.db.AccountBalanceRow
 import app.mizan.data.db.AccountBucketEntity
 import app.mizan.data.db.AccountDao
@@ -39,6 +42,7 @@ import app.mizan.data.db.InboxDao
 import app.mizan.data.db.InboxDraftEntity
 import app.mizan.data.db.IncomeSetupDao
 import app.mizan.data.db.IncomeSourceEntity
+import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.LedgerDao
 import app.mizan.data.db.PagedRecordRow
 import app.mizan.data.db.PayeeEntity
@@ -75,12 +79,15 @@ import app.mizan.domain.ledger.PaymentType
 import app.mizan.domain.ledger.TransferRequest
 import app.mizan.domain.ledger.TxnKind
 import app.mizan.domain.ledger.TxnStatus
+import app.mizan.domain.money.bankAdjustedRate
 import app.mizan.domain.ports.GoldPriceProvider
 import app.mizan.domain.ports.RecordQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -125,6 +132,12 @@ class MizanRepository
         private val client: OkHttpClient,
         private val clock: Clock,
     ) {
+        val walletImport = WalletImportWriter(database, clock, ::effectiveRate)
+
+        val templateSettings = TemplateSettingsWriter(database)
+
+        val referenceSettings = ReferenceSettingsWriter(database)
+
         val settings =
             app.mizan.data.settings
                 .SettingsStore(context.dataStore)
@@ -138,7 +151,18 @@ class MizanRepository
 
         fun observeCategories(kind: String): Flow<List<CategoryEntity>> = reference.observeCategories(kind)
 
-        fun observeLabels() = reference.observeLabels()
+        fun observeLabels() =
+            combine(reference.observeLabels(), settings.snapshots) { rows, preferences ->
+                val order =
+                    preferences[app.mizan.data.settings.SettingText.LABEL_ORDER]
+                        .split(
+                            '|',
+                        ).withIndex()
+                        .associate { it.value to it.index }
+                rows.sortedWith(compareBy<app.mizan.data.db.LabelEntity> { order[it.id] ?: Int.MAX_VALUE }.thenBy { it.name })
+            }
+
+        fun observeAllLabels() = reference.observeAllLabels()
 
         fun observePayees() = reference.observePayees()
 
@@ -212,7 +236,11 @@ class MizanRepository
 
         fun observeSplitTemplates() = incomeSetup.observeTemplates()
 
+        fun observeAllSplitLines() = incomeSetup.observeAllSplitLines()
+
         fun observeSplitLines(templateId: String) = incomeSetup.observeLines(templateId)
+
+        fun observeAllRecordTemplates() = incomeSetup.observeAllRecordTemplates()
 
         fun observeRecordTemplates(kind: String) = incomeSetup.observeRecordTemplates(kind)
 
@@ -288,7 +316,9 @@ class MizanRepository
         suspend fun activeTransactionCount(date: LocalDate): Int = ledger.countActiveOn(date.toString())
 
         suspend fun createBackup(passphrase: CharArray) =
-            withContext(Dispatchers.IO) { BackupArchive(context, database).create(passphrase) }
+            withContext(
+                Dispatchers.IO,
+            ) { BackupArchive(context, database).create(passphrase, PreferenceBackup.encode(context.dataStore.data.first())) }
 
         suspend fun setBackupPassphrase(passphrase: CharArray) =
             withContext(Dispatchers.IO) {
@@ -300,7 +330,7 @@ class MizanRepository
                 val stored = context.dataStore.data.first()[BACKUP_PASSPHRASE] ?: return@withContext null
                 val passphrase = BackupPassphraseVault.decrypt(stored) ?: return@withContext null
                 try {
-                    BackupArchive(context, database).create(passphrase)
+                    BackupArchive(context, database).create(passphrase, PreferenceBackup.encode(context.dataStore.data.first()))
                 } finally {
                     passphrase.fill('\u0000')
                 }
@@ -317,7 +347,10 @@ class MizanRepository
         ) = withContext(Dispatchers.IO) {
             restoring.value = true
             try {
+                val decoded = BackupCrypto.decrypt(file.readBytes(), passphrase).preferences?.let(PreferenceBackup::decode)
                 BackupArchive(context, database).restore(file, passphrase)
+                if (decoded != null) context.dataStore.updateData { decoded }
+                setBackupPassphrase(passphrase)
             } catch (failure: Exception) {
                 restoring.value = false
                 throw failure
@@ -546,7 +579,7 @@ class MizanRepository
 
         fun observeV2AccountFilter(): Flow<String?> = context.dataStore.data.map { it[V2_ACCOUNT_FILTER] }
 
-        fun observeV2BaseCurrency(): Flow<String> = context.dataStore.data.map { it[V2_BASE_CURRENCY] ?: "EGP" }
+        fun observeV2BaseCurrency(): Flow<String> = context.dataStore.data.map { "EGP" }
 
         fun observeLastUsedAccountId(): Flow<String?> = context.dataStore.data.map { it[LAST_USED_ACCOUNT_ID] }
 
@@ -619,7 +652,7 @@ class MizanRepository
             }
 
         suspend fun setV2BaseCurrency(currency: String) {
-            require(currency.length == 3) { "Base currency must be an ISO-4217 code" }
+            require(currency.uppercase() == "EGP") { "Base currency is locked to EGP" }
             context.dataStore.edit { it[V2_BASE_CURRENCY] = currency.uppercase() }
         }
 
@@ -673,15 +706,11 @@ class MizanRepository
 
         suspend fun notificationsMutedNow(now: LocalTime = LocalTime.now(cairo)): Boolean {
             val preferences = context.dataStore.data.first()
+            if (preferences[booleanPreferencesKey("quiet_hours_enabled")] == false) return false
             val start = preferences[QUIET_HOURS_START].toLocalTimeOrDefault(LocalTime.of(22, 0))
             val end = preferences[QUIET_HOURS_END].toLocalTimeOrDefault(LocalTime.of(7, 0))
-            return if (start == end) {
-                false
-            } else if (start < end) {
-                now >= start && now < end
-            } else {
-                now >= start || now < end
-            }
+            return app.mizan.data.settings.QuietHours
+                .muted(true, start, end, now)
         }
 
         /** Claims an alert identity atomically so notification retries cannot duplicate it. */
@@ -712,14 +741,61 @@ class MizanRepository
             if (currency == "EGP") {
                 kotlinx.coroutines.flow.flowOf(MarketRate(BigDecimal.ONE, clock.millis()))
             } else {
-                fxRates.observeLatest(currency).map { snapshot ->
-                    snapshot?.let { MarketRate(BigDecimal(it.egpPerUnit), it.fetchedAt) }
+                combine(fxRates.observeLatest(currency), settings.snapshots) { snapshot, preferences ->
+                    val pin = preferences.pins[currency]?.let(::BigDecimal)
+                    if (snapshot == null && pin == null) {
+                        null
+                    } else {
+                        MarketRate(
+                            bankAdjustedRate(
+                                snapshot?.egpPerUnit?.let(::BigDecimal) ?: pin!!,
+                                preferences.spreads[currency]?.let(::BigDecimal) ?: BigDecimal.ZERO,
+                                pin,
+                            ),
+                            if (pin != null) preferences.pinUpdatedAt[currency] ?: snapshot?.fetchedAt ?: 0L else snapshot!!.fetchedAt,
+                        )
+                    }
                 }
             }
 
-        fun observeLatestFxRates(): Flow<List<FxRateEntity>> = fxRates.observeLatestPerCurrency()
+        fun observeLatestFxRates(): Flow<List<FxRateEntity>> =
+            combine(fxRates.observeLatestPerCurrency(), settings.snapshots, ::adjustedRates)
 
-        fun observeFxHistory(): Flow<List<FxRateEntity>> = fxRates.observeHistory()
+        fun observeFxHistory(): Flow<List<FxRateEntity>> =
+            combine(fxRates.observeHistory(), settings.snapshots) { rows, preferences ->
+                val latest = rows.groupBy { it.currency }.values.map { values -> values.maxBy { it.date } }
+                val merged = rows.associateBy { it.date to it.currency }.toMutableMap()
+                adjustedRates(latest, preferences).forEach { merged[it.date to it.currency] = it }
+                merged.values.sortedWith(compareBy(FxRateEntity::date, FxRateEntity::currency))
+            }
+
+        private fun adjustedRates(
+            rows: List<FxRateEntity>,
+            preferences: app.mizan.data.settings.SettingsSnapshot,
+        ): List<FxRateEntity> {
+            val originals = rows.associateBy { it.currency }
+            return (originals.keys + preferences.pins.keys).map { currency ->
+                val original = originals[currency]
+                val pin = preferences.pins[currency]?.let(::BigDecimal)
+                val rate =
+                    if (currency == "EGP") {
+                        BigDecimal.ONE
+                    } else {
+                        bankAdjustedRate(
+                            original?.egpPerUnit?.let(::BigDecimal) ?: pin!!,
+                            preferences.spreads[currency]?.let(::BigDecimal) ?: BigDecimal.ZERO,
+                            pin,
+                        )
+                    }
+                FxRateEntity(
+                    if (pin != null) LocalDate.now(clock.withZone(cairo)).toString() else original!!.date,
+                    currency,
+                    rate.toPlainString(),
+                    if (pin != null) "Manual pin" else original!!.source,
+                    if (pin != null) preferences.pinUpdatedAt[currency] ?: original?.fetchedAt ?: 0L else original!!.fetchedAt,
+                )
+            }
+        }
 
         fun observeStatsRows(): Flow<List<StatsRecordRow>> = ledger.observeStatsRows()
 
@@ -759,9 +835,15 @@ class MizanRepository
 
         fun observeStatsEntries() = ledger.observeStatsEntries()
 
-        fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAccountBalances()
+        fun observeAccountBalances(): Flow<List<AccountBalanceRow>> = marketBalances(ledger.observeAccountBalances())
 
-        fun observeAllAccountBalances(): Flow<List<AccountBalanceRow>> = ledger.observeAllAccountBalances()
+        fun observeAllAccountBalances(): Flow<List<AccountBalanceRow>> = marketBalances(ledger.observeAllAccountBalances())
+
+        private fun marketBalances(rows: Flow<List<AccountBalanceRow>>): Flow<List<AccountBalanceRow>> =
+            combine(rows, observeLatestFxRates()) { balances, rates ->
+                val rateByCurrency = rates.associateBy { it.currency }
+                balances.map { it.copy(egpPerUnit = rateByCurrency[it.currency]?.egpPerUnit ?: it.egpPerUnit) }
+            }.flowOn(Dispatchers.Default)
 
         fun observeAssets(): Flow<List<AssetEntity>> = assetDao.observeAssets()
 
@@ -862,6 +944,7 @@ class MizanRepository
             }
 
         suspend fun refreshGoldPricesIfStale() {
+            if (!settings.snapshots.first()[app.mizan.data.settings.SettingFlag.GOLD_AUTO]) return
             val latest = assetDao.latestPrice("GOLD_24K")
             if (latest == null || clock.millis() - latest.asOf > TWO_HOURS_MILLIS) refreshGoldPrices()
         }
@@ -1054,20 +1137,20 @@ class MizanRepository
             archived: Boolean,
         ) = accounts.setArchived(id, archived)
 
-        suspend fun saveCategory(value: CategoryEntity) = reference.upsertCategory(value)
+        suspend fun saveCategory(value: CategoryEntity) = referenceSettings.save(value)
 
-        suspend fun saveLabel(value: app.mizan.data.db.LabelEntity) = reference.upsertLabel(value)
+        suspend fun saveLabel(value: app.mizan.data.db.LabelEntity) = referenceSettings.save(value)
 
         suspend fun savePayee(value: PayeeEntity) = reference.upsertPayee(value)
 
-        suspend fun saveIncomeSource(value: IncomeSourceEntity) = incomeSetup.upsertSource(value)
+        suspend fun saveIncomeSource(value: IncomeSourceEntity) = templateSettings.save(value)
 
         suspend fun saveSplitTemplate(
             template: SplitTemplateEntity,
             lines: List<SplitLineEntity>,
-        ) = incomeSetup.replaceTemplate(template, lines)
+        ) = templateSettings.save(template, lines)
 
-        suspend fun saveRecordTemplate(value: RecordTemplateEntity) = incomeSetup.upsertRecordTemplate(value)
+        suspend fun saveRecordTemplate(value: RecordTemplateEntity) = templateSettings.save(value)
 
         suspend fun saveBudget(value: BudgetEntity) = planning.upsertBudget(value)
 
@@ -1228,9 +1311,7 @@ class MizanRepository
         suspend fun archiveCategory(
             id: String,
             archived: Boolean,
-        ) {
-            if (id != UNCATEGORIZED_ID) reference.archiveCategory(id, archived)
-        }
+        ) = referenceSettings.archive(id, archived)
 
         suspend fun archiveLabel(
             id: String,
@@ -1287,6 +1368,28 @@ class MizanRepository
             }
 
         fun observeTrash() = ledger.observeTrash()
+
+        suspend fun zakatAnniversary(): Pair<Int, Int>? {
+            val value = context.dataStore.data.first()[stringPreferencesKey("zakat_anniversary")] ?: return null
+            return value.substringBefore("-").toInt() to value.substringAfter("-").toInt()
+        }
+
+        suspend fun setZakatAnniversary(
+            month: Int,
+            day: Int,
+        ) {
+            require(month in 1..12 && day in 1..30)
+            context.dataStore.edit { it[stringPreferencesKey("zakat_anniversary")] = "$month-$day" }
+            app.mizan.worker.ZakatReminderSchedule
+                .schedule(context, month, day)
+        }
+
+        suspend fun prepareZakatEntry() {
+            val label = reference.observeLabels().first().firstOrNull { it.name == "Zakat" }
+            if (label == null) reference.upsertLabel(LabelEntity("system-zakat", "Zakat", "#3A924F"))
+        }
+
+        suspend fun purgeDeletedRecord(id: String) = ledger.purgeDeletedRecord(id)
 
         suspend fun purgeTrash() = ledger.purgeDeleted(clock.millis() - THIRTY_DAYS_MILLIS)
 
@@ -1417,6 +1520,7 @@ class MizanRepository
             code: String,
             enabled: Boolean,
         ): Boolean {
+            if (code == "EGP" && !enabled) return false
             if (!enabled && (accounts.bucketCount(code) > 0 || ledger.entryCount(code) > 0)) return false
             currencies.setEnabled(code, enabled)
             return true
@@ -1426,9 +1530,18 @@ class MizanRepository
             currency: String,
             rate: BigDecimal?,
         ) {
+            require(currency != "EGP" && currency.matches(Regex("[A-Z]{3}")))
+            require(rate == null || rate > BigDecimal.ZERO)
             context.dataStore.edit { preferences ->
                 val key = pinKey(currency)
-                if (rate == null) preferences.remove(key) else preferences[key] = rate.toPlainString()
+                val timeKey = longPreferencesKey("fx_pin_time_$currency")
+                if (rate == null) {
+                    preferences.remove(key)
+                    preferences.remove(timeKey)
+                } else {
+                    preferences[key] = rate.toPlainString()
+                    preferences[timeKey] = clock.millis()
+                }
             }
         }
 
@@ -1442,10 +1555,15 @@ class MizanRepository
             date: LocalDate,
         ): BigDecimal? {
             if (currency == "EGP") return BigDecimal.ONE
-            return manualPin(currency) ?: fxRates.latestOnOrBefore(currency, date.toString())?.egpPerUnit?.let(::BigDecimal)
+            val preferences = settings.snapshots.first()
+            val pin = preferences.pins[currency]?.let(::BigDecimal)
+            val mid = fxRates.latestOnOrBefore(currency, date.toString())?.egpPerUnit?.let(::BigDecimal) ?: pin ?: return null
+            return bankAdjustedRate(mid, preferences.spreads[currency]?.let(::BigDecimal) ?: BigDecimal.ZERO, pin)
         }
 
-        suspend fun refreshFx(): Result<Unit> {
+        suspend fun refreshFx(): Result<Unit> = withContext(Dispatchers.IO) { runCatching { refreshFxBlocking().getOrThrow() } }
+
+        private suspend fun refreshFxBlocking(): Result<Unit> {
             val response = client.newCall(Request.Builder().url(FX_URL).build()).execute()
             response.use {
                 if (!it.isSuccessful) return Result.failure(IllegalStateException("FX HTTP ${it.code}"))

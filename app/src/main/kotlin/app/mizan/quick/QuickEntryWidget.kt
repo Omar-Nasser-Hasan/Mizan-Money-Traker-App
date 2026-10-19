@@ -14,19 +14,31 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.text.Text
 import app.mizan.MainActivity
+import app.mizan.data.settings.SettingFlag
+import app.mizan.worker.WorkerEntryPoint
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.first
 
 class QuickEntryWidget : GlanceAppWidget() {
     override suspend fun provideGlance(
         context: Context,
         id: GlanceId,
     ) {
+        val enabled =
+            EntryPointAccessors
+                .fromApplication(context.applicationContext, WorkerEntryPoint::class.java)
+                .repository()
+                .settings.snapshots
+                .first()[SettingFlag.WIDGET]
         provideContent {
             Column {
                 Text("Mizan")
-                Row {
-                    Text("+ Expense", GlanceModifier.clickable(actionStartActivity(quickIntent(context, ACTION_EXPENSE))))
-                    Text("+ Income", GlanceModifier.clickable(actionStartActivity(quickIntent(context, ACTION_INCOME))))
-                    Text("Mic", GlanceModifier.clickable(actionStartActivity(quickIntent(context, ACTION_VOICE))))
+                if (enabled) {
+                    Row {
+                        Text("+ Expense", GlanceModifier.clickable(actionStartActivity(quickIntent(context, ACTION_EXPENSE))))
+                        Text("+ Income", GlanceModifier.clickable(actionStartActivity(quickIntent(context, ACTION_INCOME))))
+                        Text("Mic", GlanceModifier.clickable(actionStartActivity(quickIntent(context, ACTION_VOICE))))
+                    }
                 }
             }
         }

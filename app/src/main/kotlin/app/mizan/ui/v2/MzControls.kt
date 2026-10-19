@@ -278,15 +278,17 @@ fun MzToggle(
     onCheckedChange: (Boolean) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val tokens = LocalMzTokens.current
     Row(
-        modifier = modifier.fillMaxWidth().heightIn(min = MzSpacing.touchTarget).clickable { onCheckedChange(!checked) },
+        modifier = modifier.fillMaxWidth().heightIn(min = MzSpacing.touchTarget).clickable(enabled = enabled) { onCheckedChange(!checked) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, modifier = Modifier.weight(1f), color = tokens.text, style = MzTypography.body)
         Switch(
             checked = checked,
+            enabled = enabled,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(checkedThumbColor = tokens.onChampagne, checkedTrackColor = tokens.champagne),
         )

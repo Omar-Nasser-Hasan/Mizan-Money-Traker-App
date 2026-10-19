@@ -584,6 +584,15 @@ interface AccountDao {
 
 @Dao
 interface ReferenceDataDao {
+    @Query("UPDATE categories SET sortOrder = :order WHERE id = :id")
+    suspend fun reorderCategory(
+        id: String,
+        order: Int,
+    )
+
+    @Query("SELECT * FROM labels ORDER BY name")
+    fun observeAllLabels(): Flow<List<LabelEntity>>
+
     @Query("SELECT * FROM categories ORDER BY sortOrder, name")
     suspend fun allCategories(): List<CategoryEntity>
 
@@ -669,6 +678,15 @@ interface InboxDao {
 
 @Dao
 interface IncomeSetupDao {
+    @Query("SELECT * FROM split_lines ORDER BY templateId, sortOrder")
+    fun observeAllSplitLines(): Flow<List<SplitLineEntity>>
+
+    @Query("SELECT * FROM split_templates WHERE id = :id")
+    suspend fun template(id: String): SplitTemplateEntity?
+
+    @Query("SELECT * FROM record_templates WHERE archived = 0 ORDER BY name")
+    fun observeAllRecordTemplates(): Flow<List<RecordTemplateEntity>>
+
     @Query("SELECT * FROM income_sources WHERE archived = 0 ORDER BY name")
     fun observeSources(): Flow<List<IncomeSourceEntity>>
 
@@ -939,6 +957,9 @@ interface LedgerDao {
         search: String?,
     ): Flow<List<DailyRecordNet>>
 
+    @Query("SELECT COUNT(*) FROM transactions WHERE id = :id")
+    suspend fun hasTransaction(id: String): Int
+
     @Insert suspend fun insertTransaction(value: TxnEntity)
 
     @Insert suspend fun insertEntries(values: List<EntryEntity>)
@@ -987,6 +1008,9 @@ interface LedgerDao {
 
     @Query("DELETE FROM transactions WHERE deletedAt IS NOT NULL AND deletedAt < :before")
     suspend fun purgeDeleted(before: Long)
+
+    @Query("DELETE FROM transactions WHERE id = :id AND deletedAt IS NOT NULL")
+    suspend fun purgeDeletedRecord(id: String)
 
     @Query("SELECT id, kind, bookedDate, note, deletedAt FROM transactions WHERE deletedAt IS NOT NULL ORDER BY deletedAt DESC")
     fun observeTrash(): Flow<List<TrashRow>>

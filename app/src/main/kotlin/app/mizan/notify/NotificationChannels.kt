@@ -7,6 +7,7 @@ import android.content.Context
 import android.os.Build
 
 object NotificationChannels {
+    const val WEEKLY = "weekly_summary"
     const val REMINDERS = "reminders"
     const val BUDGETS = "budget_alerts"
     const val DAILY_LOG = "daily_log"
@@ -16,6 +17,7 @@ object NotificationChannels {
     fun create(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(NotificationChannel(WEEKLY, "Weekly summary", NotificationManager.IMPORTANCE_DEFAULT))
             manager.createNotificationChannel(NotificationChannel(REMINDERS, "Mizan reminders", NotificationManager.IMPORTANCE_DEFAULT))
             manager.createNotificationChannel(NotificationChannel(BUDGETS, "Mizan budget alerts", NotificationManager.IMPORTANCE_DEFAULT))
             manager.createNotificationChannel(NotificationChannel(DAILY_LOG, "Daily expense log", NotificationManager.IMPORTANCE_DEFAULT))

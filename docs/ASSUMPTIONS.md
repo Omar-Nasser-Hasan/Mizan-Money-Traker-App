@@ -84,3 +84,14 @@
 - P12 uses AndroidX Biometric 1.1.0, verified as the stable release on 2026-10-19 at https://developer.android.com/jetpack/androidx/releases/biometric, replacing the existing framework-only prompt to follow SPEC security. MainActivity uses FragmentActivity to host it; the Compose shell is unchanged.
 
 - P13 keeps EGP locked as the report currency, uses the selected ISO day number as the start of weekly Records/Stats periods, and preserves the default Saturday until changed.
+- P13 bank spread is a per-currency cost-side premium over the mid-market quote; an explicit manual pin is exact and bypasses the spread. Historical record booking rates are never rewritten.
+- P13 displays the existing debt-service category (the seeded Loan interest & installments id) as locked Debt payments; its id, parent and isDebtService meaning stay intact. Categories reorder with accessible up/down controls.
+
+- P13: Wallet dates use ISO YYYY-MM-DD. Explicit column mapping overrides header aliases. Same-currency transfers accept a destination column or paired opposite legs; unmatched legs block commit. Legacy Investment-category rows become transfers to an Investment account because CSV lacks quantities and asset lots. Dry-run totals are currency-separated changes, not fabricated opening balances; repeat imports use file-and-mapping identities.
+- P13: Manual FX pins bypass bank spread and keep their original update timestamp; spread is a cost-side premium over the reference rate. Existing booked ledger rates are immutable.
+- P13: Delete forever is explicit and delayed ten seconds in WorkManager for Undo; the worker only purges records still in Trash. Restore makes a pending purge harmless.
+- P13: Encrypted backups now include typed preferences, excluding device-bound Keystore blobs; restore rewraps the supplied passphrase on the restoring device. Older archives without preferences remain readable.
+- P13: Debts without a due date are treated as due within a year for the editable Zakat estimate. Hijri day 30 uses day 29 in a 29-day month. Financial treatment remains a user-reviewed calculator, not a ruling.
+- P13: Sharing records the last share request, not confirmed off-device delivery. The warning explicitly distinguishes those states.
+
+- P13: Split template fixed values retain the existing domain minor-unit semantics and are displayed using the destination default currency; review allocations in Entry when applying a preset to income in a different currency. Percentage presets are currency-independent.

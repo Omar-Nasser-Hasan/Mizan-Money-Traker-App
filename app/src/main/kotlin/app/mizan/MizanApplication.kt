@@ -9,16 +9,15 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import app.mizan.data.repository.MizanRepository
 import app.mizan.notify.NotificationChannels
-import app.mizan.worker.BackupWorker
 import app.mizan.worker.DailyReminderScheduler
 import app.mizan.worker.FxRefreshWorker
-import app.mizan.worker.PriceRefreshWorker
-import app.mizan.worker.ReminderWorker
 import app.mizan.worker.TrashPurgeWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -29,8 +28,25 @@ class MizanApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            val writer =
+                Thread {
+                    runCatching {
+                        app.mizan.data.backup.LocalCrashLog
+                            .write(java.io.File(filesDir, "logs"), error)
+                    }
+                }
+            writer.start()
+            runCatching { writer.join(1500) }
+            previous?.uncaughtException(thread, error)
+        }
         NotificationChannels.create(this)
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            repository.zakatAnniversary()?.let { (month, day) ->
+                app.mizan.worker.ZakatReminderSchedule
+                    .schedule(this@MizanApplication, month, day)
+            }
             repository.seedReferenceData()
             repository.refreshFxIfMissingOrStale()
             repository.refreshGoldPricesIfStale()
@@ -48,26 +64,15 @@ class MizanApplication : Application() {
             request,
         )
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "gold-price-refresh",
-            ExistingPeriodicWorkPolicy.KEEP,
-            PeriodicWorkRequestBuilder<PriceRefreshWorker>(6, TimeUnit.HOURS)
-                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                .build(),
-        )
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "daily-reminders",
-            ExistingPeriodicWorkPolicy.KEEP,
-            PeriodicWorkRequestBuilder<ReminderWorker>(24, TimeUnit.HOURS).build(),
-        )
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "trash-purge",
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<TrashPurgeWorker>(24, TimeUnit.HOURS).build(),
         )
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "nightly-encrypted-backup",
-            ExistingPeriodicWorkPolicy.KEEP,
-            PeriodicWorkRequestBuilder<BackupWorker>(24, TimeUnit.HOURS).build(),
-        )
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            repository.settings.snapshots.map(app.mizan.worker.SettingsWorkPlan::from).distinctUntilChanged().collect {
+                app.mizan.worker.SettingsEffects
+                    .apply(this@MizanApplication, it)
+            }
+        }
     }
 }

@@ -18,7 +18,12 @@ import java.security.MessageDigest
 class BackupArchiveInstrumentedTest {
     @Test
     fun backup_wipe_restore_preserves_every_table_and_receipt() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val base = InstrumentationRegistry.getInstrumentation().targetContext
+        val privateFiles = File(base.cacheDir, "p13-backup-${java.util.UUID.randomUUID()}").also { it.mkdirs() }
+        val context =
+            object : android.content.ContextWrapper(base) {
+                override fun getFilesDir(): File = privateFiles
+            }
         context.deleteDatabase(DATABASE_NAME)
         File(context.filesDir, "attachments").deleteRecursively()
         val database = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).allowMainThreadQueries().build()
@@ -26,7 +31,19 @@ class BackupArchiveInstrumentedTest {
             seedEveryTable(database, context)
             val before = tableHashes(database)
             val receipt = File(context.filesDir, "attachments/attachment").readBytes()
-            val archive = BackupArchive(context, database, DATABASE_NAME).create(PASSPHRASE)
+            val prefs =
+                app.mizan.data.backup.PreferenceBackup.encode(
+                    androidx.datastore.preferences.core.preferencesOf(
+                        androidx.datastore.preferences.core
+                            .booleanPreferencesKey("hide_amounts") to true,
+                    ),
+                )
+            val archive = BackupArchive(context, database, DATABASE_NAME).create(PASSPHRASE, prefs)
+            val payload =
+                app.mizan.data.backup.BackupCrypto
+                    .decrypt(archive.readBytes(), PASSPHRASE)
+            assertArrayEquals(prefs, payload.preferences)
+            verifyExports(database, context)
             wipeEveryTable(database)
             assertEquals(0, rowCount(database, "transactions"))
 
@@ -40,7 +57,37 @@ class BackupArchiveInstrumentedTest {
             }
         } finally {
             context.deleteDatabase(DATABASE_NAME)
-            File(context.filesDir, "attachments").deleteRecursively()
+            privateFiles.deleteRecursively()
+        }
+    }
+
+    private fun verifyExports(
+        database: AppDatabase,
+        context: android.content.Context,
+    ) = kotlinx.coroutines.runBlocking {
+        val rows = database.ledgerDao().exportRows()
+        val csv =
+            app.mizan.data.io.CsvExport
+                .records(rows)
+                .decodeToString()
+        org.junit.Assert.assertTrue(csv.startsWith("\uFEFFtransactionId"))
+        rows.forEach { row -> org.junit.Assert.assertTrue(csv.contains("\"${row.entryId}\"")) }
+        val workbook =
+            app.mizan.data.io.XlsxExport
+                .records(rows)
+        val entries = mutableMapOf<String, String>()
+        java.util.zip.ZipInputStream(workbook.inputStream()).use { zip ->
+            generateSequence { zip.nextEntry }.forEach { entries[it.name] = zip.readBytes().decodeToString() }
+        }
+        org.junit.Assert.assertTrue(entries.containsKey("xl/workbook.xml"))
+        assertEquals(rows.size + 1, Regex("<row ").findAll(entries.getValue("xl/worksheets/sheet1.xml")).count())
+        val pdf = File(context.filesDir, "export.pdf")
+        app.mizan.data.io.PdfExport
+            .records(pdf, rows)
+        android.os.ParcelFileDescriptor.open(pdf, android.os.ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+            android.graphics.pdf
+                .PdfRenderer(descriptor)
+                .use { renderer -> org.junit.Assert.assertTrue(renderer.pageCount > 0) }
         }
     }
 

@@ -36,6 +36,7 @@ enum class SettingText(
     val key: String,
     val default: String,
 ) {
+    LABEL_ORDER("label_order", ""),
     APPEARANCE("appearance", "DARK"),
     WEEK_START("week_start", "6"),
     DAILY_TIME("daily_expense_reminder_time", "20:00"),
@@ -49,6 +50,7 @@ data class SettingsSnapshot(
     val texts: Map<SettingText, String> = emptyMap(),
     val pins: Map<String, String> = emptyMap(),
     val spreads: Map<String, String> = emptyMap(),
+    val pinUpdatedAt: Map<String, Long> = emptyMap(),
 ) {
     operator fun get(flag: SettingFlag): Boolean = flags[flag] ?: flag.default
 
@@ -68,12 +70,20 @@ class SettingsStore(
                 prefs
                     .asMap()
                     .mapNotNull { (key, value) ->
-                        if (key.name.startsWith("fx_pin_")) key.name.removePrefix("fx_pin_") to value.toString() else null
+                        val currency = key.name.removePrefix("fx_pin_")
+                        val valid = key.name.startsWith("fx_pin_") && currency.matches(Regex("[A-Z]{3}"))
+                        if (valid) currency to value.toString() else null
                     }.toMap(),
                 prefs
                     .asMap()
                     .mapNotNull { (key, value) ->
                         if (key.name.startsWith("fx_spread_")) key.name.removePrefix("fx_spread_") to value.toString() else null
+                    }.toMap(),
+                prefs
+                    .asMap()
+                    .mapNotNull { (key, value) ->
+                        val currency = key.name.removePrefix("fx_pin_time_")
+                        if (key.name.startsWith("fx_pin_time_")) currency to value.toString().toLong() else null
                     }.toMap(),
             )
         }
@@ -88,12 +98,46 @@ class SettingsStore(
         value: String,
     ) {
         when (text) {
-            SettingText.APPEARANCE -> require(value in setOf("DARK", "LIGHT", "FOLLOW_SYSTEM", "TRUE_BLACK"))
-            SettingText.WEEK_START -> require(value.toInt() in 1..7)
-            SettingText.DAILY_TIME, SettingText.QUIET_START, SettingText.QUIET_END -> LocalTime.parse(value)
-            SettingText.LAST_SHARED -> require(value.toLong() >= 0)
+            SettingText.APPEARANCE -> {
+                require(value in setOf("DARK", "LIGHT", "FOLLOW_SYSTEM", "TRUE_BLACK"))
+            }
+
+            SettingText.WEEK_START -> {
+                require(value.toInt() in 1..7)
+            }
+
+            SettingText.DAILY_TIME, SettingText.QUIET_START, SettingText.QUIET_END -> {
+                LocalTime.parse(value)
+            }
+
+            SettingText.LAST_SHARED -> {
+                require(value.toLong() >= 0)
+            }
+
+            SettingText.LABEL_ORDER -> {
+                require(
+                    value
+                        .split('|')
+                        .filter(String::isNotBlank)
+                        .distinct()
+                        .joinToString("|") == value,
+                )
+            }
         }
         data.edit { it[stringPreferencesKey(text.key)] = value }
+    }
+
+    suspend fun times(
+        daily: String,
+        start: String,
+        end: String,
+    ) {
+        listOf(daily, start, end).forEach(LocalTime::parse)
+        data.edit {
+            it[stringPreferencesKey(SettingText.DAILY_TIME.key)] = daily
+            it[stringPreferencesKey(SettingText.QUIET_START.key)] = start
+            it[stringPreferencesKey(SettingText.QUIET_END.key)] = end
+        }
     }
 
     suspend fun spread(
