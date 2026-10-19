@@ -5,6 +5,19 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class V2OnboardingDraftTest {
+    @Test fun `custom percentages persist exact allocations`() {
+        val draft = V2OnboardingDraft()
+        val percentages = draft.accounts.mapIndexed { index, account -> account.id to listOf("25", "35", "40")[index] }.toMap()
+        val custom = draft.copy(percentages = percentages)
+        assertEquals(
+            listOf(2_500L, 3_500L, 4_000L),
+            custom
+                .plan(mapOf("EGP" to 2))
+                .splitBasisPoints.values
+                .toList(),
+        )
+    }
+
     @Test fun `saved draft survives recreation including clear selection and Arabic names`() {
         val initial = V2OnboardingDraft()
         val draft =

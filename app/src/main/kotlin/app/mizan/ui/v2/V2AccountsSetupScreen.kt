@@ -46,6 +46,7 @@ fun V2SetupFrame(
     onSkip: () -> Unit,
     continueLabel: String = stringResource(R.string.setup_continue),
     enabled: Boolean = true,
+    skipEnabled: Boolean = true,
     error: String? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -84,7 +85,7 @@ fun V2SetupFrame(
             Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 error?.let { Text(it, color = LocalMzTokens.current.expense, style = MzTypography.bodySmall) }
                 MzButton(continueLabel, onContinue, Modifier.fillMaxWidth(), enabled = enabled)
-                TextButton(onClick = onSkip, enabled = enabled) { Text(stringResource(R.string.setup_skip)) }
+                TextButton(onClick = onSkip, enabled = skipEnabled) { Text(stringResource(R.string.setup_skip)) }
             }
         },
         content = content,
@@ -110,6 +111,7 @@ fun V2AccountsSetupScreen(
         onBack,
         onContinue,
         onSkip,
+        enabled = currencies.isNotEmpty(),
         error = error,
     ) { padding ->
         LazyColumn(
