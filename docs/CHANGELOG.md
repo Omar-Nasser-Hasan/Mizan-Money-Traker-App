@@ -105,3 +105,4 @@
 ## P12 — Onboarding and security
 
 - Added the Welcome screen and verified-backup entry path; startup waits for a loaded completion preference instead of treating an empty loading Flow as first run.
+- Added editable setup account cards, enabled-currency buckets, restorable drafts, and an atomic, retry-safe writer for accounts, split templates, and category selection.

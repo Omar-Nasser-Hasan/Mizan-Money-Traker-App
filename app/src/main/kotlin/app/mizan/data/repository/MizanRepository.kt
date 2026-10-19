@@ -478,6 +478,15 @@ class MizanRepository
 
         suspend fun setOnboardingCompleted() = context.dataStore.edit { it[ONBOARDING_COMPLETED] = true }
 
+        suspend fun beginOnboarding() = context.dataStore.edit { it[ONBOARDING_COMPLETED] = false }
+
+        fun observeSetupCategories() = reference.observeSetupCategories()
+
+        suspend fun finishOnboarding(setup: app.mizan.domain.accounts.OnboardingSetup) {
+            OnboardingWriter(database).save(setup, LocalDate.now(clock.withZone(cairo)))
+            setOnboardingCompleted()
+        }
+
         fun observeV2PeriodKind(): Flow<String> = context.dataStore.data.map { it[V2_PERIOD_KIND] ?: "MONTH" }
 
         fun observeV2PeriodStart(): Flow<String?> = context.dataStore.data.map { it[V2_PERIOD_START] }

@@ -545,6 +545,12 @@ interface FxRateDao {
 
 @Dao
 interface AccountDao {
+    @Query("DELETE FROM account_buckets WHERE accountId = :accountId AND currency NOT IN (:currencies)")
+    suspend fun removeSetupBucketsNotIn(
+        accountId: String,
+        currencies: List<String>,
+    )
+
     @Query("SELECT * FROM accounts WHERE archived = 0 ORDER BY sortOrder, name")
     fun observeActive(): Flow<List<AccountEntity>>
 
@@ -578,6 +584,12 @@ interface AccountDao {
 
 @Dao
 interface ReferenceDataDao {
+    @Query("SELECT * FROM categories ORDER BY sortOrder, name")
+    suspend fun allCategories(): List<CategoryEntity>
+
+    @Query("SELECT * FROM categories ORDER BY sortOrder, name")
+    fun observeSetupCategories(): Flow<List<CategoryEntity>>
+
     @Query("SELECT * FROM categories WHERE archived = 0 AND kind = :kind ORDER BY sortOrder, name")
     fun observeCategories(kind: String): Flow<List<CategoryEntity>>
 
