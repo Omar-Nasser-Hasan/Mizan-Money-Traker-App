@@ -479,6 +479,13 @@ data class DebtRepaymentTotal(
     val repaidMinor: Long,
 )
 
+/** Repayments in the debt currency, excluding its originating lend/borrow posting. */
+data class DebtRepaymentRow(
+    val debtId: String,
+    val bookedDate: String,
+    val amountMinor: Long,
+)
+
 /** A current bucket total evaluated with the most recently cached EGP rate. */
 data class AccountBalanceRow(
     val accountId: String,
@@ -758,6 +765,11 @@ interface PlanningDao {
         "SELECT t.debtId AS debtId, COALESCE(SUM(ABS(e.amountMinor)), 0) AS repaidMinor FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL AND t.kind IN ('DEBT_REPAY_IN', 'DEBT_REPAY_OUT') GROUP BY t.debtId",
     )
     fun observeDebtRepaymentTotals(): Flow<List<DebtRepaymentTotal>>
+
+    @Query(
+        "SELECT t.debtId AS debtId, t.bookedDate AS bookedDate, ABS(e.amountMinor) AS amountMinor FROM transactions t JOIN entries e ON e.txnId = t.id WHERE t.deletedAt IS NULL AND t.debtId IS NOT NULL AND t.kind IN ('DEBT_REPAY_IN', 'DEBT_REPAY_OUT')",
+    )
+    fun observeDebtRepaymentRows(): Flow<List<DebtRepaymentRow>>
 
     @Query("SELECT * FROM goals ORDER BY status, targetDate, name")
     fun observeGoals(): Flow<List<GoalEntity>>

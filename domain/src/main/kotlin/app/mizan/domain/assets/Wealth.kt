@@ -52,6 +52,8 @@ data class WealthSummary(
     val typeValuesEgpMinor: Map<AssetType, Long>,
     val holdings: List<WealthHoldingValue>,
     val monthChange: Change?,
+    val receivablesEgpMinor: Long = 0L,
+    val payablesEgpMinor: Long = 0L,
 )
 
 /** Converts current cash buckets and market-valued positions into the shared Wealth totals. */
@@ -60,6 +62,8 @@ object WealthCalculator {
         cash: Iterable<WealthCashBucket>,
         holdings: Iterable<WealthHoldingInput>,
         previousNetWorthEgpMinor: Long? = null,
+        receivablesEgpMinor: Long = 0L,
+        payablesEgpMinor: Long = 0L,
     ): WealthSummary {
         val cashValue =
             cash.fold(0L) { total, bucket ->
@@ -93,7 +97,9 @@ object WealthCalculator {
                 )
             }
         val holdingsValue = valued.fold(0L) { total, position -> Math.addExact(total, position.valueEgpMinor) }
-        val netWorth = Math.addExact(cashValue, holdingsValue)
+        val netWorth =
+            app.mizan.domain.plan.NetWorthMath
+                .total(cashValue, holdingsValue, receivablesEgpMinor, payablesEgpMinor)
         val netWorthDenominator = netWorth.coerceAtLeast(1L)
         val holdingsDenominator = holdingsValue.coerceAtLeast(1L)
         val weighted =
@@ -124,6 +130,8 @@ object WealthCalculator {
             typeValuesEgpMinor = typeTotals,
             holdings = weighted,
             monthChange = previousNetWorthEgpMinor?.let { compare(netWorth, it) },
+            receivablesEgpMinor = receivablesEgpMinor,
+            payablesEgpMinor = payablesEgpMinor,
         )
     }
 }
