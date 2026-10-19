@@ -2,7 +2,9 @@
 package app.mizan.data.io
 
 import org.w3c.dom.Element
+import org.xml.sax.InputSource
 import java.io.ByteArrayInputStream
+import java.io.StringReader
 import java.util.zip.ZipInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -120,17 +122,52 @@ object MizanImportXlsxReader {
     private fun csvCell(value: String): String = "\"${value.replace("\"", "\"\"")}\""
 
     private fun parseXml(bytes: ByteArray) =
-        DocumentBuilderFactory
-            .newInstance()
-            .apply {
-                isNamespaceAware = true
-                setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-                setFeature("http://xml.org/sax/features/external-general-entities", false)
-                setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-                setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
-                setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
-            }.newDocumentBuilder()
-            .parse(ByteArrayInputStream(bytes))
+        run {
+            require(!containsDoctype(bytes)) { "DOCTYPE declarations are not allowed in workbook XML" }
+            val factory = DocumentBuilderFactory.newInstance()
+            factory.isNamespaceAware = true
+            // Android's built-in DOM parser does not recognize the Xerces DOCTYPE feature.
+            // The byte-level rejection above is the portable DOCTYPE guard; these settings add
+            // defense in depth on parsers which support the standard feature/attribute names.
+            setFeatureIfSupported(factory, "http://apache.org/xml/features/disallow-doctype-decl", true)
+            setFeatureIfSupported(factory, "http://xml.org/sax/features/external-general-entities", false)
+            setFeatureIfSupported(factory, "http://xml.org/sax/features/external-parameter-entities", false)
+            setAttributeIfSupported(factory, XMLConstants.ACCESS_EXTERNAL_DTD, "")
+            setAttributeIfSupported(factory, XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
+            val builder = factory.newDocumentBuilder()
+            builder.setEntityResolver { _, _ -> InputSource(StringReader("")) }
+            builder.parse(ByteArrayInputStream(bytes))
+        }
+
+    private fun setFeatureIfSupported(
+        factory: DocumentBuilderFactory,
+        name: String,
+        value: Boolean,
+    ) {
+        runCatching { factory.setFeature(name, value) }
+    }
+
+    private fun setAttributeIfSupported(
+        factory: DocumentBuilderFactory,
+        name: String,
+        value: String,
+    ) {
+        runCatching { factory.setAttribute(name, value) }
+    }
+
+    private fun containsDoctype(bytes: ByteArray): Boolean {
+        val declaration = "<!DOCTYPE"
+        val encodings = listOf(Charsets.UTF_8, Charsets.UTF_16LE, Charsets.UTF_16BE)
+        return encodings.any { encoding -> bytes.containsSequence(declaration.toByteArray(encoding)) }
+    }
+
+    private fun ByteArray.containsSequence(sequence: ByteArray): Boolean {
+        if (sequence.isEmpty() || sequence.size > size) return false
+        for (start in 0..(size - sequence.size)) {
+            if (sequence.indices.all { index -> this[start + index] == sequence[index] }) return true
+        }
+        return false
+    }
 
     private object XMLConstants {
         const val ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD"

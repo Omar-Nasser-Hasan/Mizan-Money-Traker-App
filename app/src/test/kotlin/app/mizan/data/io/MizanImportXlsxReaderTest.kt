@@ -2,6 +2,7 @@
 package app.mizan.data.io
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
@@ -27,6 +28,23 @@ class MizanImportXlsxReaderTest {
             "\"event_id\",\"event_kind\",\"note\"\n\"row-1\",\"EXPENSE\",\"tea, coffee\"\n\"row-2\",\"EXPENSE\",\"said \"\"keep\"\"\"",
             csv,
         )
+    }
+
+    @Test fun rejects_doctype_workbook_parts() {
+        val workbook =
+            zip(
+                "xl/workbook.xml" to
+                    """<!DOCTYPE workbook [<!ENTITY x "blocked">]><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Mizan Import" sheetId="1" r:id="rId1"/></sheets></workbook>""",
+                "xl/_rels/workbook.xml.rels" to
+                    """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>""",
+                "xl/worksheets/sheet1.xml" to
+                    """<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>""",
+            )
+
+        val error = runCatching { MizanImportXlsxReader.toCsv(workbook) }.exceptionOrNull()
+
+        assertTrue(error is IllegalArgumentException)
+        assertEquals("DOCTYPE declarations are not allowed in workbook XML", error?.message)
     }
 
     private fun zip(vararg files: Pair<String, String>): ByteArray =

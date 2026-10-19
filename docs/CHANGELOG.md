@@ -1,5 +1,10 @@
 # Changelog
 
+## Wallet workbook import fix
+
+- Made the Mizan workbook XML reader tolerate Android's built-in parser, which does not support the Xerces DOCTYPE feature, while explicitly rejecting DOCTYPE declarations and disabling external entity resolution.
+- Added tests for DOCTYPE rejection and workbook parsing on Android's platform XML parser.
+
 ## Asset editing and app identity
 
 - Added an edit sheet to holding details for the name, ticker/karat identifier, and resale deduction; edits retain the asset ID, creation date, saved lots, and transaction history.
