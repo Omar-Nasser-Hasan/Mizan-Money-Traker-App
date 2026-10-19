@@ -32,8 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AssetTransactionEntity
 import app.mizan.data.repository.MizanRepository
+import app.mizan.domain.assets.Asset
 import app.mizan.domain.assets.AssetTransaction
 import app.mizan.domain.assets.AssetTransactionKind
+import app.mizan.domain.assets.AssetType
 import app.mizan.domain.assets.AssetValuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,6 +64,11 @@ fun V2AssetDetailScreen(
     val statsEntries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
     var range by rememberSaveable { mutableStateOf("6M") }
     var addOwnedLot by rememberSaveable { mutableStateOf(false) }
+    var editAsset by rememberSaveable { mutableStateOf(false) }
+    var editName by rememberSaveable(assetId) { mutableStateOf("") }
+    var editIdentifier by rememberSaveable(assetId) { mutableStateOf("") }
+    var editResaleDeduction by rememberSaveable(assetId) { mutableStateOf("") }
+    var editError by remember(assetId) { mutableStateOf<String?>(null) }
     var lotQuantity by rememberSaveable(assetId) { mutableStateOf("") }
     var lotAmountPaid by rememberSaveable(assetId) { mutableStateOf("") }
     var lotUnitCost by rememberSaveable(assetId) { mutableStateOf("") }
@@ -171,7 +178,25 @@ fun V2AssetDetailScreen(
                         asset.name,
                         tint = tokens.investment,
                     )
-                    Text(asset.name, style = MzTypography.title)
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(asset.name, style = MzTypography.title)
+                        Spacer(Modifier.width(8.dp))
+                        MzButton(
+                            "Edit",
+                            {
+                                editName = asset.name
+                                editIdentifier = asset.symbolOrKarats
+                                editResaleDeduction = asset.resaleDeductionPct
+                                editError = null
+                                editAsset = true
+                            },
+                            style = MzButtonStyle.GHOST,
+                        )
+                    }
                     Text(
                         "${position.quantity.stripTrailingZeros().toPlainString()} ${asset.unit} · ${asset.symbolOrKarats}",
                         style = MzTypography.bodySmall,
@@ -390,6 +415,56 @@ fun V2AssetDetailScreen(
                                         lotCurrentPrice = ""
                                     }.onFailure { lotError = it.message ?: "Could not save the owned lot." }
                                 }
+                            }
+                        }
+                    },
+                    Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+    if (editAsset) {
+        ModalBottomSheet(
+            onDismissRequest = { editAsset = false },
+            containerColor = LocalMzTokens.current.surface,
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = MzSpacing.sideMargin).padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("Edit holding", style = MzTypography.title)
+                Text("Changes here do not alter saved trades or cost basis.", style = MzTypography.bodySmall, color = tokens.textDim)
+                MzInput(editName, { editName = it }, "Name")
+                MzInput(editIdentifier, { editIdentifier = it }, if (asset.type == "GOLD") "Karat / form" else "Ticker / identifier")
+                MzInput(editResaleDeduction, { editResaleDeduction = it }, "Resale deduction · %")
+                editError?.let { Text(it, color = tokens.expense, style = MzTypography.bodySmall) }
+                MzButton(
+                    "Save changes",
+                    {
+                        val deduction = runCatching { BigDecimal(editResaleDeduction) }.getOrNull()
+                        if (editName.isBlank() || editIdentifier.isBlank() || deduction == null ||
+                            deduction < BigDecimal.ZERO || deduction > BigDecimal(100)
+                        ) {
+                            editError = "Enter a name, identifier and a deduction from 0 to 100%."
+                        } else {
+                            scope.launch {
+                                runCatching {
+                                    repository.saveAsset(
+                                        Asset(
+                                            id = asset.id,
+                                            name = editName.trim(),
+                                            type = runCatching { AssetType.valueOf(asset.type) }.getOrDefault(AssetType.OTHER),
+                                            symbolOrKarats = editIdentifier.trim(),
+                                            quoteCurrency = asset.quoteCurrency,
+                                            unit = asset.unit,
+                                            resaleDeductionPct = deduction,
+                                            archived = asset.archived,
+                                            goldForm = asset.goldForm,
+                                            priceMode = asset.priceMode,
+                                        ),
+                                    )
+                                    editAsset = false
+                                }.onFailure { editError = it.message ?: "Could not update this holding." }
                             }
                         }
                     },

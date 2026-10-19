@@ -3,6 +3,7 @@
 
 package app.mizan.ui.v2
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,14 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import app.mizan.R
 
 @Composable
@@ -37,7 +39,11 @@ fun V2LockScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            MzIcon("balance", stringResource(R.string.app_name), tint = LocalMzTokens.current.champagne, size = 72.sp)
+            Image(
+                painterResource(R.drawable.ic_mizan_mark),
+                contentDescription = stringResource(R.string.app_name),
+                modifier = Modifier.size(72.dp),
+            )
             Spacer(Modifier.height(20.dp))
             Text(
                 stringResource(R.string.lock_title),

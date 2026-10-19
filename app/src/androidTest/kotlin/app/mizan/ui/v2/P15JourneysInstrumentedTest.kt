@@ -399,6 +399,26 @@ class P15JourneysInstrumentedTest {
                     2,
                     BigDecimal.ONE,
                 )
+                val originalCreatedAt =
+                    repository
+                        .observeAssets()
+                        .first()
+                        .single()
+                        .createdAt
+                repository.saveAsset(asset.copy(name = "Updated gold", symbolOrKarats = "24K", resaleDeductionPct = BigDecimal("1.5")))
+                val editedAsset = repository.observeAssets().first().single()
+                assertEquals("Updated gold", editedAsset.name)
+                assertEquals("24K", editedAsset.symbolOrKarats)
+                assertEquals("1.5", editedAsset.resaleDeductionPct)
+                assertEquals(originalCreatedAt, editedAsset.createdAt)
+                assertEquals(
+                    "buy",
+                    repository
+                        .observeAllAssetTransactions()
+                        .first()
+                        .single()
+                        .id,
+                )
                 val wealth =
                     V2WealthModels.build(
                         repository.observeAccounts().first(),

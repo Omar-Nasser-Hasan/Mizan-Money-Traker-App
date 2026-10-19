@@ -1,5 +1,11 @@
 # Changelog
 
+## Asset editing and app identity
+
+- Added an edit sheet to holding details for the name, ticker/karat identifier, and resale deduction; edits retain the asset ID, creation date, saved lots, and transaction history.
+- Replaced the generic Android launcher icon and balance-scale welcome/onboarding/unlock marks with a custom champagne portal emblem on the Mizan charcoal palette.
+- Added a Room-backed journey assertion that edits holding metadata while preserving its original creation time and trade row.
+
 ## Follow-up — Owned holdings and offline voice
 
 - Added an owned-lot action to existing asset details, retaining both amount paid and historical unit cost while leaving cash and expense statistics unchanged.

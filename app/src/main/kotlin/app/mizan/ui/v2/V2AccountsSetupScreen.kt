@@ -3,6 +3,7 @@
 
 package app.mizan.ui.v2
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.mizan.R
@@ -57,7 +59,11 @@ fun V2SetupFrame(
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onBack) { MzIcon("arrow_back", stringResource(R.string.setup_back)) }
-                    MzIcon("balance", stringResource(R.string.app_name), tint = LocalMzTokens.current.champagne)
+                    Image(
+                        painterResource(R.drawable.ic_mizan_mark),
+                        contentDescription = stringResource(R.string.app_name),
+                        modifier = Modifier.size(28.dp),
+                    )
                     Text(stringResource(R.string.app_name), Modifier.weight(1f).padding(start = 8.dp), style = MzTypography.title)
                     repeat(4) { index ->
                         androidx.compose.foundation.layout.Box(

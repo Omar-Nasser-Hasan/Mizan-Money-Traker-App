@@ -918,6 +918,7 @@ class MizanRepository
                 "Resale deduction must be from 0 to 100"
             }
             val now = clock.millis()
+            val createdAt = assetDao.observeAsset(asset.id).first()?.createdAt ?: now
             assetDao.upsertAsset(
                 AssetEntity(
                     asset.id,
@@ -928,7 +929,7 @@ class MizanRepository
                     asset.unit,
                     asset.resaleDeductionPct.toPlainString(),
                     asset.archived,
-                    now,
+                    createdAt,
                     now,
                     asset.goldForm,
                     asset.priceMode,
