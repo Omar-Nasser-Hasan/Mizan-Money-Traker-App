@@ -125,6 +125,7 @@ fun backupScreen(
                         status = "Restoring verified backup…"
                         runCatching { repository.restoreBackup(importedBackup!!, passphrase.toCharArray()) }
                             .onSuccess {
+                                repository.setOnboardingCompleted()
                                 restartApp(context)
                             }.onFailure { status = "Restore failed; current data was left unchanged: ${it.message}" }
                     }

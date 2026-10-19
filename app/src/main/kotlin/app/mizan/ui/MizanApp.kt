@@ -95,13 +95,7 @@ fun mizanApp(
 ) {
     var tab by remember { mutableStateOf("Home") }
     var route by remember { mutableStateOf<String?>(null) }
-    val initialAccounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
     val hideAmounts by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
-    var firstRunChecked by remember { mutableStateOf(false) }
-    androidx.compose.runtime.LaunchedEffect(initialAccounts) {
-        if (!firstRunChecked && initialAccounts.isEmpty()) route = "onboarding"
-        if (initialAccounts.isNotEmpty()) firstRunChecked = true
-    }
     androidx.compose.runtime.LaunchedEffect(quickAction) {
         route =
             when (quickAction) {

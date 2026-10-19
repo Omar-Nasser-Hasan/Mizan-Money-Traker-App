@@ -78,3 +78,5 @@
 - The 50,000-record check measures the pure aggregation path under 500 ms in the JVM test environment. On 17 October 2026, the API 37 Pixel_7_Pro debug-emulator Stats capture reported p90/p95 of 53/69 ms, so it is not a 60 Hz pass. This remains an open performance-tuning/physical-device validation item rather than a claimed acceptance result.
 - The Room migration and encrypted backup wipe/restore instrumentation suite passed on the local API 37 Pixel_7_Pro emulator on 17 October 2026 (6 tests). The app also launched there after installation.
 - Daily expense reminders use an exact Cairo-time alarm where Android permits it. On Android 12+ where exact alarms are unavailable, Mizan uses a best-effort one-time WorkManager fallback; boot reschedules the next reminder.
+
+- P12: Existing installs with active accounts are treated as having finished setup when the new persisted completion flag is absent. Onboarding and privacy gates are shared by both shells so clean installs receive the P12 flow; the shell feature flag remains unchanged.

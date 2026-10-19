@@ -156,6 +156,7 @@ fun onboardingScreen(
                             }.forEach {
                                 repository.archiveCategory(it.id, true)
                             }
+                        repository.setOnboardingCompleted()
                         onDone()
                     }
                 }, modifier = Modifier.fillMaxWidth()) { Text("Finish setup") }

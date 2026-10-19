@@ -101,3 +101,7 @@
 - Added the M0 Android scaffold with pure `:domain`, Compose, Hilt, Room, CI, signing-from-environment, and Spotless.
 - Added the ink-and-gold visual tokens and WCAG AA text contrast unit test.
 - Added isolated Dev probes for gold, EGX, on-device speech, and model benchmarking methodology.
+
+## P12 — Onboarding and security
+
+- Added the Welcome screen and verified-backup entry path; startup waits for a loaded completion preference instead of treating an empty loading Flow as first run.

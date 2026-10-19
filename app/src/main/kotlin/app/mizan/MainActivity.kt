@@ -6,6 +6,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import app.mizan.data.repository.MizanRepository
@@ -45,7 +46,20 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val newInterface by repository.observeNewInterface().collectAsStateWithLifecycle(false)
-            if (appInterface(newInterface) == AppInterface.V2) {
+            val onboardingCompleted by produceState<Boolean?>(null) {
+                repository.observeOnboardingCompleted().collect { value = it }
+            }
+            if (onboardingCompleted != true) {
+                app.mizan.ui.v2.MizanTheme {
+                    if (onboardingCompleted == false) {
+                        app.mizan.ui.v2
+                            .V2OnboardingFlow(repository)
+                    } else {
+                        app.mizan.ui.v2
+                            .MzSkeleton()
+                    }
+                }
+            } else if (appInterface(newInterface) == AppInterface.V2) {
                 app.mizan.ui.v2.MizanTheme {
                     v2MizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION))
                 }

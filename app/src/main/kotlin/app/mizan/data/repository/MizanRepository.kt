@@ -472,6 +472,12 @@ class MizanRepository
          */
         fun observeNewInterface(): Flow<Boolean> = context.dataStore.data.map { it[NEW_INTERFACE] ?: false }
 
+        /** Existing installations already have accounts; only a loaded snapshot may decide first run. */
+        fun observeOnboardingCompleted(): Flow<Boolean> =
+            context.dataStore.data.map { it[ONBOARDING_COMPLETED] ?: accounts.active().isNotEmpty() }
+
+        suspend fun setOnboardingCompleted() = context.dataStore.edit { it[ONBOARDING_COMPLETED] = true }
+
         fun observeV2PeriodKind(): Flow<String> = context.dataStore.data.map { it[V2_PERIOD_KIND] ?: "MONTH" }
 
         fun observeV2PeriodStart(): Flow<String?> = context.dataStore.data.map { it[V2_PERIOD_START] }
@@ -1441,6 +1447,7 @@ class MizanRepository
             private const val TWO_HOURS_MILLIS = 2L * 60 * 60 * 1000
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
             private val NEW_INTERFACE = booleanPreferencesKey("new_interface")
+            private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
             private val V2_PERIOD_KIND = stringPreferencesKey("v2_period_kind")
             private val V2_PERIOD_START = stringPreferencesKey("v2_period_start")
             private val V2_PERIOD_END = stringPreferencesKey("v2_period_end")
