@@ -29,7 +29,7 @@ data class WalletImportPreview(
     val bucketTotalsMinor: Map<WalletBucket, Long> = emptyMap(),
 )
 
-/** Import is the explicit legacy boundary where Wallet investment categories become transfers. */
+/** Wallet transaction kinds come from the export's type/transfer fields, never its category label. */
 object WalletCsvImporter {
     val fields = listOf("date", "account", "category", "amount", "currency", "type", "note", "destination")
     private val aliases =
@@ -128,19 +128,21 @@ object WalletCsvImporter {
                 .longValueExact()
         require(minor > 0) { "Amount must be nonzero" }
         val type = value("type")?.lowercase().orEmpty()
-        val investment = category.contains("investment", ignoreCase = true)
+        val transfer =
+            type.contains("transfer") ||
+                value("transfer")?.lowercase() in setOf("true", "1", "yes")
         val kind =
             when {
-                investment || type.contains("transfer") -> WalletImportKind.TRANSFER
+                transfer -> WalletImportKind.TRANSFER
                 type.contains("expense") -> WalletImportKind.EXPENSE
                 type.contains("income") -> WalletImportKind.INCOME
                 amount.signum() < 0 -> WalletImportKind.EXPENSE
                 else -> WalletImportKind.INCOME
             }
-        val destination = value("destination") ?: if (investment) "Investment" else null
+        val destination = value("destination")
         require(destination == null || destination != account) { "Transfer destination must differ from source" }
         val signed =
-            if (kind == WalletImportKind.EXPENSE || investment || destination != null ||
+            if (kind == WalletImportKind.EXPENSE || destination != null ||
                 (kind == WalletImportKind.TRANSFER && amount.signum() < 0)
             ) {
                 -minor

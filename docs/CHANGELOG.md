@@ -1,5 +1,10 @@
 # Changelog
 
+## Wallet CSV classification
+
+- Wallet CSV imports now classify transactions from the export's explicit type and transfer fields. Category names no longer create a transfer destination, preventing same-account transfer errors for expenses categorized as Financial investments. Typed asset purchases belong in the Mizan workbook, which carries holding details.
+- Added regression coverage for Investment-account expenses and transfers marked only by the transfer flag.
+
 ## Wallet workbook import fix
 
 - Made the Mizan workbook XML reader tolerate Android's built-in parser, which does not support the Xerces DOCTYPE feature, while explicitly rejecting DOCTYPE declarations and disabling external entity resolution.
