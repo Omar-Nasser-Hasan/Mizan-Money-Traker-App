@@ -1,1 +1,13 @@
+Lapp/mizan/MizanApplication;
 Lapp/mizan/MainActivity;
+Lapp/mizan/security/AppLock;
+Lapp/mizan/security/LockGate;
+Lapp/mizan/data/repository/MizanRepository;
+Lapp/mizan/data/db/AppDatabase_Impl;
+HSPLapp/mizan/MainActivity;->onCreate(Landroid/os/Bundle;)V
+Lapp/mizan/ui/v2/V2MizanAppKt;
+Lapp/mizan/ui/v2/V2HomeScreenKt;
+Lapp/mizan/ui/v2/V2RecordsScreenKt;
+Lapp/mizan/ui/v2/V2StatsScreenKt;
+Lapp/mizan/ui/v2/MizanThemeKt;
+Lapp/mizan/ui/v2/AmountTextKt;

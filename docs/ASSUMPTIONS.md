@@ -95,3 +95,9 @@
 - P13: Sharing records the last share request, not confirmed off-device delivery. The warning explicitly distinguishes those states.
 
 - P13: Split template fixed values retain the existing domain minor-unit semantics and are displayed using the destination default currency; review allocations in Entry when applying a preset to income in a different currency. Percentage presets are currency-independent.
+
+## P15
+
+- The finalized P1–P14 Stitch ordering and Obsidian/Champagne tokens replace the older navigation, Inter typography and ink/gold values in SPEC section 6; section 6 is updated to match the shipped interface.
+- No release signing configuration existed locally. P15 creates a persistent local signing key and ignored keystore.properties, while environment-provided CI signing still takes precedence. The key must be backed up and reused for updates; no key/password is committed. Version 0.0.1 is retained because no replacement version was requested.
+- The single provisional measurement covers the worst Home/Stats ready latency with 50k rows on the emulator. Cold start, cached Home, Records frame pacing and phone Stats acceptance use the phone checklist; emulator timings are not a device performance pass.

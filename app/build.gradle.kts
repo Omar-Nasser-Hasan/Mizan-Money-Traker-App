@@ -1,9 +1,17 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+val localSigning =
+    Properties().apply {
+        val propertiesFile = rootProject.file("keystore.properties")
+        if (propertiesFile.isFile) propertiesFile.inputStream().use { load(it) }
+    }
 
 android {
     namespace = "app.mizan"
@@ -20,12 +28,12 @@ android {
 
     signingConfigs {
         create("release") {
-            val storePath = providers.environmentVariable("MIZAN_KEYSTORE_PATH").orNull
+            val storePath = providers.environmentVariable("MIZAN_KEYSTORE_PATH").orNull ?: localSigning.getProperty("storeFile")
             if (storePath != null) {
                 storeFile = file(storePath)
-                storePassword = providers.environmentVariable("MIZAN_KEYSTORE_PASSWORD").orNull
-                keyAlias = providers.environmentVariable("MIZAN_KEY_ALIAS").orNull
-                keyPassword = providers.environmentVariable("MIZAN_KEY_PASSWORD").orNull
+                storePassword = providers.environmentVariable("MIZAN_KEYSTORE_PASSWORD").orNull ?: localSigning.getProperty("storePassword")
+                keyAlias = providers.environmentVariable("MIZAN_KEY_ALIAS").orNull ?: localSigning.getProperty("keyAlias")
+                keyPassword = providers.environmentVariable("MIZAN_KEY_PASSWORD").orNull ?: localSigning.getProperty("keyPassword")
             }
         }
     }

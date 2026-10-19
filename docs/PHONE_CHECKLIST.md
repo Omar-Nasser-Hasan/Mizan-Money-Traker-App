@@ -1,5 +1,12 @@
 # Phone checklist
 
+Overlapping entries may share one check and the same evidence. Do not repeat performance measurements.
+
+- P15 release: Back up any existing debug installation, install app/build/outputs/apk/release/app-release.apk (use a clean install if Android reports a different signing certificate), restore the backup and relaunch; expect the current interface, identical ledger/balances and no crash.
+- P15 journeys: Complete first run, expense, split income, EGP/USD transfer, edit/delete/Undo, budget thresholds, Mark paid, goal/contribution, debt/repayment, gold buy, backup/wipe/restore, lock, voice review and Inbox confirm; expect each confirmed action exactly once, transfers/investing/debts outside income/expense, restored data unchanged and no post before confirmation.
+- P15 accessibility: Walk every screen in Dark, Light and True black at 1.3x text with TalkBack, Arabic notes/payees, landscape and tablet width; expect readable text, announced controls, reachable actions and no clipped forms or crash.
+- P15 performance: On the signed release measure one cold start, cached Home, a 10k-record fling and all five Stats tabs at 50k records; expect <1.5 s start, <300 ms Home, 60 fps Records, <500 ms per Stats tab and no ANR/main-thread I/O; record each result once.
+
 - P14: Use Arabic and English voice on the phone, review/edit/discard and Save all, confirm/dismiss SMS drafts including a reversal and duplicate, grant SMS through its rationale/restricted-settings guide, and pin both widget sizes with Hide amounts on/off; expect no ledger row before confirmation, reversal as an adjustment, and masked widget values.
 - Open Records, fling the list, and confirm rows stay smooth near 60 fps on the phone.
 - Open a month of Records and scroll past the first grouped date; expect the pinned date header to stay above the first row without covering it.

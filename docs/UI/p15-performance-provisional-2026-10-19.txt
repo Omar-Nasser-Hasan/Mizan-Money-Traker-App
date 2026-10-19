@@ -1,0 +1,1 @@
+Provisional (emulator): one 50k Room run, worst Home/Stats ready latency = 3081 ms (Cash flow). Includes queries, computation and Compose synchronization. Not a phone budget pass. No retries.

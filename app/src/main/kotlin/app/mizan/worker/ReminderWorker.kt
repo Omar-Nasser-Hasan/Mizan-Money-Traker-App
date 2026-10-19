@@ -30,7 +30,10 @@ import java.time.ZoneId
 class ReminderWorker(
     context: Context,
     parameters: WorkerParameters,
+    private val suppliedRepository: MizanRepository?,
 ) : CoroutineWorker(context, parameters) {
+    constructor(context: Context, parameters: WorkerParameters) : this(context, parameters, null)
+
     @SuppressLint("MissingPermission") // canNotify() runs before any notification is posted.
     override suspend fun doWork(): Result {
         val cairo = ZoneId.of("Africa/Cairo")
@@ -158,7 +161,7 @@ class ReminderWorker(
             )
 
     private fun repository(): MizanRepository =
-        EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java).repository()
+        suppliedRepository ?: EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java).repository()
 
     @SuppressLint("MissingPermission") // canNotify() guards every entry to doWork.
     private fun notifyPlanned(

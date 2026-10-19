@@ -1,5 +1,14 @@
 # Changelog
 
+## P15 — Integration and local release
+
+- Retired the legacy UI and interface flag; finalized navigation, design tokens and paired screen gallery.
+- Corrected remaining-debt valuation across Home, Wealth and Stats, retained last-trade asset values offline, and required booking-date FX for voice confirmation.
+- Moved heavy valuations off the UI thread, retained Room flows and shared Stats calculations across tab changes.
+- Applied theme text colors, Manrope, accessible field/icon/switch semantics and adaptive control sizing; chips grow for wrapped text at 1.3x and holding source captions stack without running together.
+- Added real-Room ledger/planning/backup/voice/Inbox journeys, real notification threshold coverage, a 165-layout theme/window matrix and a single-run 50k performance harness.
+- Added a CI placeholder/money audit, a packaged curated startup profile and persistent local release signing; verified the signed APK installs and launches on the emulator. The single provisional performance run exceeds the emulator budget; phone acceptance and known gaps remain documented separately.
+
 ## P1 — Visual polish verification
 
 - Refreshed the live design-gallery captures for dark, light, and OLED themes after checking chart spacing, legends, ring typography, empty/error states, skeleton visibility, list amount signs, and the net-worth amount hierarchy on the API 37 Pixel_7_Pro emulator.

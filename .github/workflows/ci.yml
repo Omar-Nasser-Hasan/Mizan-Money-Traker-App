@@ -18,3 +18,5 @@ jobs:
         run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
       - name: Verify
         run: ./gradlew assembleDebug :domain:test :app:testDebugUnitTest lint spotlessCheck
+      - name: Audit shipped UI
+        run: python3 scripts/audit_ui.py

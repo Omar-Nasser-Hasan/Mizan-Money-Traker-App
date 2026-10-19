@@ -265,20 +265,20 @@ PriceSnapshot(key, price TEXT, currency, asOf, source, isManual)   // keys: GOLD
 
 ### 6.1 Navigation
 
-Bottom bar: **Home · Records · Stats · Plan · Wealth**. Top bar: hide-amounts eye and settings. A + button on Home, Records and Plan opens Entry. Long-press the app icon for shortcuts (§10).
+Bottom bar: **Home · Records · Stats · Plan · Wealth**. Top bar: hide-amounts eye and Settings, with Back on detail/form routes. Home and Records use + to open Expense Entry; Plan uses + for the active planning flow; Wealth offers Buy/Sell and Add holding. Home's mic, Entry's mic, app shortcuts, widgets and the Quick Settings tile open the same confirmed entry routes. Inbox opens from the Home drafts banner and Records chip. The current Compose shell is the only interface; no interface-switch preference remains.
 
 ### 6.2 Screens
 
-- **First run:** accounts (start from Essential / Fun / Investment, all editable) with currency buckets and opening balances → default income split → category picker (§13) → app lock → done. 'Import Wallet CSV' appears here from M12.
+- **First run:** Welcome (Get started / Restore a backup) → accounts (Essential / Fun / Investment, editable multi-currency buckets) → default income split → category tree (§13) → Secure it (device lock and backup passphrase) → Home. Every step supports sensible Skip defaults; Wallet import is in More.
 - **Home:** net-worth hero with a cash sub-line (the eye hides amounts); account cards (swipe; tap for detail); this-month cash flow (income, expenses, net, like-for-like change); budgets left; next 7 days of planned payments; last 5 records; goals strip. Pull to refresh rates and prices.
 - **Entry:** see §6.3.
 - **Records:** grouped by day; filters (account, category, label, kind, status, currency, date, amount); search (note, payee); multi-select bulk actions; swipe to edit or delete; an 'Inbox' chip for uncategorized records and SMS drafts.
 - **Account detail:** balance with per-currency breakdown, 30-day trend, records, edit, 'fix balance' (creates an ADJUSTMENT).
-- **Stats:** tabs Balance · Outlook · Cash-flow · Spending · Credit · Reports · Assets. A period selector (day / week / month / year / custom / all, with back and forward arrows) and an account filter are pinned at the bottom. Every chart has 'share as image'.
+- **Stats:** tabs **Cash flow · Spending · Balance · Outlook · Reports**, in that order. A shared period pill (day / week / month / year / custom / all) and account filter appear above the cards. Cash flow opens first. Credit utilization and debt-to-income live in Reports, card terms in Account detail, and holdings in Wealth. Every statistics card supports Share as image.
 - **Plan:** segmented Budgets · Planned · Goals · Debts. Budgets show spent % or remaining, forecast at period end, and a 'what it was spent on' breakdown.
 - **Wealth:** accounts by type with totals, then Investments: holdings (chips Gold / Stocks / Funds / Other), total value, P/L, allocation donut; holding detail (lots, price history, XIRR); Buy and Sell flows; 'Update prices' with age stamps.
 - **Settings:** General · Currencies and rates · Categories and labels · Templates · Security · Backup · Notifications · Data sources · Quick entry · About and logs.
-- **More:** Zakat calculator, import, export.
+- **More:** Zakat calculator, Wallet import, export, Trash and Settings shortcuts. Settings includes appearance, week start, currencies/rates, categories/labels, templates, security, backup, notifications, data sources, quick entry, and about/logs.
 
 ### 6.3 Entry screen (the screen that matters most)
 
@@ -292,12 +292,12 @@ Bottom bar: **Home · Records · Stats · Plan · Wealth**. Top bar: hide-amount
 
 Fresh, calm, premium, not a Wallet clone. Dark is the default; light and 'true black' (OLED) are options.
 
-- **Palette, ink and gold (locked):** Dark (default): background #0A0F1A, surface #121A29, raised #1A2438, outline #26324A, text #EAF0FA, dim #93A1B8. True black swaps the background to #000000 and keeps the rest. Light: background #F5F6F8, surface #FFFFFF, raised #EDEFF3, outline #D8DDE6, text #0F1624, dim #5A667A. Brand gold: fill #F2B84B in dark and #E0A030 in light, with on-gold text #1A1405; gold used as text on light surfaces is #8A5A0B. Semantic colors, dark / light: income #34D399 / #0A7F57, expense #FF6B6B / #D93A40, transfer #5BC0EB / #1479B0, invest #A78BFA / #7C5CDB, warning #FF8A3D / #C2531A. Gold is the only accent: primary button, + button, selected tab and normal budget bars. A budget bar turns warning when trending over and expense when over. Light-mode shades are darkened so small text stays readable; M0 adds a unit test that every text color meets 4.5:1 contrast on its background. Account colors come from a 12-color palette.
-- **Type:** Inter (bundled, open license) with tabular figures for every amount. Amount-first hierarchy: big numbers, small calm labels.
-- **Shape and motion:** 20 dp cards, 12 dp inner radius, 8 dp spacing grid. Motion 200–300 ms: animated number changes, chart draw-in, shared element from list to detail. Respect the system 'remove animations' setting.
+- **Palette, Obsidian and Champagne (final):** dark canvas #121316, surface #292A2D, raised #34363A, lowest #0D0E11, text #E9E6DE, dim #BEB9AF, outline #5B5A54, champagne #D9C27F, on-champagne #2D291E, accent text #E6D29A. True black changes canvas and lowest surface to #000000. Light canvas #F5F2E9, surface/lowest #FFFCF5, raised #EBE6DA, text #2E2B25, dim #5D574C, outline #938A78, champagne #8B6D2B, on-champagne #FFF8E7, accent text #77591D. Semantic colors (dark / light): income #58CFC4 / #0C7466, expense #F4806E / #B03A14, transfer #B5C7D8 / #4C6378, investment #C0A5E8 / #6F4A9E, warning #F0BD76 / #875A15. Actual text tokens are contrast-tested against canvas, surface, raised and lowest backgrounds at 4.5:1. Accounts retain the 12-color palette.
+- **Type and icons:** bundled Manrope throughout Material typography, with tabular amount figures and Western digits. Hero 36/40 sp, headline 28/32, title 18/24, body 15/22, small 13/18, labels 11/14; amount sizes 28, 17 and 14 sp. Material Symbols Rounded outlined weight 300 through MzIcon; TalkBack announces the control label, not the font ligature. User-entered text uses content-derived direction for Arabic.
+- **Shape and motion:** 20 dp cards, 12 dp inner radius, 8 dp utility radius, pill chips; 20 dp side margin, 12 dp gutters, 32 dp sections. Motion 200–300 ms: animated number changes, chart draw-in, shared element from list to detail. Respect the system 'remove animations' setting.
 - **Components:** `AmountText` (formats, colors, honors hide-amounts), `PeriodSelector`, `AccountChip`, `CategoryIcon`, `EmptyState` (always with a call to action), `Skeleton`. Skeletons on first load; never a blank screen.
 - **Charts:** the same colors for income, expense and net everywhere; gradient area fills; tap to inspect; text alternatives for accessibility.
-- **One-hand use:** primary actions in the bottom third; 48 dp minimum targets; a haptic tick on save.
+- **One-hand use and sizing:** primary actions in the bottom third; 48 dp minimum targets and 52 dp minimum buttons; text controls grow at 1.3x font size. The shell is centered with a 1000 dp maximum width on tablets. Scrollable content handles short landscape windows. Device TalkBack/rotation and final readability acceptance are recorded in docs/PHONE_CHECKLIST.md.
 
 ## 7. Statistics: definitions and formulas
 

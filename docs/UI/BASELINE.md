@@ -37,3 +37,11 @@ Command:
 ```
 
 Result: green after formatting the audit documents. The audit uses the CI command above; release assembly is intentionally separate because release signing needs environment secrets.
+
+## P15 — provisional emulator envelope — 2026-10-19
+
+One opt-in run used 50,000 transactions in a real in-memory Room database on the API 37 Pixel_7_Pro emulator (1440 × 3120), software-rendered with SwiftShader after the embedded graphics stalled. The debug instrumentation envelope includes Room queries, domain computation and Compose synchronization. Home and all five Stats tabs were visited once; only the aggregate worst result is recorded: **3,081 ms (Cash flow)**. This is provisional emulator evidence, not a physical-phone budget pass. No performance measurement was retried. Cold start, cached Home, Records frame pacing and final per-tab budgets remain the single-check phone steps in PHONE_CHECKLIST.md.
+
+Raw result: [P15 one-run output](p15-performance-provisional-2026-10-19.txt). The harness requires explicit opt-in and writes an attempt marker before seeding to prevent an accidental retry.
+
+The current minified release is signed with the persistent local release certificate, includes the compiled startup profile and is described in ../RELEASE.md; it supersedes the historical debug-signed profiling artifact listed above. A packaged curated profile does not establish physical-device performance acceptance.
