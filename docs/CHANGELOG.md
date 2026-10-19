@@ -165,3 +165,7 @@
 ### P13 — Zakat
 
 - Live editable cash, holdings and liabilities, per-holding exclusions, domain nisab/due calculation, Hijri reminder and labeled expense entry.
+
+### P13 — Wallet import
+
+- File picking, column mapping, currency-separated dry run, validation and explicit idempotent commit.
