@@ -22,3 +22,8 @@
 | Stats Outlook and Reports | Existing forecast, recurrence, StatsEngine, and CreditMath calculators are wired in V2; custom report tests/screenshots cover the golden fixture | implemented; on-device visual confirmation is listed in `docs/PHONE_CHECKLIST.md` | M |
 | Reports guide thresholds | No user-specific investing target or DTI ceiling is persisted | show documented 15% and 35% reference markers until preferences are added | S |
 | V2 Stats error/offline variants | Flows supply loading and populated/empty values; the new reports do not yet surface Room flow errors | add screen-level error/retry presentation in a later polish pass | S |
+
+## P13
+
+- Google Drive upload and cloud restore are unavailable until the OAuth project/client is supplied and authorization/upload code is configured; see docs/BLOCKERS.md and docs/DRIVE_SETUP.md. The row opens setup information and does not pretend a connection exists.
+- Stocks/funds remain manual because SPIKE-S1 did not approve an automatic provider; Data sources explains this and opens real price editing.

@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.R
 import app.mizan.data.repository.MizanRepository
-import app.mizan.ui.securityScreen
 import kotlinx.coroutines.launch
 
 /**
@@ -192,10 +191,45 @@ fun v2MizanApp(
                     },
                 )
             }
+        } else if (activeRoute == V2Route.Zakat) {
+            Box(Modifier.padding(padding)) {
+                V2ZakatScreen(repository, hideAmounts) {
+                    scope.launch {
+                        repository.prepareZakatEntry()
+                        navigation = navigation.navigate(V2Route.ZakatEntry)
+                    }
+                }
+            }
+        } else if (activeRoute == V2Route.WalletImport) {
+            Box(Modifier.padding(padding)) { V2WalletImportScreen(repository) }
+        } else if (activeRoute == V2Route.Backup || activeRoute == V2Route.BackupPassphrase) {
+            Box(Modifier.padding(padding)) { V2BackupScreen(repository) }
+        } else if (activeRoute == V2Route.About) {
+            Box(Modifier.padding(padding)) { V2AboutScreen(repository) }
+        } else if (activeRoute == V2Route.QuickEntrySettings) {
+            Box(Modifier.padding(padding)) { V2QuickSettingsScreen(repository) { navigation = navigation.navigate(it) } }
+        } else if (activeRoute == V2Route.Export) {
+            Box(Modifier.padding(padding)) { V2ExportScreen(repository) }
+        } else if (activeRoute == V2Route.Trash) {
+            Box(Modifier.padding(padding)) { V2TrashScreen(repository) }
+        } else if (activeRoute == V2Route.More) {
+            Box(Modifier.padding(padding)) { V2MoreScreen { navigation = navigation.navigate(it) } }
+        } else if (activeRoute == V2Route.DataSources) {
+            Box(Modifier.padding(padding)) { V2DataSourcesScreen(repository) { navigation = navigation.navigate(it) } }
+        } else if (activeRoute == V2Route.HyperOsGuide || activeRoute == V2Route.RestrictedSettingsGuide) {
+            Box(Modifier.padding(padding)) { V2PhoneGuideScreen(activeRoute == V2Route.RestrictedSettingsGuide) }
+        } else if (activeRoute == V2Route.Templates) {
+            Box(Modifier.padding(padding)) { V2TemplatesScreen(repository) { navigation = navigation.navigate(V2Route.NewAccount) } }
+        } else if (activeRoute == V2Route.Categories) {
+            Box(Modifier.padding(padding)) { V2ReferenceSettingsScreen(repository) }
+        } else if (activeRoute == V2Route.Currencies) {
+            Box(Modifier.padding(padding)) { V2CurrenciesScreen(repository) }
+        } else if (activeRoute == V2Route.Notifications) {
+            Box(Modifier.padding(padding)) { V2NotificationsScreen(repository) }
         } else if (activeRoute == V2Route.Settings) {
             Box(Modifier.padding(padding)) { V2SettingsScreen(repository) { navigation = navigation.navigate(it) } }
-        } else if (activeRoute == V2Route.SecuritySettings) {
-            securityScreen(repository, Modifier.padding(padding))
+        } else if (activeRoute == V2Route.SecuritySettings || activeRoute == V2Route.Security) {
+            Box(Modifier.padding(padding)) { V2SecuritySettingsScreen(repository) }
         } else if (activeRoute == V2Route.Goals) {
             Box(Modifier.padding(padding)) { V2GoalsScreen(repository, hideAmounts) { navigation = navigation.navigate(it) } }
         } else if (activeRoute == V2Route.NewGoal || activeRoute is V2Route.EditGoal) {
@@ -440,7 +474,7 @@ fun v2MizanApp(
                         navigation.back().navigate(V2Route.AccountDetail(id))
                 }, onBack = { navigation = navigation.back() })
             }
-        } else if (activeRoute in setOf(V2Route.ExpenseEntry, V2Route.IncomeEntry, V2Route.TransferEntry) ||
+        } else if (activeRoute in setOf(V2Route.ExpenseEntry, V2Route.IncomeEntry, V2Route.TransferEntry, V2Route.ZakatEntry) ||
             activeRoute is V2Route.CardPayment ||
             activeRoute is V2Route.EditEntry || activeRoute is V2Route.InboxDraftEntry
         ) {
@@ -458,6 +492,7 @@ fun v2MizanApp(
                 editTransactionId = (activeRoute as? V2Route.EditEntry)?.id,
                 inboxDraftId = (activeRoute as? V2Route.InboxDraftEntry)?.id,
                 presetTransferTargetId = (activeRoute as? V2Route.CardPayment)?.cardId,
+                zakatPayment = activeRoute == V2Route.ZakatEntry,
                 modifier = Modifier.padding(padding),
                 onDone = { navigation = navigation.back() },
             )

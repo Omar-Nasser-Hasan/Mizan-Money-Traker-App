@@ -180,7 +180,7 @@
     <string name="p13_hijri_reminder">Hijri anniversary reminder · 09:00 Cairo</string>
     <string name="p13_hijri_month">Hijri month · 1–12</string>
     <string name="p13_hijri_day">Day · 1–30</string>
-    <string name="p13_reminder_saved">Reminder saved. For a 29-day month, day 30 uses its last day.</string>
+    <string name="p13_reminder_saved">Reminder preference saved. Delivery needs Android notification permission. For a 29-day month, day 30 uses its last day.</string>
     <string name="p13_zakat_reminder_body">Your Hijri anniversary has arrived. Review your Zakat calculation.</string>
     <string name="p13_voice_error">Recognition error %1$d</string>
     <string name="p13_voice_empty">No transcript was returned</string>

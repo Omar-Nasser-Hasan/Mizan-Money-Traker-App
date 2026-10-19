@@ -37,11 +37,8 @@ class WeeklySummaryWorker(
         val state = repository.settings.snapshots.first()
         val zone = ZoneId.of("Africa/Cairo")
         val today = LocalDate.now(zone)
-        if (!state[SettingFlag.WEEKLY] || today.dayOfWeek != DayOfWeek.SUNDAY || LocalTime.now(zone).hour < 9 ||
-            repository.notificationsMutedNow()
-        ) {
-            return Result.success()
-        }
+        // WorkManager may execute late or across a Cairo clock change; do not discard a scheduled summary by weekday/hour.
+        if (!state[SettingFlag.WEEKLY] || repository.notificationsMutedNow()) return Result.success()
         if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled() ||
             (
                 Build.VERSION.SDK_INT >= 33 &&

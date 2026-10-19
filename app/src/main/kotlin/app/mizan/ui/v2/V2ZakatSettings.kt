@@ -3,8 +3,14 @@
 
 package app.mizan.ui.v2
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.OutlinedTextField
@@ -17,8 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.R
 import app.mizan.data.repository.MizanRepository
@@ -61,6 +70,9 @@ fun V2ZakatScreen(
     val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
     val repayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     val inputs = listOf(accounts, balances, currencies, assets, trades, prices, fx, debts, repayments)
     val model by produceState<P13ZakatModel?>(null, inputs) {
         value =
@@ -143,7 +155,16 @@ fun V2ZakatScreen(
                 )
             }
     }
-    V2ZakatContent(model, hideAmounts, { month, day -> scope.launch { repository.setZakatAnniversary(month, day) } }, onPay)
+    V2ZakatContent(model, hideAmounts, { month, day ->
+        scope.launch { repository.setZakatAnniversary(month, day) }
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }, onPay)
 }
 
 @Composable
@@ -195,7 +216,7 @@ fun V2ZakatContent(
         }
     V2SettingsList {
         if (model == null) {
-            items(4) { MzSkeleton(Modifier, 80.dp) }
+            items(4) { MzSkeleton(Modifier.fillMaxWidth().testTag("p13-zakat-loading"), 80.dp) }
         } else {
             item { Text(stringResource(R.string.p13_zakat_disclaimer), color = LocalMzTokens.current.text) }
             if (model.incomplete) {

@@ -53,7 +53,7 @@ fun V2ReferenceSettingsScreen(repository: MizanRepository) {
             scope.launch { error = runCatching { repository.saveCategory(value) }.isFailure }
         },
         onArchiveCategory = { value ->
-            val snapshot = rows.orEmpty().filter { it.id in ReferenceSettingsWriter.branch(value.id, rows.orEmpty()) }
+            val snapshot = ReferenceSettingsWriter.visibilityScope(value.id, rows.orEmpty())
             scope.launch {
                 error = runCatching { repository.archiveCategory(value.id, !value.archived) }.isFailure
                 if (!error) {

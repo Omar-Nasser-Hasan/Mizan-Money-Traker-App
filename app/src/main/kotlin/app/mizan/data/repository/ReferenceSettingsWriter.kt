@@ -62,6 +62,18 @@ class ReferenceSettingsWriter(
     }
 
     companion object {
+        fun visibilityScope(
+            id: String,
+            rows: List<CategoryEntity>,
+        ): List<CategoryEntity> {
+            val ids = branch(id, rows).toMutableSet()
+            var parent = rows.firstOrNull { it.id == id }?.parentId
+            while (parent != null && ids.add(parent)) {
+                parent = rows.firstOrNull { it.id == parent }?.parentId
+            }
+            return rows.filter { it.id in ids }
+        }
+
         fun locked(value: CategoryEntity): Boolean = value.id == MizanRepository.UNCATEGORIZED_ID || value.isDebtService
 
         fun branch(

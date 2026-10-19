@@ -76,6 +76,23 @@ class P13SettingsIntegrationTest {
                         .filter { it.id in setOf("root", "child") }
                         .all { it.archived },
                 )
+                val undoChildRestore = ReferenceSettingsWriter.visibilityScope("child", database.referenceDataDao().allCategories())
+                writer.archive("child", false)
+                assertTrue(
+                    database
+                        .referenceDataDao()
+                        .allCategories()
+                        .filter { it.id in setOf("root", "child") }
+                        .none { it.archived },
+                )
+                writer.restoreVisibility(undoChildRestore)
+                assertTrue(
+                    database
+                        .referenceDataDao()
+                        .allCategories()
+                        .filter { it.id in setOf("root", "child") }
+                        .all { it.archived },
+                )
                 writer.restoreVisibility(before)
                 assertEquals(
                     "Café",

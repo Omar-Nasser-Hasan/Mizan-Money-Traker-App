@@ -767,7 +767,7 @@ class MizanRepository
                 val merged = rows.associateBy { it.date to it.currency }.toMutableMap()
                 adjustedRates(latest, preferences).forEach { merged[it.date to it.currency] = it }
                 merged.values.sortedWith(compareBy(FxRateEntity::date, FxRateEntity::currency))
-            }
+            }.flowOn(Dispatchers.Default)
 
         private fun adjustedRates(
             rows: List<FxRateEntity>,

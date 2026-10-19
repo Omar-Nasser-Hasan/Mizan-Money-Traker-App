@@ -177,3 +177,16 @@
 ### P13 — Trash
 
 - Thirty-day Trash, original-entry restore and confirmed permanent deletion with a ten-second Undo window.
+
+### P13 — Route integration and acceptance
+
+- Wired all Settings and More destinations into the existing runtime interface flag, including account creation from an empty Templates screen and Zakat-labeled expense entry.
+- Added lazy Android notification permission at Zakat reminder setup and waited for real backup loading before screenshot capture.
+- Passed the required full CI command with 75 domain and 54 app unit tests, plus 16 focused emulator integration/screen tests after selector corrections; added native screenshots and acceptance/manual checks in docs/UI/shots/p13/README.md.
+- Google Drive upload/cloud restore remains blocked by missing OAuth configuration and uploader setup; phone-only checks are in docs/PHONE_CHECKLIST.md. No P13 performance measurement was taken.
+
+- Category Undo also restores ancestor visibility after restoring an archived subcategory.
+
+- Weekly summaries tolerate delayed WorkManager execution and Cairo clock changes instead of discarding a scheduled run by weekday/hour.
+
+- FX history projection runs on Dispatchers.Default, backup passphrase fields use the password keyboard, and Zakat loading placeholders have a visible full width.

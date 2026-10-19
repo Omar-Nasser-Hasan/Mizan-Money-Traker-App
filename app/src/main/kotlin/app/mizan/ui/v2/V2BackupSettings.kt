@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -23,7 +24,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,9 +92,13 @@ fun V2BackupScreen(repository: MizanRepository) {
             }
         }
     V2SettingsList {
-        if (error) item { Text(stringResource(R.string.p13_error), color = LocalMzTokens.current.expense) }
-        if (busy || files == null || state == null) item { MzSkeleton(Modifier.fillMaxWidth(), 80.dp) }
-        item {
+        if (error) item(key = "error") { Text(stringResource(R.string.p13_error), color = LocalMzTokens.current.expense) }
+        if (busy || files == null ||
+            state == null
+        ) {
+            item(key = "loading") { MzSkeleton(Modifier.fillMaxWidth().testTag("p13-backup-loading"), 80.dp) }
+        }
+        item(key = "phone") {
             MzCard {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.p13_this_phone), style = MzTypography.title)
@@ -105,6 +112,7 @@ fun V2BackupScreen(repository: MizanRepository) {
                         { passphrase = it },
                         label = { Text(stringResource(R.string.p13_passphrase)) },
                         visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -113,6 +121,7 @@ fun V2BackupScreen(repository: MizanRepository) {
                         { confirmation = it },
                         label = { Text(stringResource(R.string.p13_confirm_passphrase)) },
                         visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -144,7 +153,7 @@ fun V2BackupScreen(repository: MizanRepository) {
                 }
             }
         }
-        item {
+        item(key = "drive") {
             MzCard {
                 V2SettingRow(
                     "cloud",
@@ -155,7 +164,7 @@ fun V2BackupScreen(repository: MizanRepository) {
         }
         val lastShared = state?.get(SettingText.LAST_SHARED)?.toLongOrNull() ?: 0L
         if (lastShared == 0L || System.currentTimeMillis() - lastShared > TimeUnit.DAYS.toMillis(14)) {
-            item { Text(stringResource(R.string.p13_offdevice_warning), color = LocalMzTokens.current.expense) }
+            item(key = "warning") { Text(stringResource(R.string.p13_offdevice_warning), color = LocalMzTokens.current.expense) }
         }
         files?.firstOrNull()?.let { latest ->
             item {
@@ -165,7 +174,7 @@ fun V2BackupScreen(repository: MizanRepository) {
                 }, style = MzButtonStyle.SECONDARY)
             }
         }
-        item { MzButton(stringResource(R.string.p13_choose_backup), { picker.launch(arrayOf("*/*")) }, enabled = !busy) }
+        item(key = "choose") { MzButton(stringResource(R.string.p13_choose_backup), { picker.launch(arrayOf("*/*")) }, enabled = !busy) }
         items(files.orEmpty(), key = { it.name }) { saved ->
             MzCard {
                 V2SettingRow("restore", saved.name, stringResource(R.string.p13_backup_size, saved.bytes)) {
@@ -201,6 +210,7 @@ fun V2BackupScreen(repository: MizanRepository) {
                             preview = null
                         },
                         visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         label = { Text(stringResource(R.string.p13_passphrase)) },
                     )
                     if (preview == null) {

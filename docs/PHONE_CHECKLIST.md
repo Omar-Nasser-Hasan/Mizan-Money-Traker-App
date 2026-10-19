@@ -40,3 +40,13 @@
 - P12: Enable Block screenshots, background the app and inspect Recents, then unlock using Use device PIN; expect a blank protected preview, screenshots blocked and the device credential flow to unlock successfully.
 - P12: Complete all setup screens with Arabic account names, TalkBack and 1.3x text; expect readable RTL names, announced controls and reachable Continue/Skip buttons without clipped fields.
 - P12: Set a backup passphrase during Secure it and let the scheduled backup run; expect that passphrase to restore the resulting archive and no recovery option if it is forgotten.
+
+- P13: Change Dark, Light, System and True black, then relaunch; expect immediate colors and the saved choice, with System following Android.
+- P13: Turn each of the six notification types off and on, set quiet hours across midnight and reboot with HyperOS Autostart enabled and Battery unrestricted; expect disabled alerts cancelled, quiet delivery suppressed and enabled reminders retained.
+- P13: Add the quick-entry widget, disable its buttons and re-enable them; expect the widget to update and Expense, Income and Mic to open the matching entry flow.
+- P13: Try ar-EG/en-US speech without an offline language pack with online recognition off, then explicitly enable it; expect no online recognition until opted in and a review before saving.
+- P13: Enable SMS and notification Inbox access through the restricted-settings guide using redacted bank samples; expect permission requests only at enable time and drafts rather than posted transactions.
+- P13: Create and share an encrypted backup, restore it on another installation with its passphrase and open CSV, XLSX and PDF exports; expect matching records, receipts, settings and readable files in the chosen external apps.
+- P13: Check a real Wallet CSV through column mapping and dry run before committing; expect per-account, per-currency changes to reconcile with Wallet and investment purchases to remain outside expenses.
+- P13: Set a Hijri Zakat anniversary and grant notifications; expect a 09:00 Cairo reminder on the next anniversary, respecting quiet hours and the last day of a 29-day month.
+- P13: Walk every Settings and More route with TalkBack, Arabic names and 1.3x font scale; expect announced controls, readable names and reachable actions without clipped fields.
