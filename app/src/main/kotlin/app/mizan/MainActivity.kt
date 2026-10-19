@@ -56,13 +56,21 @@ class MainActivity : FragmentActivity() {
                 }
         }
         setContent {
+            val preferences by repository.settings.snapshots.collectAsStateWithLifecycle(
+                app.mizan.data.settings
+                    .SettingsSnapshot(),
+            )
+            val appearance = preferences[app.mizan.data.settings.SettingText.APPEARANCE]
+            val themeMode =
+                app.mizan.ui.v2.MizanThemeMode
+                    .valueOf(appearance)
             val restoring by repository.restoreInProgress.collectAsStateWithLifecycle()
             val settings by startup.collectAsStateWithLifecycle()
             val lock by appLock.state.collectAsStateWithLifecycle()
             val message by appLock.message.collectAsStateWithLifecycle()
             val prompting by appLock.prompting.collectAsStateWithLifecycle()
             val savedContent = rememberSaveableStateHolder()
-            app.mizan.ui.v2.MizanTheme {
+            app.mizan.ui.v2.MizanTheme(themeMode) {
                 if (settings == null || !lock.loaded) {
                     Box(Modifier.fillMaxSize().background(LocalMzTokens.current.canvas)) { MzSkeleton() }
                 } else {
@@ -86,7 +94,18 @@ class MainActivity : FragmentActivity() {
                                     }
 
                                     else -> {
-                                        MizanTheme { mizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION)) }
+                                        MizanTheme(
+                                            when (themeMode) {
+                                                app.mizan.ui.v2.MizanThemeMode.FOLLOW_SYSTEM -> {
+                                                    app.mizan.ui.theme.MizanThemeMode.SYSTEM
+                                                }
+
+                                                else -> {
+                                                    app.mizan.ui.theme.MizanThemeMode
+                                                        .valueOf(themeMode.name)
+                                                }
+                                            },
+                                        ) { mizanApp(repository, intent.getStringExtra(EXTRA_QUICK_ACTION)) }
                                     }
                                 }
                             }

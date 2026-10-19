@@ -10,8 +10,10 @@ data class PeriodState(
     val kind: PeriodKind = PeriodKind.MONTH,
     val start: LocalDate? = null,
     val end: LocalDate? = null,
+    val weekStart: Int = 6,
 ) {
     init {
+        require(weekStart in 1..7)
         require(
             kind == PeriodKind.CUSTOM ||
                 (kind in setOf(PeriodKind.DAY, PeriodKind.WEEK) && end == null) ||
@@ -21,6 +23,8 @@ data class PeriodState(
         }
         require(start == null || end == null || !start.isAfter(end)) { "Period start must not follow its end" }
     }
+
+    fun startOfWeek(anchor: LocalDate): LocalDate = anchor.minusDays(((anchor.dayOfWeek.value - weekStart + 7) % 7).toLong())
 
     fun persisted(): PersistedPeriod = PersistedPeriod(kind.name, start?.toString(), end?.toString())
 

@@ -125,6 +125,10 @@ class MizanRepository
         private val client: OkHttpClient,
         private val clock: Clock,
     ) {
+        val settings =
+            app.mizan.data.settings
+                .SettingsStore(context.dataStore)
+
         private val restoring = kotlinx.coroutines.flow.MutableStateFlow(false)
         val restoreInProgress: kotlinx.coroutines.flow.StateFlow<Boolean> = restoring
 

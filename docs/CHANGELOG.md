@@ -111,3 +111,7 @@
 - Added Secure it with an optional device-lock toggle and a confirmed, Keystore-wrapped backup passphrase; Skip keeps the selected setup and leaves security optional.
 - Added an opaque lock gate with AndroidX BiometricPrompt and device PIN, a persisted lock toggle, exact timeout handling, process-local authentication and protected startup/Recents behavior.
 - Added setup persistence, draft/category-selection and lock-boundary tests, Compose screen/action checks, emulator captures and P12 phone acceptance steps.
+
+## P13 — Settings area
+
+- Added the settings hub, persisted appearance and week-start preferences, immediate theme changes across both shells, and live weekly Records/Stats bounds.

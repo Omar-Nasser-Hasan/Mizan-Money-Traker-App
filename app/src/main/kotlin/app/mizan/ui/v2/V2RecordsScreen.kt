@@ -757,7 +757,7 @@ private fun periodBounds(period: PeriodState): Pair<LocalDate?, LocalDate?> {
 
         PeriodKind.WEEK -> {
             val anchor = period.start ?: today
-            val start = anchor.minusDays(((anchor.dayOfWeek.value + 1) % 7).toLong())
+            val start = period.startOfWeek(anchor)
             start to start.plusDays(6)
         }
 
@@ -787,7 +787,7 @@ private fun periodLabel(period: PeriodState): String =
 
         PeriodKind.WEEK -> {
             val anchor = period.start ?: LocalDate.now(ZoneId.of("Africa/Cairo"))
-            val start = anchor.minusDays(((anchor.dayOfWeek.value + 1) % 7).toLong())
+            val start = period.startOfWeek(anchor)
             "${start.format(DateTimeFormatter.ofPattern("d MMM"))} – ${start.plusDays(6).format(DateTimeFormatter.ofPattern("d MMM yyyy"))}"
         }
 

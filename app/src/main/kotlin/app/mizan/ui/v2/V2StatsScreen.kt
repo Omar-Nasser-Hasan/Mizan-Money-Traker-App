@@ -1162,7 +1162,7 @@ private fun PeriodState.toStatsPeriod(): Period {
             PeriodKind.WEEK -> {
                 val anchor =
                     start ?: today
-                val weekStart = anchor.minusDays(((anchor.dayOfWeek.value + 1) % 7).toLong())
+                val weekStart = startOfWeek(anchor)
                 weekStart to
                     weekStart.plusDays(6)
             }
@@ -1194,7 +1194,7 @@ private fun PeriodState.outlookEnd(today: LocalDate): LocalDate =
 
         PeriodKind.WEEK -> {
             val anchor = start ?: today
-            anchor.minusDays(((anchor.dayOfWeek.value + 1) % 7).toLong()).plusDays(6)
+            startOfWeek(anchor).plusDays(6)
         }
 
         PeriodKind.MONTH, PeriodKind.ALL -> {

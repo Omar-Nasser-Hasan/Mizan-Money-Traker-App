@@ -58,7 +58,11 @@ fun v2MizanApp(
     var selectedStatsPage by rememberSaveable { mutableStateOf("Balance") }
     var selectedStatsCategory by rememberSaveable { mutableStateOf<String?>(null) }
     var wealthActionsExpanded by rememberSaveable { mutableStateOf(false) }
-    val period = PeriodState.fromPersisted(periodKind, periodStart, periodEnd)
+    val preferences by repository.settings.snapshots.collectAsStateWithLifecycle(
+        app.mizan.data.settings
+            .SettingsSnapshot(),
+    )
+    val period = PeriodState.fromPersisted(periodKind, periodStart, periodEnd).copy(weekStart = preferences.weekStart)
 
     LaunchedEffect(quickAction) {
         quickEntryRoute(quickAction)?.let { navigation = navigation.navigate(it) }
@@ -188,6 +192,8 @@ fun v2MizanApp(
                     },
                 )
             }
+        } else if (activeRoute == V2Route.Settings) {
+            Box(Modifier.padding(padding)) { V2SettingsScreen(repository) { navigation = navigation.navigate(it) } }
         } else if (activeRoute == V2Route.SecuritySettings) {
             securityScreen(repository, Modifier.padding(padding))
         } else if (activeRoute == V2Route.Goals) {
