@@ -38,6 +38,7 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,6 +52,7 @@ import app.mizan.data.db.AssetTransactionEntity
 import app.mizan.data.db.CategoryEntity
 import app.mizan.data.db.CurrencyEntity
 import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.DebtRepaymentRow
 import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.LabelEntity
 import app.mizan.data.db.PayeeEntity
@@ -118,6 +120,8 @@ fun V2StatsScreen(
     val prices by repository.observeLatestPrices().collectAsStateWithLifecycle(emptyList())
     val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
     val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
+    val debtRepaymentRows by repository.observeDebtRepaymentRows().collectAsStateWithLifecycle(emptyList())
+    val debtRateHistory by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
     val debtRepayments by repository.observeDebtRepaymentTotals().collectAsStateWithLifecycle(emptyList())
     val plannedPayments by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
     val plannedOccurrences by repository.observePlannedOccurrences().collectAsStateWithLifecycle(emptyList())
@@ -127,8 +131,14 @@ fun V2StatsScreen(
     val outlookEnd = periodState.outlookEnd(today)
     val previous = StatPeriods.previous(selectedPeriod).through(today)
     val lastYear = StatPeriods.lastYear(selectedPeriod).through(today)
+    val inputKey = "${rows.size}-${entries.size}-${accounts.size}-${balances.size}"
+    var snapshotKey by remember { mutableStateOf<String?>(null) }
+    var outlookKey by remember { mutableStateOf<String?>(null) }
+    var reportsKey by remember { mutableStateOf<String?>(null) }
+    var snapshotReady by remember { mutableStateOf(false) }
     val snapshot by produceState(
         StatsSnapshot.empty(),
+        page,
         rows,
         entries,
         balances,
@@ -142,11 +152,15 @@ fun V2StatsScreen(
         prices,
         currencies,
         debts,
+        debtRepaymentRows,
+        debtRateHistory,
         selectedPeriod,
         previous,
         lastYear,
         accountFilterId,
     ) {
+        snapshotReady = false
+        if (page == StatsPage.OUTLOOK || page == StatsPage.REPORTS) return@produceState
         value =
             withContext(Dispatchers.Default) {
                 StatsSnapshot.create(
@@ -167,8 +181,12 @@ fun V2StatsScreen(
                     previous,
                     lastYear,
                     accountFilterId,
+                    debtRepaymentRows,
+                    debtRateHistory,
                 )
             }
+        snapshotKey = inputKey
+        snapshotReady = true
     }
     val context = LocalContext.current
     val hostView = LocalView.current
@@ -177,6 +195,7 @@ fun V2StatsScreen(
     var includeTypicalIncome by rememberSaveable { mutableStateOf(false) }
     val outlook by produceState<OutlookStats?>(
         null,
+        page,
         rows,
         balances,
         accounts,
@@ -194,6 +213,8 @@ fun V2StatsScreen(
         accountFilterId,
         includeTypicalIncome,
     ) {
+        value = null
+        if (page != StatsPage.OUTLOOK) return@produceState
         value =
             withContext(Dispatchers.Default) {
                 OutlookStats.create(
@@ -215,9 +236,11 @@ fun V2StatsScreen(
                     debtRepayments,
                 )
             }
+        outlookKey = inputKey
     }
     val reports by produceState<ReportsStats?>(
         null,
+        page,
         rows,
         entries,
         balances,
@@ -228,16 +251,31 @@ fun V2StatsScreen(
         today,
         accountFilterId,
     ) {
+        value = null
+        if (page != StatsPage.REPORTS) return@produceState
         value =
             withContext(Dispatchers.Default) {
                 ReportsStats.create(rows, entries, balances, accounts, categories, incomeCategories, selectedPeriod, today, accountFilterId)
             }
+        reportsKey = inputKey
     }
     val share: (String, androidx.compose.ui.geometry.Rect) -> Unit = { title, bounds ->
         scope.launch { shareCard(context, hostView, title, bounds) }
     }
 
-    Column(Modifier.fillMaxSize().background(tokens.canvas)) {
+    val ready =
+        when (page) {
+            StatsPage.OUTLOOK -> outlook != null && outlookKey == inputKey
+            StatsPage.REPORTS -> reports != null && reportsKey == inputKey
+            else -> snapshotReady && snapshotKey == inputKey
+        }
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(
+                tokens.canvas,
+            ).then(if (ready) Modifier.testTag("stats-ready-${page.title}-$inputKey") else Modifier),
+    ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             StatsPage.entries.forEach { item ->
                 Column(
@@ -913,6 +951,8 @@ internal data class StatsSnapshot(
             previous: Period,
             lastYear: Period,
             accountFilter: String?,
+            debtRepayments: List<DebtRepaymentRow> = emptyList(),
+            debtRates: List<FxRateEntity> = rates,
         ): StatsSnapshot {
             val selectedAccounts = accountFilter?.split('|')?.toSet()
             val entriesByTransaction = entries.groupBy { it.txnId }
@@ -1082,31 +1122,18 @@ internal data class StatsSnapshot(
                             }
                         MoneyMath.baseMinor(quoteMinor, decimals, rate)
                     }
-                val activeDebts = debts.filter { LocalDate.parse(it.openedAt) <= date }
-                val receivables =
-                    activeDebts.filter { it.direction == "LENT" }.sumOf { debt ->
-                        (
-                            debt.principalMinor -
-                                rows
-                                    .filter {
-                                        it.debtId == debt.id && LocalDate.parse(
-                                            it.bookedDate,
-                                        ) <= date
-                                    }.sumOf { kotlin.math.abs(it.baseMinor) }
-                        ).coerceAtLeast(0L)
-                    }
-                val payables =
-                    activeDebts.filter { it.direction != "LENT" }.sumOf { debt ->
-                        (
-                            debt.principalMinor -
-                                rows
-                                    .filter {
-                                        it.debtId == debt.id && LocalDate.parse(
-                                            it.bookedDate,
-                                        ) <= date
-                                    }.sumOf { kotlin.math.abs(it.baseMinor) }
-                        ).coerceAtLeast(0L)
-                    }
+                val valuedDebts =
+                    valuedDebtBalances(
+                        debts.filter {
+                            selectedAccounts == null || it.accountId in selectedAccounts
+                        },
+                        debtRepayments,
+                        currencies,
+                        debtRates,
+                        date,
+                    )
+                val receivables = valuedDebts.filter { it.direction == "LENT" }.sumOf { it.principalMinor }
+                val payables = valuedDebts.filter { it.direction == "BORROWED" }.sumOf { it.principalMinor }
                 return NetWorthMath.total(cash, holdings, receivables, payables)
             }
             val netWorthTrend = dailyBalance.mapIndexed { index, cash -> netWorthAt(period.start.plusDays(index.toLong()), cash) }
