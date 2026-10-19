@@ -1,5 +1,6 @@
 # Phone checklist
 
+- P14: Use Arabic and English voice on the phone, review/edit/discard and Save all, confirm/dismiss SMS drafts including a reversal and duplicate, grant SMS through its rationale/restricted-settings guide, and pin both widget sizes with Hide amounts on/off; expect no ledger row before confirmation, reversal as an adjustment, and masked widget values.
 - Open Records, fling the list, and confirm rows stay smooth near 60 fps on the phone.
 - Open a month of Records and scroll past the first grouped date; expect the pinned date header to stay above the first row without covering it.
 - Open the period sheet, choose Day and then Week, and confirm Apply is enabled and returns to the matching period.

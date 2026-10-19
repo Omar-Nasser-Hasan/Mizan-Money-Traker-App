@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,6 +42,7 @@ fun V2QuickSettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var error by remember { mutableStateOf(false) }
+    var showSmsRationale by remember { mutableStateOf(false) }
     val permission =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             scope.launch { repository.settings.set(SettingFlag.SMS, granted) }
@@ -86,7 +88,7 @@ fun V2QuickSettingsScreen(
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         MzToggle(state!![SettingFlag.SMS], { enabled ->
                             if (enabled) {
-                                permission.launch(Manifest.permission.RECEIVE_SMS)
+                                showSmsRationale = true
                             } else {
                                 scope.launch { repository.settings.set(SettingFlag.SMS, false) }
                             }
@@ -107,5 +109,23 @@ fun V2QuickSettingsScreen(
                 }
             }
         }
+    }
+    if (showSmsRationale) {
+        AlertDialog(
+            onDismissRequest = { showSmsRationale = false },
+            title = { Text("Allow bank message drafts?") },
+            text = {
+                Text(
+                    "Mizan reads incoming SMS only after you opt in. Matching messages become drafts in Inbox; nothing posts without your confirmation. Android may require enabling restricted access in phone settings.",
+                )
+            },
+            confirmButton = {
+                MzButton("Continue", {
+                    showSmsRationale = false
+                    permission.launch(Manifest.permission.RECEIVE_SMS)
+                })
+            },
+            dismissButton = { MzButton("Cancel", { showSmsRationale = false }, style = MzButtonStyle.GHOST) },
+        )
     }
 }
