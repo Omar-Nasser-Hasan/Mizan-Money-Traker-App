@@ -133,3 +133,7 @@
 ### P13 — Templates
 
 - CRUD for income splits, income sources and record presets, using existing repositories and split validation.
+
+### P13 — Notifications
+
+- Six notification toggles, delivery permission status, editable daily time and quiet hours, and phone battery/access guides.
