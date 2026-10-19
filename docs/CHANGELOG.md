@@ -137,3 +137,7 @@
 ### P13 — Notifications
 
 - Six notification toggles, delivery permission status, editable daily time and quiet hours, and phone battery/access guides.
+
+### P13 — Security
+
+- Native controls for device authentication, lock timeout, hidden amounts and protected Recents.
