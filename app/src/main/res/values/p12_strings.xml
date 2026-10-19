@@ -58,4 +58,5 @@
     <string name="lock_timeout_option">%1$d sec</string>
     <string name="lock_timeout_five_minutes">5 min</string>
     <string name="lock_timeout_immediate">Immediately</string>
+    <string name="setup_save_error">Could not save your setup. Try again.</string>
 </resources>

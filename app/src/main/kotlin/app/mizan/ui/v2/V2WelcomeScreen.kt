@@ -3,6 +3,7 @@
 
 package app.mizan.ui.v2
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,7 +27,11 @@ fun V2WelcomeScreen(
     onRestore: () -> Unit,
 ) {
     Column(
-        Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
+        Modifier
+            .fillMaxSize()
+            .background(LocalMzTokens.current.canvas)
+            .safeDrawingPadding()
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

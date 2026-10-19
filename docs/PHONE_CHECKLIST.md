@@ -32,3 +32,11 @@
 - Buy and sell a small holding from an eligible cash account and capture Buy/Sell in docs/ui/shots/p11/; expect ASSET_BUY/ASSET_SELL entries, changed cash, and no income/expense record.
 - Add a gold coin/bar and an EGX holding and capture Add holding in docs/ui/shots/p11/; expect enabled quote currency, karat/form, and price mode to persist after reopening.
 - Open Update prices online and offline, enter 21K and stock prices, and capture the screen in docs/ui/shots/p11/; expect gold ratios, source ages, stale badges, and last-known values to remain visible.
+
+- P12: On a clean install enter renamed accounts with EGP/USD opening balances, a custom split and a category subset, finish setup and relaunch; expect Home/Accounts to show exactly those balances, income to use that split, and only the chosen tree plus Uncategorized to remain active.
+- P12: Skip every setup step on a clean install; expect Essential, Fun and Investment with zero EGP balances, a 10/40/50 split, all seeded categories and app lock off.
+- P12: From Welcome choose Restore a backup, select an encrypted backup, test a wrong passphrase then restore with the correct one; expect no writes on failure and the restored data on Home after the restart without re-entering setup.
+- P12: Enable app lock, cancel biometric/PIN once, authenticate, leave past the configured timeout and force-stop/relaunch; expect no financial shell until authentication succeeds and cold starts to remain locked.
+- P12: Enable Block screenshots, background the app and inspect Recents, then unlock using Use device PIN; expect a blank protected preview, screenshots blocked and the device credential flow to unlock successfully.
+- P12: Complete all setup screens with Arabic account names, TalkBack and 1.3x text; expect readable RTL names, announced controls and reachable Continue/Skip buttons without clipped fields.
+- P12: Set a backup passphrase during Secure it and let the scheduled backup run; expect that passphrase to restore the resulting archive and no recovery option if it is forgotten.

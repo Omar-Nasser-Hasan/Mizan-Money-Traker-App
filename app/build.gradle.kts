@@ -59,6 +59,7 @@ ksp {
 dependencies {
     implementation(project(":domain"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.compose.bom))

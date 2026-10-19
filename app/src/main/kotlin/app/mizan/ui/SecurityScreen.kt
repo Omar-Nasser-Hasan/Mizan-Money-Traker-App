@@ -13,9 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mizan.R
 import app.mizan.data.repository.MizanRepository
+import app.mizan.security.DeviceSecurity
 import kotlinx.coroutines.launch
 
 @Composable
@@ -26,24 +30,28 @@ fun securityScreen(
     val hideAmounts by repository.observeHideAmounts().collectAsStateWithLifecycle(false)
     val secureScreens by repository.observeSecureScreens().collectAsStateWithLifecycle(false)
     val lockTimeout by repository.observeLockTimeoutSeconds().collectAsStateWithLifecycle(30)
+    val lockEnabled by repository.observeAppLockEnabled().collectAsStateWithLifecycle(false)
+    val canLock = DeviceSecurity.available(LocalContext.current)
     val scope = rememberCoroutineScope()
     Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Security")
-        Text("Hide amounts in Mizan")
+        Text(stringResource(R.string.lock_settings))
+        Text(stringResource(R.string.lock_hide_amounts))
         Switch(hideAmounts, onCheckedChange = { scope.launch { repository.setHideAmounts(it) } })
-        Text("Block screenshots and hide Mizan in Recents")
+        Text(stringResource(R.string.lock_screen_secure))
         Switch(secureScreens, onCheckedChange = { scope.launch { repository.setSecureScreens(it) } })
-        Text("App lock uses your device fingerprint, face, or PIN.")
-        Text("Lock after leaving Mizan")
+        Text(stringResource(R.string.setup_lock_toggle))
+        Switch(lockEnabled, onCheckedChange = { scope.launch { repository.setAppLockEnabled(it) } }, enabled = canLock || lockEnabled)
+        Text(stringResource(if (canLock) R.string.setup_lock_description else R.string.setup_lock_unavailable))
+        Text(stringResource(R.string.lock_timeout_setting))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf(0, 30, 60, 300).forEach { seconds ->
                 val label =
                     if (seconds == 0) {
-                        "Immediately"
+                        stringResource(R.string.lock_timeout_immediate)
                     } else if (seconds == 300) {
-                        "5 min"
+                        stringResource(R.string.lock_timeout_five_minutes)
                     } else {
-                        "$seconds sec"
+                        stringResource(R.string.lock_timeout_option, seconds)
                     }
                 FilterChip(lockTimeout == seconds, { scope.launch { repository.setLockTimeoutSeconds(seconds) } }, label = { Text(label) })
             }

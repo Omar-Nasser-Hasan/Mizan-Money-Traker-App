@@ -106,3 +106,8 @@
 
 - Added the Welcome screen and verified-backup entry path; startup waits for a loaded completion preference instead of treating an empty loading Flow as first run.
 - Added editable setup account cards, enabled-currency buckets, restorable drafts, and an atomic, retry-safe writer for accounts, split templates, and category selection.
+- Added editable default income percentages, the standard preset, and all-income-to-one-account selection.
+- Added searchable category parent cards with branch counts, Select all/Clear, and stable-id selection over the seeds.
+- Added Secure it with an optional device-lock toggle and a confirmed, Keystore-wrapped backup passphrase; Skip keeps the selected setup and leaves security optional.
+- Added an opaque lock gate with AndroidX BiometricPrompt and device PIN, a persisted lock toggle, exact timeout handling, process-local authentication and protected startup/Recents behavior.
+- Added setup persistence, draft/category-selection and lock-boundary tests, Compose screen/action checks, emulator captures and P12 phone acceptance steps.

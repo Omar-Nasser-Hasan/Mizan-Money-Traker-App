@@ -80,3 +80,5 @@
 - Daily expense reminders use an exact Cairo-time alarm where Android permits it. On Android 12+ where exact alarms are unavailable, Mizan uses a best-effort one-time WorkManager fallback; boot reschedules the next reminder.
 
 - P12: Existing installs with active accounts are treated as having finished setup when the new persisted completion flag is absent. Onboarding and privacy gates are shared by both shells so clean installs receive the P12 flow; the shell feature flag remains unchanged.
+- P12: App lock starts off unless selected during setup; leaving both passphrase fields blank defers backup protection. Passphrases are never saved in UI restoration state.
+- P12 uses AndroidX Biometric 1.1.0, verified as the stable release on 2026-10-19 at https://developer.android.com/jetpack/androidx/releases/biometric, replacing the existing framework-only prompt to follow SPEC security. MainActivity uses FragmentActivity to host it; the Compose shell is unchanged.

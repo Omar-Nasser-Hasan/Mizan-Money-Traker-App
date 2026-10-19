@@ -1,59 +1,79 @@
 // Copyright (c) 2026 Mizan contributors
 package app.mizan.security
 
-import android.app.Activity
-import android.hardware.biometrics.BiometricManager
-import android.hardware.biometrics.BiometricPrompt
-import android.os.CancellationSignal
+import android.os.SystemClock
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.fragment.app.FragmentActivity
+import app.mizan.R
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.Executor
 
 class AppLock(
-    private val activity: Activity,
+    private val activity: FragmentActivity,
     private val executor: Executor,
 ) {
-    private var backgroundedAt = 0L
-    private var prompting = false
-    private var timeoutMillis = 30_000L
+    private val gate = LockGate(SystemClock::elapsedRealtime)
+    val state = gate.state
+    private val mutableMessage = MutableStateFlow<String?>(null)
+    val message = mutableMessage.asStateFlow()
+    private val mutablePrompting = MutableStateFlow(false)
+    val prompting = mutablePrompting.asStateFlow()
+    private val prompt =
+        BiometricPrompt(
+            activity,
+            executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    mutablePrompting.value = false
+                    gate.authenticated()
+                }
 
-    fun setTimeoutSeconds(seconds: Int) {
-        timeoutMillis = seconds.coerceAtLeast(0).toLong() * 1_000L
-    }
+                override fun onAuthenticationError(
+                    errorCode: Int,
+                    errString: CharSequence,
+                ) {
+                    mutablePrompting.value = false
+                    mutableMessage.value = errString.toString()
+                }
+            },
+        )
 
-    fun onStop() {
-        backgroundedAt = System.currentTimeMillis()
-    }
+    fun configure(
+        enabled: Boolean,
+        timeoutSeconds: Int,
+    ) = gate.configure(enabled, timeoutSeconds)
 
-    fun onResume() {
-        if (backgroundedAt == 0L || System.currentTimeMillis() - backgroundedAt < timeoutMillis || prompting) return
-        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        if (activity.getSystemService(BiometricManager::class.java).canAuthenticate(authenticators) != BiometricManager.BIOMETRIC_SUCCESS) {
-            activity.moveTaskToBack(true)
+    fun onBackground() = gate.onBackground()
+
+    fun onResume() = gate.onForeground()
+
+    fun unlock(deviceCredentialOnly: Boolean = false) {
+        if (prompting.value || !state.value.enabled || !state.value.locked) return
+        if (!DeviceSecurity.available(activity)) {
+            mutableMessage.value = activity.getString(R.string.setup_lock_unavailable)
             return
         }
-        prompting = true
-        BiometricPrompt
-            .Builder(activity)
-            .setTitle("Unlock Mizan")
-            .setDescription("Use your device fingerprint, face, or screen lock")
-            .setAllowedAuthenticators(authenticators)
-            .build()
-            .authenticate(
-                CancellationSignal(),
-                executor,
-                object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
-                        prompting = false
-                        backgroundedAt = 0L
-                    }
+        mutablePrompting.value = true
+        mutableMessage.value = null
+        val authenticators =
+            if (deviceCredentialOnly) {
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            } else {
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            }
+        val info =
+            BiometricPrompt.PromptInfo
+                .Builder()
+                .setTitle(activity.getString(R.string.lock_prompt_title))
+                .setDescription(activity.getString(R.string.lock_prompt_description))
+                .setAllowedAuthenticators(authenticators)
+                .build()
+        prompt.authenticate(info)
+    }
 
-                    override fun onAuthenticationError(
-                        errorCode: Int,
-                        errString: CharSequence?,
-                    ) {
-                        prompting = false
-                        activity.moveTaskToBack(true)
-                    }
-                },
-            )
+    fun close() {
+        prompt.cancelAuthentication()
     }
 }

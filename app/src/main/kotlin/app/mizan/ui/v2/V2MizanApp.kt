@@ -24,12 +24,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mizan.R
 import app.mizan.data.repository.MizanRepository
+import app.mizan.ui.securityScreen
 import kotlinx.coroutines.launch
 
 /**
@@ -185,6 +188,8 @@ fun v2MizanApp(
                     },
                 )
             }
+        } else if (activeRoute == V2Route.SecuritySettings) {
+            securityScreen(repository, Modifier.padding(padding))
         } else if (activeRoute == V2Route.Goals) {
             Box(Modifier.padding(padding)) { V2GoalsScreen(repository, hideAmounts) { navigation = navigation.navigate(it) } }
         } else if (activeRoute == V2Route.NewGoal || activeRoute is V2Route.EditGoal) {
@@ -583,6 +588,11 @@ private fun V2Placeholder(
                 },
                 modifier = Modifier.weight(1f),
             )
+            if (route == V2Route.Settings) {
+                MzButton(stringResource(R.string.lock_settings), {
+                    onNavigate(V2Route.SecuritySettings)
+                }, Modifier.padding(horizontal = MzSpacing.sideMargin))
+            }
             if (route == V2Route.About) {
                 MzToggle(
                     checked = true,

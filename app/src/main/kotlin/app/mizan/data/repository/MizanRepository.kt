@@ -125,6 +125,9 @@ class MizanRepository
         private val client: OkHttpClient,
         private val clock: Clock,
     ) {
+        private val restoring = kotlinx.coroutines.flow.MutableStateFlow(false)
+        val restoreInProgress: kotlinx.coroutines.flow.StateFlow<Boolean> = restoring
+
         fun observeAccounts(): Flow<List<AccountEntity>> = accounts.observeActive()
 
         fun observeCurrencies(): Flow<List<CurrencyEntity>> = currencies.observeAll()
@@ -307,7 +310,15 @@ class MizanRepository
         suspend fun restoreBackup(
             file: java.io.File,
             passphrase: CharArray,
-        ) = withContext(Dispatchers.IO) { BackupArchive(context, database).restore(file, passphrase) }
+        ) = withContext(Dispatchers.IO) {
+            restoring.value = true
+            try {
+                BackupArchive(context, database).restore(file, passphrase)
+            } catch (failure: Exception) {
+                restoring.value = false
+                throw failure
+            }
+        }
 
         suspend fun localBackups() = withContext(Dispatchers.IO) { BackupArchive(context, database).localBackups() }
 
@@ -472,9 +483,16 @@ class MizanRepository
          */
         fun observeNewInterface(): Flow<Boolean> = context.dataStore.data.map { it[NEW_INTERFACE] ?: false }
 
-        /** Existing installations already have accounts; only a loaded snapshot may decide first run. */
-        fun observeOnboardingCompleted(): Flow<Boolean> =
-            context.dataStore.data.map { it[ONBOARDING_COMPLETED] ?: accounts.active().isNotEmpty() }
+        fun observeStartupSettings(): Flow<app.mizan.security.StartupSettings> =
+            context.dataStore.data.map { prefs ->
+                app.mizan.security.StartupSettings(
+                    prefs[ONBOARDING_COMPLETED] ?: accounts.active().isNotEmpty(),
+                    prefs[NEW_INTERFACE] ?: false,
+                    prefs[APP_LOCK_ENABLED] ?: false,
+                    prefs[LOCK_TIMEOUT_SECONDS] ?: 30,
+                    prefs[SECURE_SCREENS] ?: false,
+                )
+            }
 
         suspend fun setOnboardingCompleted() = context.dataStore.edit { it[ONBOARDING_COMPLETED] = true }
 
@@ -482,9 +500,38 @@ class MizanRepository
 
         fun observeSetupCategories() = reference.observeSetupCategories()
 
-        suspend fun finishOnboarding(setup: app.mizan.domain.accounts.OnboardingSetup) {
+        suspend fun finishOnboarding(
+            setup: app.mizan.domain.accounts.OnboardingSetup,
+            lockEnabled: Boolean = false,
+            backupPassphrase: CharArray? = null,
+        ) {
+            require(
+                !lockEnabled ||
+                    app.mizan.security.DeviceSecurity
+                        .available(context),
+            ) { "Set up your device screen lock first" }
+            val encrypted =
+                backupPassphrase?.let { value ->
+                    require(value.size >= 8) { "Use at least 8 characters" }
+                    withContext(Dispatchers.IO) { BackupPassphraseVault.encrypt(value) }
+                }
             OnboardingWriter(database).save(setup, LocalDate.now(clock.withZone(cairo)))
-            setOnboardingCompleted()
+            context.dataStore.edit {
+                it[ONBOARDING_COMPLETED] = true
+                it[APP_LOCK_ENABLED] = lockEnabled
+                if (encrypted != null) it[BACKUP_PASSPHRASE] = encrypted
+            }
+        }
+
+        fun observeAppLockEnabled(): Flow<Boolean> = context.dataStore.data.map { it[APP_LOCK_ENABLED] ?: false }
+
+        suspend fun setAppLockEnabled(enabled: Boolean) {
+            require(
+                !enabled ||
+                    app.mizan.security.DeviceSecurity
+                        .available(context),
+            ) { "Set up your device screen lock first" }
+            context.dataStore.edit { it[APP_LOCK_ENABLED] = enabled }
         }
 
         fun observeV2PeriodKind(): Flow<String> = context.dataStore.data.map { it[V2_PERIOD_KIND] ?: "MONTH" }
@@ -1457,6 +1504,7 @@ class MizanRepository
             private val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
             private val NEW_INTERFACE = booleanPreferencesKey("new_interface")
             private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+            private val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
             private val V2_PERIOD_KIND = stringPreferencesKey("v2_period_kind")
             private val V2_PERIOD_START = stringPreferencesKey("v2_period_start")
             private val V2_PERIOD_END = stringPreferencesKey("v2_period_end")
