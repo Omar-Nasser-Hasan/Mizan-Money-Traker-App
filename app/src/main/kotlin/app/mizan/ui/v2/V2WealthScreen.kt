@@ -52,16 +52,16 @@ fun V2WealthScreen(
     onOpenHolding: (String) -> Unit,
     onUpdatePrices: () -> Unit,
 ) {
-    val accounts by repository.observeAccounts().collectAsStateWithLifecycle(emptyList())
-    val balances by repository.observeAllAccountBalances().collectAsStateWithLifecycle(emptyList())
-    val currencies by repository.observeCurrencies().collectAsStateWithLifecycle(emptyList())
-    val assets by repository.observeAssets().collectAsStateWithLifecycle(emptyList())
-    val trades by repository.observeAllAssetTransactions().collectAsStateWithLifecycle(emptyList())
-    val prices by repository.observePriceHistory().collectAsStateWithLifecycle(emptyList())
-    val fxHistory by repository.observeFxHistory().collectAsStateWithLifecycle(emptyList())
-    val statsEntries by repository.observeStatsEntries().collectAsStateWithLifecycle(emptyList())
-    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
-    val debtRepayments by repository.observeDebtRepaymentRows().collectAsStateWithLifecycle(emptyList())
+    val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
+    val balances by remember(repository) { repository.observeAllAccountBalances() }.collectAsStateWithLifecycle(emptyList())
+    val currencies by remember(repository) { repository.observeCurrencies() }.collectAsStateWithLifecycle(emptyList())
+    val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
+    val trades by remember(repository) { repository.observeAllAssetTransactions() }.collectAsStateWithLifecycle(emptyList())
+    val prices by remember(repository) { repository.observePriceHistory() }.collectAsStateWithLifecycle(emptyList())
+    val fxHistory by remember(repository) { repository.observeFxHistory() }.collectAsStateWithLifecycle(emptyList())
+    val statsEntries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
+    val debts by remember(repository) { repository.observeAllDebts() }.collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by remember(repository) { repository.observeDebtRepaymentRows() }.collectAsStateWithLifecycle(emptyList())
     val snapshotState by produceState<V2WealthSnapshot?>(
         null,
         accounts,
