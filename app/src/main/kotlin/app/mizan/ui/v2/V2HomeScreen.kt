@@ -24,8 +24,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -51,6 +54,7 @@ import app.mizan.data.db.AssetTransactionEntity
 import app.mizan.data.db.BudgetEntity
 import app.mizan.data.db.CurrencyEntity
 import app.mizan.data.db.DebtEntity
+import app.mizan.data.db.DebtRepaymentRow
 import app.mizan.data.db.FxRateEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.PriceSnapshotEntity
@@ -110,8 +114,10 @@ fun V2HomeScreen(
     val rates by repository.observeLatestFxRates().collectAsStateWithLifecycle(emptyList())
     val budgets by repository.observeBudgets().collectAsStateWithLifecycle(emptyList())
     val planned by repository.observePlannedPayments().collectAsStateWithLifecycle(emptyList())
-    val debts by repository.observeDebts().collectAsStateWithLifecycle(emptyList())
+    val debts by repository.observeAllDebts().collectAsStateWithLifecycle(emptyList())
+    val debtRepayments by repository.observeDebtRepaymentRows().collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(cairoZone)
+    var renderedRecordCount by remember { mutableStateOf(-1) }
     val data by produceState<HomeUiData?>(
         null,
         accounts,
@@ -126,8 +132,10 @@ fun V2HomeScreen(
         budgets,
         planned,
         debts,
+        debtRepayments,
         today,
     ) {
+        renderedRecordCount = -1
         value =
             withContext(Dispatchers.Default) {
                 HomeUiData.from(
@@ -144,8 +152,10 @@ fun V2HomeScreen(
                     planned,
                     debts,
                     today,
+                    debtRepayments,
                 )
             }
+        renderedRecordCount = if (accounts.isNotEmpty() && balanceRows.isNotEmpty()) records.size else -1
     }
     val context = androidx.compose.ui.platform.LocalContext.current
     val refresh = {
@@ -183,7 +193,7 @@ fun V2HomeScreen(
             }
         }
     Box(
-        Modifier.fillMaxSize().nestedScroll(refreshConnection),
+        Modifier.fillMaxSize().nestedScroll(refreshConnection).testTag("home-data-$renderedRecordCount"),
     ) {
         when {
             data == null -> {
@@ -225,7 +235,7 @@ private fun HomeContent(
     onNavigate: (V2Route) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("home-ready"),
         contentPadding =
             androidx.compose.foundation.layout
                 .PaddingValues(horizontal = MzSpacing.sideMargin, vertical = 12.dp),
@@ -535,6 +545,7 @@ private data class HomeUiData(
             planned: List<PlannedPaymentEntity>,
             debts: List<DebtEntity>,
             today: LocalDate,
+            debtRepayments: List<DebtRepaymentRow>,
         ): HomeUiData {
             val accountBuckets =
                 balanceRows.groupBy { it.accountId }.mapValues { (_, values) ->
@@ -562,10 +573,7 @@ private data class HomeUiData(
                     )
                 }
             val holdings = holdings(assets, trades, prices, currencies, rates)
-            val debtValues =
-                debts.map { debt ->
-                    HomeDebtValue(debt.direction, debt.principalMinor, rows.filter { it.debtId == debt.id }.sumOf { abs(it.baseMinor) })
-                }
+            val debtValues = valuedDebtBalances(debts, debtRepayments, currencies, rates, today)
             val month = Period(today.withDayOfMonth(1), today)
             val summary =
                 HomeSummaryCalculator.calculate(
@@ -594,7 +602,7 @@ private data class HomeUiData(
                                 "Over"
                         }.thenByDescending { it.percentBasisPoints },
                     ).take(3)
-            val upcoming = upcoming(planned, debts, rows, today)
+            val upcoming = upcoming(planned, debts, today, currencies, rates, debtRepayments)
             val gold = prices.firstOrNull { it.key == "GOLD_24K" }
             val age = gold?.let { ((Instant.now().toEpochMilli() - it.asOf).coerceAtLeast(0L) / 3_600_000L) }
             return HomeUiData(summary, accounts, accountBuckets, homeBudgets, upcoming, recent, age)
@@ -645,8 +653,10 @@ private data class HomeUiData(
         private fun upcoming(
             planned: List<PlannedPaymentEntity>,
             debts: List<DebtEntity>,
-            rows: List<StatsRecordRow>,
             today: LocalDate,
+            currencies: List<CurrencyEntity>,
+            rates: List<FxRateEntity>,
+            debtRepayments: List<DebtRepaymentRow>,
         ): List<UpcomingHomeItem> {
             val through = today.plusDays(7)
             val payments =
@@ -681,12 +691,8 @@ private data class HomeUiData(
             val debtRows =
                 debts.mapNotNull { debt ->
                     debt.dueDate?.let(LocalDate::parse)?.takeIf { it in today..through }?.let { date ->
-                        val repaid =
-                            rows
-                                .filter {
-                                    it.debtId ==
-                                        debt.id
-                                }.sumOf { abs(it.baseMinor) }
+                        val outstanding =
+                            valuedDebtBalances(listOf(debt), debtRepayments, currencies, rates, today).firstOrNull()?.principalMinor ?: 0L
                         ; UpcomingHomeItem(
                             debt.id,
                             debt.person,
@@ -694,11 +700,11 @@ private data class HomeUiData(
                             if (debt.direction ==
                                 "BORROWED"
                             ) {
-                                -(debt.principalMinor - repaid).coerceAtLeast(0L)
+                                -outstanding
                             } else {
-                                (debt.principalMinor - repaid).coerceAtLeast(0L)
+                                outstanding
                             },
-                            "person",
+                            "handshake",
                             V2Route.Debts,
                         )
                     }
@@ -718,7 +724,7 @@ private data class HomeUiData(
                     AverageCost.position(
                         trades
                             .filter {
-                                it.assetId == asset.id
+                                it.assetId == asset.id && it.deletedAt == null
                             }.map {
                                 AssetTransaction(
                                     it.id,
@@ -735,24 +741,27 @@ private data class HomeUiData(
                             },
                     )
                 val key = if (asset.type == "GOLD") "GOLD_${asset.symbolOrKarats.uppercase()}" else "MANUAL:${asset.id}"
-                val price = prices.firstOrNull { it.key == key } ?: return@sumOf 0L
-                val decimals = currencies.firstOrNull { it.code == price.currency }?.decimals ?: return@sumOf 0L
+                val price = prices.firstOrNull { it.key == key }
+                val lastTrade = trades.filter { it.assetId == asset.id && it.deletedAt == null }.maxByOrNull { it.date }
+                val unitPrice = price?.price?.let(::BigDecimal) ?: lastTrade?.unitPrice?.let(::BigDecimal) ?: return@sumOf 0L
+                val quoteCurrency = price?.currency ?: asset.quoteCurrency
+                val decimals = currencies.firstOrNull { it.code == quoteCurrency }?.decimals ?: return@sumOf 0L
                 val quote =
                     AssetValuation.valueMinor(
                         position.quantity.coerceAtLeast(BigDecimal.ZERO),
-                        BigDecimal(price.price),
+                        unitPrice,
                         decimals,
                         BigDecimal(asset.resaleDeductionPct),
                     )
                 MoneyMath.baseMinor(
                     quote,
                     decimals,
-                    if (price.currency ==
+                    if (quoteCurrency ==
                         "EGP"
                     ) {
                         BigDecimal.ONE
                     } else {
-                        rates.firstOrNull { it.currency == price.currency }?.egpPerUnit?.let(::BigDecimal)
+                        rates.firstOrNull { it.currency == quoteCurrency }?.egpPerUnit?.let(::BigDecimal)
                             ?: return@sumOf 0L
                     },
                 )
