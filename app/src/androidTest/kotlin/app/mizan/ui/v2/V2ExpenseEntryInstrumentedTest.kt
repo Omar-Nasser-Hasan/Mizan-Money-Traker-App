@@ -123,6 +123,51 @@ class V2ExpenseEntryInstrumentedTest {
     }
 
     @Test
+    fun paying_by_card_preserves_the_selected_allocation_account_and_only_increases_card_owed() {
+        runBlocking { repository.setPaymentSourceBalances(50_000, 70_000, 0) }
+        val beforeAccountBalance =
+            runBlocking {
+                database.ledgerDao().observeAllAccountBalances().first().filter { it.accountId == accountId }.sumOf {
+                    it.openingMinor + it.entryMinor
+                }
+            }
+        val completed = AtomicInteger()
+        compose.setContent {
+            MizanTheme {
+                V2EntryScreen(repository, "EXPENSE", accountId, hideAmounts = false, onDone = { completed.incrementAndGet() })
+            }
+        }
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodesWithText(accountName).fetchSemanticsNodes().isNotEmpty()
+        }
+        listOf("Debit card", "Cash", "Credit card").forEach { method ->
+            compose.onNodeWithText(method).performScrollTo().performClick()
+            compose.onNodeWithText(accountName).performScrollTo().assertIsDisplayed()
+        }
+        compose.onNodeWithText("1", substring = false, useUnmergedTree = true).performScrollTo().performClick()
+        compose.onNodeWithText("Groceries", substring = false, useUnmergedTree = true).performScrollTo().performClick()
+        compose.onNodeWithText("Save", substring = false, useUnmergedTree = true).performScrollTo().performClick()
+        compose.waitUntil(timeoutMillis = 10_000) { completed.get() == 1 }
+        runBlocking {
+            val inserted =
+                database.ledgerDao().observeRecent(100).first().single {
+                    it.accountId == accountId && it.kind == "EXPENSE"
+                }
+            assertEquals("CREDIT", inserted.paymentType)
+            assertEquals(-100L, inserted.amountMinor)
+            val totals = repository.observePaymentSourceBalances().first()!!
+            assertEquals(50_000L, totals.cashMinor)
+            assertEquals(70_000L, totals.bankMinor)
+            assertEquals(100L, totals.creditOwedMinor)
+            val accountBalance =
+                database.ledgerDao().observeAllAccountBalances().first().filter { it.accountId == accountId }.sumOf {
+                    it.openingMinor + it.entryMinor
+                }
+            assertEquals(beforeAccountBalance - 100L, accountBalance)
+        }
+    }
+
+    @Test
     fun category_picker_is_reachable_below_the_quick_category_chips() {
         compose.setContent {
             MizanTheme {

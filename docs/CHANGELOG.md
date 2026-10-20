@@ -1,5 +1,11 @@
 # Changelog
 
+## Independent payment methods and consistent Home budgets
+
+- Expense entry keeps the selected allocation account when switching between Cash, Debit card, and Credit card. Every active account is available for each method, without requiring a card or bank account; confirmed records continue updating the corresponding independent source balance.
+- Applied the same account/payment independence to voice review and stopped deriving voice account matches from payment-method aliases.
+- Home budgets now use Plan's shared forecast, planned-payment, account-scope, and rollover calculation. Spent and Budget limit are labeled; spent has no minus sign and uses neutral, warning, or expense text for On pace, Trending over, or Over respectively.
+
 ## Shared chart presentation
 
 - Applied a common chart layout across Home, Stats, Balance Trend, period comparisons, and Asset Details: readable EGP axis ticks, dashed value guides, date labels, smooth plots, and a visible comparison legend.

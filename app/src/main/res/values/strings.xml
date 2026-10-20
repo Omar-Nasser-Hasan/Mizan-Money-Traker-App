@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">Mizan</string>
+    <string name="entry_add_account">Add an account in Settings → Accounts.</string>
+    <string name="budget_spent">Spent</string>
+    <string name="budget_limit">Budget limit</string>
+    <string name="budget_on_pace">On pace</string>
+    <string name="budget_trending_over">Trending over</string>
+    <string name="budget_over">Over</string>
     <string name="shortcut_add_expense">Add expense</string>
     <string name="shortcut_add_income">Add income</string>
     <string name="shortcut_voice_entry">Voice entry</string>

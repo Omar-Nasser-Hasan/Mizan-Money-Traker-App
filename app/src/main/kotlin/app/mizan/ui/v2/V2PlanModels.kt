@@ -80,6 +80,38 @@ internal data class PlannedPageData(
 )
 
 internal object PlanCalculations {
+    fun homeBudgets(
+        budgets: List<BudgetEntity>,
+        rows: List<StatsRecordRow>,
+        entries: List<StatsEntryRow>,
+        payments: List<PlannedPaymentEntity>,
+        occurrences: List<PlannedOccurrenceEntity>,
+        currencies: List<CurrencyEntity>,
+        rates: List<FxRateEntity>,
+        today: LocalDate,
+    ): List<BudgetCardData> =
+        BudgetPeriod.entries
+            .flatMap { period ->
+                this
+                    .budgets(
+                        budgets,
+                        rows,
+                        entries,
+                        payments,
+                        occurrences,
+                        emptyList(),
+                        emptyList(),
+                        currencies,
+                        rates,
+                        period,
+                        today,
+                        today,
+                    ).cards
+            }.filter { today in it.windowStart..it.windowEnd }
+            .sortedWith(
+                compareBy<BudgetCardData> { it.status != BudgetStatus.OVER }.thenByDescending { it.result.percentBasisPoints },
+            ).take(3)
+
     fun budgets(
         budgets: List<BudgetEntity>,
         rows: List<StatsRecordRow>,

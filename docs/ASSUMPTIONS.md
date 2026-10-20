@@ -4,7 +4,7 @@
 
 - Adding a lot to an existing holding records its quantity, purchase date, historical unit price, actual total paid and current market quote without changing cash or expense statistics. When paid cost is greater than quantity times unit price, the difference is retained as a fee/premium; the entered total paid remains the cost basis.
 - Stop recognition asks Android's on-device recognizer to finish the current utterance and then opens the draft review. Online recognition remains disabled; if the device has no on-device model for the selected language, the app asks the user to install that speech pack.
-- Cash, debit, and credit entry choices select existing CASH, BANK, and CREDIT_CARD accounts respectively. They also identify which independent cash, bank, or card-owed figure a confirmed transaction updates; they do not derive those figures from account balances. A card purchase is an expense when the user records it, while paying the card is a separate explicit transfer from a selected cash or bank account.
+- Account selection and payment method are independent, per the user's clarification. Essential, Fun, Investment, and other account names represent allocations of money; any active account can fund an expense paid by Cash, Debit card, or Credit card. The expense reduces the selected account once, while the payment method updates the independent cash, bank, or card-owed figure. Voice review uses the same rule and matches account names instead of assigning accounts from payment-method aliases. Existing account types remain available as specified in §4.1; entry does not require a matching type.
 
 ## Mizan historical workbook import
 

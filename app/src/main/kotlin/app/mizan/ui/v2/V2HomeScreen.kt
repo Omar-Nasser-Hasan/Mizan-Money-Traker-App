@@ -58,9 +58,11 @@ import app.mizan.data.db.CurrencyEntity
 import app.mizan.data.db.DebtEntity
 import app.mizan.data.db.DebtRepaymentRow
 import app.mizan.data.db.FxRateEntity
+import app.mizan.data.db.PlannedOccurrenceEntity
 import app.mizan.data.db.PlannedPaymentEntity
 import app.mizan.data.db.PriceSnapshotEntity
 import app.mizan.data.db.RecordRow
+import app.mizan.data.db.StatsEntryRow
 import app.mizan.data.db.StatsRecordRow
 import app.mizan.data.repository.MizanRepository
 import app.mizan.domain.assets.AssetTransaction
@@ -68,14 +70,10 @@ import app.mizan.domain.assets.AssetTransactionKind
 import app.mizan.domain.assets.AssetValuation
 import app.mizan.domain.assets.AverageCost
 import app.mizan.domain.money.MoneyMath
-import app.mizan.domain.plan.BudgetMath
-import app.mizan.domain.plan.BudgetMathInput
-import app.mizan.domain.plan.BudgetPeriod
+import app.mizan.domain.plan.BudgetStatus
 import app.mizan.domain.plan.Frequency
 import app.mizan.domain.plan.Recurrence
 import app.mizan.domain.plan.RecurrenceEngine
-import app.mizan.domain.plan.Rollover
-import app.mizan.domain.plan.budgetWindow
 import app.mizan.domain.stats.HomeAccountValue
 import app.mizan.domain.stats.HomeBanners
 import app.mizan.domain.stats.HomeDebtValue
@@ -107,6 +105,7 @@ fun V2HomeScreen(
     val accounts by remember(repository) { repository.observeAccounts() }.collectAsStateWithLifecycle(emptyList())
     val balanceRows by remember(repository) { repository.observeAccountBalances() }.collectAsStateWithLifecycle(emptyList())
     val records by remember(repository) { repository.observeStatsRows() }.collectAsStateWithLifecycle(emptyList())
+    val entries by remember(repository) { repository.observeStatsEntries() }.collectAsStateWithLifecycle(emptyList())
     val recent by remember(repository) { repository.observeRecentRecords(5) }.collectAsStateWithLifecycle(emptyList())
     val inboxDrafts by remember(repository) { repository.observeInboxDrafts() }.collectAsStateWithLifecycle(emptyList())
     val assets by remember(repository) { repository.observeAssets() }.collectAsStateWithLifecycle(emptyList())
@@ -116,6 +115,7 @@ fun V2HomeScreen(
     val rates by remember(repository) { repository.observeLatestFxRates() }.collectAsStateWithLifecycle(emptyList())
     val budgets by remember(repository) { repository.observeBudgets() }.collectAsStateWithLifecycle(emptyList())
     val planned by remember(repository) { repository.observePlannedPayments() }.collectAsStateWithLifecycle(emptyList())
+    val occurrences by remember(repository) { repository.observePlannedOccurrences() }.collectAsStateWithLifecycle(emptyList())
     val debts by remember(repository) { repository.observeAllDebts() }.collectAsStateWithLifecycle(emptyList())
     val debtRepayments by remember(repository) { repository.observeDebtRepaymentRows() }.collectAsStateWithLifecycle(emptyList())
     val today = LocalDate.now(cairoZone)
@@ -125,6 +125,7 @@ fun V2HomeScreen(
         accounts,
         balanceRows,
         records,
+        entries,
         recent,
         assets,
         trades,
@@ -133,6 +134,7 @@ fun V2HomeScreen(
         rates,
         budgets,
         planned,
+        occurrences,
         debts,
         debtRepayments,
         today,
@@ -155,6 +157,8 @@ fun V2HomeScreen(
                     debts,
                     today,
                     debtRepayments,
+                    entries,
+                    occurrences,
                 )
             }
         renderedRecordCount = if (accounts.isNotEmpty() && balanceRows.isNotEmpty()) records.size else -1
@@ -277,7 +281,7 @@ private fun HomeContent(
         item { ThisMonthCard(data.summary, hideAmounts) }
         if (data.budgets.isNotEmpty()) {
             item { SectionTitle("Budgets", "See all") { onNavigate(V2Route.Budgets) } }
-            items(data.budgets, key = { it.id }) { budget -> BudgetCard(budget, hideAmounts) }
+            items(data.budgets, key = { it.budget.id }) { budget -> BudgetCard(budget, hideAmounts) }
         }
         if (data.upcoming.isNotEmpty()) {
             item { SectionTitle("Next 7 days") }
@@ -452,23 +456,60 @@ private fun HomeAmount(
 
 @Composable
 private fun BudgetCard(
-    budget: HomeBudget,
+    budget: BudgetCardData,
     hideAmounts: Boolean,
 ) {
+    val tokens = LocalMzTokens.current
+    val spentColor =
+        when (budget.status) {
+            BudgetStatus.ON_PACE -> tokens.text
+            BudgetStatus.TRENDING_OVER -> tokens.warning
+            BudgetStatus.OVER -> tokens.expense
+        }
     MzCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth()) {
                 androidx.compose.material3.Text(
-                    budget.name,
+                    budget.budget.name,
                     modifier = Modifier.weight(1f),
                     style = MzTypography.body.copy(fontWeight = FontWeight.SemiBold),
                 )
-                androidx.compose.material3.Text(budget.state, color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall)
+                androidx.compose.material3.Text(
+                    stringResource(
+                        when (budget.status) {
+                            BudgetStatus.ON_PACE -> R.string.budget_on_pace
+                            BudgetStatus.TRENDING_OVER -> R.string.budget_trending_over
+                            BudgetStatus.OVER -> R.string.budget_over
+                        },
+                    ),
+                    color = tokens.textDim,
+                    style = MzTypography.bodySmall,
+                )
             }
-            MzBudgetBar(budget.percentBasisPoints / 10_000f)
+            MzBudgetBar(budget.result.percentBasisPoints / 10_000f)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AmountText(budget.spentMinor, "EGP", AmountStyle.EXPENSE, hideAmounts, textStyle = MzTypography.amountSmall)
-                AmountText(budget.limitMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.amountSmall)
+                Column(Modifier.weight(1f)) {
+                    androidx.compose.material3.Text(
+                        stringResource(R.string.budget_spent),
+                        style = MzTypography.bodySmall,
+                        color = tokens.textDim,
+                    )
+                    AmountText(
+                        budget.spentMinor,
+                        "EGP",
+                        hideAmounts = hideAmounts,
+                        textStyle = MzTypography.amountSmall,
+                        color = spentColor,
+                    )
+                }
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    androidx.compose.material3.Text(
+                        stringResource(R.string.budget_limit),
+                        style = MzTypography.bodySmall,
+                        color = tokens.textDim,
+                    )
+                    AmountText(budget.result.effectiveLimitMinor, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.amountSmall)
+                }
             }
         }
     }
@@ -530,21 +571,6 @@ private data class AccountBucket(
     val egpMinor: Long,
 )
 
-private data class HomeBudget(
-    val id: String,
-    val name: String,
-    val spentMinor: Long,
-    val limitMinor: Long,
-    val percentBasisPoints: Long,
-) {
-    val state: String get() =
-        when {
-            percentBasisPoints >= 10_000L -> "Over"
-            percentBasisPoints >= 8_000L -> "Trending over"
-            else -> "On pace"
-        }
-}
-
 private data class UpcomingHomeItem(
     val id: String,
     val title: String,
@@ -558,7 +584,7 @@ private data class HomeUiData(
     val summary: HomeSummary,
     val accounts: List<AccountEntity>,
     val accountBuckets: Map<String, List<AccountBucket>>,
-    val budgets: List<HomeBudget>,
+    val budgets: List<BudgetCardData>,
     val upcoming: List<UpcomingHomeItem>,
     val recent: List<RecordRow>,
     val goldAgeHours: Long?,
@@ -579,6 +605,8 @@ private data class HomeUiData(
             debts: List<DebtEntity>,
             today: LocalDate,
             debtRepayments: List<DebtRepaymentRow>,
+            entries: List<StatsEntryRow>,
+            occurrences: List<PlannedOccurrenceEntity>,
         ): HomeUiData {
             val accountBuckets =
                 balanceRows.groupBy { it.accountId }.mapValues { (_, values) ->
@@ -626,62 +654,12 @@ private data class HomeUiData(
                     StatPeriods.previous(month),
                     Period(today.minusDays(29), today),
                 )
-            val homeBudgets =
-                budgets
-                    .mapNotNull { budget -> homeBudget(budget, statRows, today) }
-                    .sortedWith(
-                        compareBy<HomeBudget> {
-                            it.state !=
-                                "Over"
-                        }.thenByDescending { it.percentBasisPoints },
-                    ).take(3)
+            val homeBudgets = PlanCalculations.homeBudgets(budgets, rows, entries, planned, occurrences, currencies, rates, today)
             val upcoming = upcoming(planned, debts, today, currencies, rates, debtRepayments)
             val gold = prices.firstOrNull { it.key == "GOLD_24K" }
             val age = gold?.let { ((Instant.now().toEpochMilli() - it.asOf).coerceAtLeast(0L) / 3_600_000L) }
             return HomeUiData(summary, accounts, accountBuckets, homeBudgets, upcoming, recent, age)
         }
-
-        private fun homeBudget(
-            budget: BudgetEntity,
-            rows: List<StatRecord>,
-            today: LocalDate,
-        ): HomeBudget? =
-            runCatching {
-                val window =
-                    budgetWindow(
-                        BudgetPeriod.valueOf(budget.period),
-                        today,
-                        budget.startDate?.let(LocalDate::parse),
-                        budget.endDate?.let(LocalDate::parse),
-                    )
-                if (today !in window.start..window.end) return null
-                val spent =
-                    rows
-                        .filter {
-                            it.kind == StatKind.EXPENSE && it.date in window.start..today &&
-                                (
-                                    budget.scope == "ALL" || (budget.scope == "ACCOUNT" && it.accountId in budget.scopeIds.split(',')) ||
-                                        (budget.scope == "CATEGORY" && it.categoryId in budget.scopeIds.split(','))
-                                )
-                        }.sumOf { abs(it.baseMinor) }
-                val result =
-                    BudgetMath.calculate(
-                        BudgetMathInput(
-                            budget.limitMinor,
-                            spent,
-                            rollover = Rollover.valueOf(budget.rollover),
-                            elapsedDays =
-                                java.time.temporal.ChronoUnit.DAYS
-                                    .between(window.start, today)
-                                    .toInt() + 1,
-                            remainingDays =
-                                java.time.temporal.ChronoUnit.DAYS
-                                    .between(today, window.end)
-                                    .toInt(),
-                        ),
-                    )
-                HomeBudget(budget.id, budget.name, spent, result.effectiveLimitMinor, result.percentBasisPoints)
-            }.getOrNull()
 
         private fun upcoming(
             planned: List<PlannedPaymentEntity>,

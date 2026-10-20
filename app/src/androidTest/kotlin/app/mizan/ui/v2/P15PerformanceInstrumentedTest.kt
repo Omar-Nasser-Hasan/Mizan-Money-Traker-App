@@ -80,7 +80,7 @@ class P15PerformanceInstrumentedTest {
                     if (page == "Home") {
                         V2HomeScreen(repository, false) {}
                     } else {
-                        V2StatsScreen(repository, PeriodState(), null, false, page, {}, {}, {}, {})
+                        V2StatsScreen(repository, PeriodState(), null, false, 1_500L, page, {}, {}, {}, {})
                     }
                 }
             }

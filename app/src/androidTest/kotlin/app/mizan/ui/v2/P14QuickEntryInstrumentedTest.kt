@@ -88,7 +88,7 @@ class P14QuickEntryInstrumentedTest {
                 "Carrefour",
                 96,
                 "125 EGP",
-                app.mizan.domain.ledger.PaymentType.CASH,
+                app.mizan.domain.ledger.PaymentType.CREDIT,
             )
         var saves = 0
         var edits = 0
@@ -99,8 +99,7 @@ class P14QuickEntryInstrumentedTest {
                 ) { androidx.compose.material3.Text("دفعت ١٢٥ جنيه في كارفور") }
                 VoiceReviewSheet(
                     listOf(draft),
-                    mapOf("cash" to "Cash"),
-                    mapOf("cash" to "CASH"),
+                    mapOf("cash" to "Fun"),
                     mapOf(DraftKind.EXPENSE to mapOf("food" to "Food"), DraftKind.INCOME to emptyMap()),
                     false,
                     false,

@@ -179,7 +179,12 @@ class V2StatsGoldenInstrumentedTest {
         compose.setContent {
             val view = LocalView.current
             MizanTheme {
-                BalancePage(data, hide = false) { _, bounds -> bitmap.set(captureCardBitmap(view, bounds)) }
+                BalancePage(data, hide = false, period = Period(LocalDate.parse("2026-03-01"), LocalDate.parse("2026-03-20"))) {
+                    _,
+                    bounds,
+                    ->
+                    bitmap.set(captureCardBitmap(view, bounds))
+                }
             }
         }
         compose.onNodeWithText("EGP 1,400.00", useUnmergedTree = true).assertIsDisplayed()

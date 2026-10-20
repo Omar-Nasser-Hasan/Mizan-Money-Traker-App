@@ -35,11 +35,12 @@ fun AmountText(
     modifier: Modifier = Modifier,
     textStyle: TextStyle = MzTypography.amountMedium,
     showCurrency: Boolean = true,
+    color: Color? = null,
 ) {
     val tokens = LocalMzTokens.current
     val formatted = formatMizanAmount(minor, currency, style, hideAmounts, showCurrency)
-    val color =
-        when (style) {
+    val resolvedColor =
+        color ?: when (style) {
             AmountStyle.EXPENSE -> tokens.expense
             AmountStyle.INCOME -> tokens.income
             AmountStyle.TRANSFER -> tokens.transfer
@@ -61,7 +62,7 @@ fun AmountText(
                 }
                 Text(
                     parts.first,
-                    color = color,
+                    color = resolvedColor,
                     style = MzTypography.hero.copy(fontFeatureSettings = "tnum"),
                 )
                 Text(
@@ -73,7 +74,7 @@ fun AmountText(
         } else {
             Text(
                 text = formatted,
-                color = color,
+                color = resolvedColor,
                 maxLines = 1,
                 softWrap = false,
                 style = if (fit < 1f) resolvedStyle.copy(fontSize = resolvedStyle.fontSize * fit) else resolvedStyle,

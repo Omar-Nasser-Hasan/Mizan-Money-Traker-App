@@ -478,6 +478,7 @@ class P15QualityInstrumentedTest {
                     PeriodState(),
                     null,
                     false,
+                    1_500L,
                     if (name ==
                         "cash-flow"
                     ) {

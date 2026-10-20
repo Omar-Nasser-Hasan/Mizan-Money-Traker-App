@@ -107,17 +107,7 @@ fun V2VoiceReviewScreen(
     val parserContext =
         remember(accounts, expenses, incomes, learned, defaultSplitLines, defaultRemainder) {
             ParserContext(
-                accounts.map { account ->
-                    val aliases =
-                        when (account.type) {
-                            "CASH" -> setOf("cash", "كاش", "نقدي")
-                            "BANK", "SAVINGS", "EWALLET" -> setOf("bank", "bank account", "debit card", "بنك", "البنك", "حساب البنك")
-                            "CREDIT_CARD" -> setOf("credit card", "credit", "card", "كريدت", "بطاقة ائتمان")
-                            "INVESTMENT" -> setOf("investment", "investments", "استثمار", "استثمارات", "الاستثمار")
-                            else -> emptySet()
-                        }
-                    ParserAccount(account.id, setOf(account.name) + aliases)
-                },
+                accounts.map { account -> ParserAccount(account.id, setOf(account.name)) },
                 (expenses + incomes).map { ParserCategory(it.id, setOf(it.name)) },
                 learnedPayees = learned,
                 defaultAccountId = null,
@@ -228,7 +218,6 @@ fun V2VoiceReviewScreen(
         VoiceReviewSheet(
             drafts = editedDrafts,
             accounts = accounts.associate { it.id to it.name },
-            accountTypes = accounts.associate { it.id to it.type },
             categories =
                 mapOf(
                     app.mizan.domain.entry.DraftKind.EXPENSE to expenses.associate { it.id to it.name },
@@ -345,7 +334,6 @@ private fun VoiceWaveform(listening: Boolean) {
 internal fun VoiceReviewSheet(
     drafts: List<DraftRecord>,
     accounts: Map<String, String>,
-    accountTypes: Map<String, String>,
     categories: Map<app.mizan.domain.entry.DraftKind, Map<String, String>>,
     hideAmounts: Boolean,
     saving: Boolean,
@@ -435,23 +423,7 @@ internal fun VoiceReviewSheet(
                         if (editing) {
                             Text("Account", style = MzTypography.labelCaps)
                             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                val eligibleAccounts =
-                                    accounts.filter { (id, _) ->
-                                        if (drafts[index].kind != app.mizan.domain.entry.DraftKind.EXPENSE ||
-                                            drafts[index].paymentType == null
-                                        ) {
-                                            true
-                                        } else {
-                                            accountTypes[id] ==
-                                                when (drafts[index].paymentType) {
-                                                    app.mizan.domain.ledger.PaymentType.CASH -> "CASH"
-                                                    app.mizan.domain.ledger.PaymentType.DEBIT -> "BANK"
-                                                    app.mizan.domain.ledger.PaymentType.CREDIT -> "CREDIT_CARD"
-                                                    else -> ""
-                                                }
-                                        }
-                                    }
-                                eligibleAccounts.forEach { (id, name) ->
+                                accounts.forEach { (id, name) ->
                                     MzChip(name, drafts[index].accountId == id, {
                                         onEdit(
                                             index,
@@ -516,23 +488,13 @@ internal fun VoiceReviewSheet(
             }
             val ready =
                 drafts.all { draft ->
-                    val selectedAccountType = draft.accountId?.let(accountTypes::get)
-                    val accountMatchesPayment =
-                        draft.kind != app.mizan.domain.entry.DraftKind.EXPENSE || draft.paymentType == null ||
-                            selectedAccountType ==
-                            when (draft.paymentType) {
-                                app.mizan.domain.ledger.PaymentType.CASH -> "CASH"
-                                app.mizan.domain.ledger.PaymentType.DEBIT -> "BANK"
-                                app.mizan.domain.ledger.PaymentType.CREDIT -> "CREDIT_CARD"
-                                else -> null
-                            }
                     (
                         if (draft.kind == app.mizan.domain.entry.DraftKind.INCOME && draft.incomeAllocations.isNotEmpty()) {
                             draft.incomeAllocations.all { it.accountId in accounts }
                         } else {
                             draft.accountId?.let(accounts::containsKey) == true
                         }
-                    ) && accountMatchesPayment &&
+                    ) &&
                         draft.categoryId?.let(categories[draft.kind].orEmpty()::containsKey) == true &&
                         draft.paymentType != null
                 }

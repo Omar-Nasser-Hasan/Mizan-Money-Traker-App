@@ -241,6 +241,8 @@ class V2StatsP8InstrumentedTest {
             MizanTheme {
                 V2StatsReportsPage(
                     reportData(),
+                    period,
+                    1_500L,
                     false,
                     { selectedCategory.set(it) },
                     { _, bounds -> reportsBitmap.set(captureCardBitmap(view, bounds)) },

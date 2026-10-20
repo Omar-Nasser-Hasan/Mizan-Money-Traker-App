@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mizan.data.db.AccountEntity
@@ -150,15 +151,7 @@ fun V2EntryScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
             receiptUris = receiptUris + uris.map { it.toString() }
         }
-    var paymentType by remember(accounts, lastAccountId) {
-        mutableStateOf(
-            when (accounts.firstOrNull { it.id == lastAccountId }?.type) {
-                "BANK" -> PaymentType.DEBIT
-                "CREDIT_CARD" -> PaymentType.CREDIT
-                else -> PaymentType.CASH
-            },
-        )
-    }
+    var paymentType by remember { mutableStateOf(PaymentType.CASH) }
     var status by remember { mutableStateOf(TxnStatus.CLEARED) }
     var bookedDate by remember { mutableStateOf(LocalDate.now(ZoneId.of("Africa/Cairo"))) }
     var timeText by remember {
@@ -171,33 +164,10 @@ fun V2EntryScreen(
         )
     }
     val account = accounts.firstOrNull { it.id == accountId }
-    val paymentAccounts =
-        if (kind == "EXPENSE") {
-            val requiredType =
-                when (paymentType) {
-                    PaymentType.CASH -> "CASH"
-                    PaymentType.DEBIT -> "BANK"
-                    PaymentType.CREDIT -> "CREDIT_CARD"
-                    else -> "CASH"
-                }
-            accounts.filter { !it.archived && it.type == requiredType }
-        } else {
-            accounts.filterNot { it.archived }
-        }
-    androidx.compose.runtime.LaunchedEffect(kind, paymentType, accounts) {
-        if (kind == "EXPENSE") {
-            val preferredType =
-                when (paymentType) {
-                    PaymentType.CASH -> "CASH"
-                    PaymentType.DEBIT -> "BANK"
-                    PaymentType.CREDIT -> "CREDIT_CARD"
-                    else -> "CASH"
-                }
-            if (accounts.none { it.id == accountId && !it.archived && it.type == preferredType }) {
-                accountId = paymentAccounts.firstOrNull()?.id.orEmpty()
-            }
-        } else if (accounts.none { it.id == accountId && !it.archived && it.type != "CREDIT_CARD" }) {
-            accountId = accounts.firstOrNull { !it.archived && it.type != "CREDIT_CARD" }?.id.orEmpty()
+    val paymentAccounts = accounts.filterNot { it.archived }
+    androidx.compose.runtime.LaunchedEffect(accounts) {
+        if (paymentAccounts.none { it.id == accountId }) {
+            accountId = paymentAccounts.firstOrNull()?.id.orEmpty()
         }
     }
     val target = accounts.firstOrNull { it.id == targetId }
@@ -576,16 +546,7 @@ fun V2EntryScreen(
                         PaymentType.DEBIT to "Debit card",
                         PaymentType.CREDIT to "Credit card",
                     ).forEach { (candidate, label) ->
-                        MzChip(label, paymentType == candidate, {
-                            paymentType = candidate
-                            val type =
-                                when (candidate) {
-                                    PaymentType.CASH -> "CASH"
-                                    PaymentType.DEBIT -> "BANK"
-                                    else -> "CREDIT_CARD"
-                                }
-                            accountId = accounts.firstOrNull { !it.archived && it.type == type }?.id.orEmpty()
-                        })
+                        MzChip(label, paymentType == candidate, { paymentType = candidate })
                     }
                 }
             }
@@ -600,21 +561,12 @@ fun V2EntryScreen(
             }
         }
         item {
-            Text(
-                if (kind ==
-                    "EXPENSE"
-                ) {
-                    "Account · ${paymentType.name.lowercase().replace('_', ' ')}"
-                } else {
-                    "Account"
-                },
-                style = MzTypography.labelCaps,
-            )
+            Text("Account", style = MzTypography.labelCaps)
         }
         item {
             if (paymentAccounts.isEmpty() && kind == "EXPENSE") {
                 Text(
-                    "Add an account for this payment source in Settings → Accounts.",
+                    stringResource(app.mizan.R.string.entry_add_account),
                     style = MzTypography.bodySmall,
                     color = LocalMzTokens.current.textDim,
                 )
