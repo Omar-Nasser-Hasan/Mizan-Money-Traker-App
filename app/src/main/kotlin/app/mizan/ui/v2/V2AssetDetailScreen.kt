@@ -216,7 +216,7 @@ fun V2AssetDetailScreen(
                         )
                     }
                     Text(
-                        "${position.quantity.stripTrailingZeros().toPlainString()} ${asset.unit} · ${asset.symbolOrKarats}",
+                        "${if (hideAmounts) "••••••" else position.quantity.stripTrailingZeros().toPlainString()} ${asset.unit} · ${asset.symbolOrKarats}",
                         style = MzTypography.bodySmall,
                         color = tokens.textDim,
                     )
@@ -240,7 +240,7 @@ fun V2AssetDetailScreen(
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text("MARKET RATE", style = MzTypography.labelCaps, color = tokens.textDim)
                                 Text(
-                                    "${position.pricePerUnit?.stripTrailingZeros()?.toPlainString() ?: "—"} ${position.priceCurrency} / ${asset.unit}",
+                                    "${if (hideAmounts) "••••••" else position.pricePerUnit?.stripTrailingZeros()?.toPlainString() ?: "—"} ${position.priceCurrency} / ${asset.unit}",
                                     style = MzTypography.amountSmall,
                                 )
                             }
@@ -288,11 +288,13 @@ fun V2AssetDetailScreen(
                             "Average cost",
                             "${detailMetrics.averageCostEgpPerUnit.stripTrailingZeros().toPlainString()} EGP/${asset.unit}",
                             Modifier.weight(1f),
+                            hideAmounts = hideAmounts,
                         )
                         AssetMetric(
                             "Unrealized P/L",
                             formatMinor(detailMetrics.unrealizedProfitEgpMinor),
                             Modifier.weight(1f),
+                            hideAmounts = hideAmounts,
                             positive =
                                 detailMetrics.unrealizedProfitEgpMinor >= 0,
                         )
@@ -302,16 +304,23 @@ fun V2AssetDetailScreen(
                             "Realized P/L",
                             formatMinor(detailMetrics.realizedProfitEgpMinor),
                             Modifier.weight(1f),
+                            hideAmounts = hideAmounts,
                             positive =
                                 detailMetrics.realizedProfitEgpMinor >= 0,
                         )
-                        AssetMetric("Weight", "${detailMetrics.weightBasisPoints / 100}% of holdings", Modifier.weight(1f))
+                        AssetMetric(
+                            "Weight",
+                            "${detailMetrics.weightBasisPoints / 100}% of holdings",
+                            Modifier.weight(1f),
+                            hideAmounts = hideAmounts,
+                        )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssetMetric(
                             "XIRR",
                             detailMetrics.xirr?.let { "${it.multiply(BigDecimal(100)).setScale(1, RoundingMode.HALF_UP)}% p.a." } ?: "—",
                             Modifier.weight(1f),
+                            hideAmounts = hideAmounts,
                         )
                         AssetMetric(
                             "Price today",
@@ -320,6 +329,7 @@ fun V2AssetDetailScreen(
                             }
                                 ?: "—",
                             Modifier.weight(1f),
+                            hideAmounts = hideAmounts,
                         )
                     }
                 }
@@ -654,12 +664,13 @@ private fun AssetMetric(
     value: String,
     modifier: Modifier = Modifier,
     positive: Boolean? = null,
+    hideAmounts: Boolean,
 ) {
     MzCard(modifier) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(label, style = MzTypography.bodySmall, color = LocalMzTokens.current.textDim)
             Text(
-                value,
+                if (hideAmounts) "••••••" else value,
                 style = MzTypography.amountSmall,
                 color =
                     when (positive) {
@@ -691,7 +702,9 @@ private fun AssetLotRow(
             MzIcon(if (trade.kind == "BUY") "add" else "remove", trade.kind, tint = LocalMzTokens.current.investment)
             Column(Modifier.weight(1f)) {
                 Text(
-                    "${trade.kind.lowercase().replaceFirstChar { it.uppercase() }} ${trade.quantity} $unit @ ${trade.unitPrice}",
+                    "${trade.kind.lowercase().replaceFirstChar {
+                        it.uppercase()
+                    }} ${if (hideAmounts) "••••••" else trade.quantity} $unit @ ${if (hideAmounts) "••••••" else trade.unitPrice}",
                     style = MzTypography.body.copy(fontWeight = FontWeight.SemiBold),
                 )
                 Text(

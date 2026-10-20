@@ -210,7 +210,7 @@ fun V2WealthScreen(
                             color = tokens.textDim,
                         )
                     } else {
-                        MzDonut(slices, centerText = "${snapshot.summary.investedBasisPoints / 100}%\nINVESTED")
+                        MzDonut(slices, centerText = "${snapshot.summary.investedBasisPoints / 100}%\nINVESTED", hideAmounts = hideAmounts)
                     }
                 }
             }
@@ -308,7 +308,7 @@ private fun HoldingOverviewRow(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(position.asset.name, style = MzTypography.body.copy(fontWeight = FontWeight.SemiBold), maxLines = 1)
                 Text(
-                    "${position.quantity.stripTrailingZeros().toPlainString()} ${position.asset.unit}",
+                    "${if (hideAmounts) "••••••" else position.quantity.stripTrailingZeros().toPlainString()} ${position.asset.unit}",
                     style = MzTypography.bodySmall,
                     color = LocalMzTokens.current.textDim,
                 )

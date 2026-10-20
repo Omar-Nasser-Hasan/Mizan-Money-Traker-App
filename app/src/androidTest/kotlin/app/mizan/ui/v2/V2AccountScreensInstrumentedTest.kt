@@ -4,7 +4,9 @@ package app.mizan.ui.v2
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.provider.MediaStore
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.isRoot
@@ -41,6 +43,40 @@ class V2AccountScreensInstrumentedTest {
     }
     private val repository get() = dependencies.repository()
     private val database get() = dependencies.database()
+
+    @Test
+    fun eye_toggle_masks_currency_subtitles_and_fix_balance_choices() {
+        val hidden = mutableStateOf(true)
+        val id =
+            runBlocking {
+                repository.seedReferenceData()
+                val today =
+                    java.time.LocalDate
+                        .now(java.time.ZoneId.of("Africa/Cairo"))
+                        .toString()
+                database.fxRateDao().upsertAll(listOf(FxRateEntity(today, "USD", "50.00", "Privacy test", System.currentTimeMillis())))
+                repository.saveAccount(
+                    name = "Private buckets ${UUID.randomUUID()}",
+                    type = "CASH",
+                    color = "#3A924F",
+                    icon = "wallet",
+                    currency = "EGP",
+                    openingMinor = 500_000,
+                    buckets = mapOf("EGP" to 500_000L, "USD" to 10_000L),
+                )
+            }
+        compose.setContent { MizanTheme { V2AccountDetailScreen(repository, id, hidden.value, onNavigate = {}, onBack = {}) } }
+        compose.waitUntil(10_000) { compose.onAllNodesWithText("USD").fetchSemanticsNodes().isNotEmpty() }
+        listOf("5,000.00", "5000.00", "100.00 USD", "10,000.00").forEach { value ->
+            compose.onAllNodesWithText(value, substring = true, useUnmergedTree = true).assertCountEquals(0)
+        }
+        compose.runOnIdle { hidden.value = false }
+        assertTrue(compose.onAllNodesWithText("100.00 USD", substring = true, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
+        compose.runOnIdle { hidden.value = true }
+        compose.onNodeWithText("Fix balance").performScrollTo().performClick()
+        compose.onAllNodesWithText("100.00", substring = true, useUnmergedTree = true).assertCountEquals(0)
+        compose.onAllNodesWithText("5,000.00", substring = true, useUnmergedTree = true).assertCountEquals(0)
+    }
 
     @Test
     fun account_detail_and_wealth_render_egp_and_usd_buckets() {

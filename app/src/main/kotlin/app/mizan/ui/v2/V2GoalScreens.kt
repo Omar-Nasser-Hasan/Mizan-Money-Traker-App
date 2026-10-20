@@ -165,7 +165,7 @@ fun V2GoalsScreen(
                                 if (target > 0) (saved * 100 / target).coerceAtMost(100) else 0
                             } ?: 0
                         MzBudgetBar(pct / 100f)
-                        Text("$pct% across ${active.size} active goals", style = MzTypography.bodySmall)
+                        Text("${if (hideAmounts) "•••" else "$pct%"} across ${active.size} active goals", style = MzTypography.bodySmall)
                     }
                 }
             }
@@ -207,9 +207,13 @@ fun V2GoalsScreen(
                                 )
                             }
                             Text(
-                                "${card.progress.progressMinor
-                                    .takeIf { card.goal.targetMinor > 0 }
-                                    ?.let { it * 100 / card.goal.targetMinor } ?: 0}%",
+                                if (hideAmounts) {
+                                    "•••"
+                                } else {
+                                    "${card.progress.progressMinor
+                                        .takeIf { card.goal.targetMinor > 0 }
+                                        ?.let { it * 100 / card.goal.targetMinor } ?: 0}%"
+                                },
                                 style = MzTypography.title,
                             )
                         }
@@ -261,7 +265,7 @@ fun V2GoalsScreen(
                 if (card.sources.isEmpty()) Text("No linked sources", style = MzTypography.bodySmall)
                 card.sources.forEach { source ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("${source.name} · ${source.allocationPct}%", style = MzTypography.bodySmall)
+                        Text("${source.name} · ${if (hideAmounts) "•••" else "${source.allocationPct}%"}", style = MzTypography.bodySmall)
                         AmountText(
                             source.valueMinor * source.allocationPct / 100L,
                             "EGP",

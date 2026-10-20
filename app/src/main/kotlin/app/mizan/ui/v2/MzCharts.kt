@@ -387,6 +387,7 @@ fun MzDonut(
     slices: List<MzDonutSlice>,
     modifier: Modifier = Modifier,
     centerText: String,
+    hideAmounts: Boolean,
     changeText: String? = null,
     selectedIndex: Int? = null,
     onSliceSelected: (Int) -> Unit = {},
@@ -457,9 +458,9 @@ fun MzDonut(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    chartCenterText(centerText, MzTypography.amountSmall)
+                    chartCenterText(if (hideAmounts) "••••••" else centerText, MzTypography.amountSmall)
                     changeText?.let {
-                        chartCenterText(it, MzTypography.bodySmall, LocalMzTokens.current.income)
+                        chartCenterText(if (hideAmounts) "••••••" else it, MzTypography.bodySmall, LocalMzTokens.current.income)
                     }
                 }
             }
@@ -476,9 +477,13 @@ fun MzDonut(
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                     )
-                    Text("${slice.value.coerceAtLeast(0L) * 100 / total}%", color = tokens.textDim, style = MzTypography.bodySmall)
+                    Text(
+                        if (hideAmounts) "•••" else "${slice.value.coerceAtLeast(0L) * 100 / total}%",
+                        color = tokens.textDim,
+                        style = MzTypography.bodySmall,
+                    )
                     Spacer(Modifier.width(12.dp))
-                    Text(legendAmount(slice.value), color = tokens.text, style = MzTypography.amountSmall)
+                    AmountText(slice.value, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.amountSmall, showCurrency = false)
                 }
             }
         }
@@ -550,6 +555,7 @@ fun MzWaterfall(
 fun MzCompositionBar(
     slices: List<MzDonutSlice>,
     modifier: Modifier = Modifier,
+    hideAmounts: Boolean,
 ) {
     val total = slices.sumOf { it.value.coerceAtLeast(0L) }.coerceAtLeast(1L)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -580,19 +586,12 @@ fun MzCompositionBar(
                         style = MzTypography.bodySmall,
                         modifier = Modifier.weight(1f),
                     )
-                    Text(legendAmount(slice.value), color = LocalMzTokens.current.text, style = MzTypography.amountSmall)
+                    AmountText(slice.value, "EGP", hideAmounts = hideAmounts, textStyle = MzTypography.amountSmall, showCurrency = false)
                 }
             }
         }
     }
 }
-
-private fun legendAmount(value: Long): String =
-    java.text.DecimalFormat("#,##0.00", java.text.DecimalFormatSymbols(java.util.Locale.US)).format(
-        java.math.BigDecimal
-            .valueOf(value)
-            .movePointLeft(2),
-    )
 
 @Composable
 @Suppress("ktlint:standard:function-naming")

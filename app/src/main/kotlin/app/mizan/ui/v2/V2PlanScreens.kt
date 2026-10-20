@@ -137,7 +137,7 @@ fun V2PlanScreen(
                 item {
                     MzCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("${page.percentBasisPoints / 100}% spent", style = MzTypography.title)
+                            Text(if (hideAmounts) "••• spent" else "${page.percentBasisPoints / 100}% spent", style = MzTypography.title)
                             Text(
                                 "This tracks expenses against budget limits; cash held in accounts does not affect it.",
                                 style = MzTypography.bodySmall,

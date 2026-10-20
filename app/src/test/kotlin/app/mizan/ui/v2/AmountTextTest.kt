@@ -7,6 +7,20 @@ import org.junit.Test
 
 class AmountTextTest {
     @Test
+    fun financial_change_captions_mask_absolute_amounts_and_percentages() {
+        val absolute =
+            app.mizan.domain.stats
+                .compare(630_000, -450_000, cashFlow = true)
+        val percent =
+            app.mizan.domain.stats
+                .compare(630_000, 450_000)
+        assertEquals("EGP 10,800.00 absolute change", changeText(absolute, false))
+        assertEquals("↑ 40.00% vs previous period", changeText(percent, false))
+        assertEquals("••••••", changeText(absolute, true))
+        assertEquals("••••••", changeText(percent, true))
+    }
+
+    @Test
     fun rendersTwoDecimalWesternDigitAmountsWithTheRequiredSigns() {
         assertEquals("− EGP 12,580.00", formatMizanAmount(-1_258_000, "EGP", AmountStyle.EXPENSE, false))
         assertEquals("+ EGP 12,580.00", formatMizanAmount(1_258_000, "EGP", AmountStyle.INCOME, false))

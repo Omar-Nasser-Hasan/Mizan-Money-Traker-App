@@ -366,7 +366,7 @@ private fun NetWorthHero(
                     ),
             )
             androidx.compose.material3.Text(
-                stringResource(R.string.home_cash_flow_change, changeText(summary.cashFlowChange)),
+                stringResource(R.string.home_cash_flow_change, changeText(summary.cashFlowChange, hideAmounts)),
                 color = tokens.textDim,
                 style = MzTypography.bodySmall,
             )
@@ -427,9 +427,10 @@ private fun ThisMonthCard(
                     MzDonutSlice("Income", summary.cashFlow.incomeMinor, LocalMzTokens.current.income),
                     MzDonutSlice("Expenses", summary.cashFlow.expenseMinor, LocalMzTokens.current.expense),
                 ),
+                hideAmounts = hideAmounts,
             )
             androidx.compose.material3.Text(
-                changeText(summary.cashFlowChange),
+                changeText(summary.cashFlowChange, hideAmounts),
                 color = LocalMzTokens.current.textDim,
                 style = MzTypography.bodySmall,
             )
@@ -548,8 +549,15 @@ private fun RecentRow(
     )
 }
 
-private fun changeText(change: app.mizan.domain.stats.Change): String =
+private fun changeText(
+    change: app.mizan.domain.stats.Change,
+    hideAmounts: Boolean,
+): String =
     when {
+        hideAmounts -> {
+            "••••••"
+        }
+
         change.absoluteChange -> {
             "vs same days last month · absolute change"
         }

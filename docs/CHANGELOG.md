@@ -1,5 +1,11 @@
 # Changelog
 
+## Consistent hide-amounts privacy
+
+- Required an explicit privacy state for donut and composition chart legends and masked legend amounts, percentage labels, and center figures across Home, Stats, and Wealth.
+- Masked account currency breakdowns and balance-fix captions, financial change comparisons, holding quantities, lot prices, asset metrics, and budget/goal progress percentages when amounts are hidden.
+- Kept labels, currencies, dates, and chart shapes visible while removing the displayed financial figures from both text and accessibility semantics.
+
 ## Independent payment methods and consistent Home budgets
 
 - Expense entry keeps the selected allocation account when switching between Cash, Debit card, and Credit card. Every active account is available for each method, without requiring a card or bank account; confirmed records continue updating the corresponding independent source balance.

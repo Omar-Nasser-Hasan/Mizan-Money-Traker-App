@@ -170,7 +170,7 @@ fun V2AccountDetailScreen(
                             )
                         }
                         Text(
-                            "Utilization · average ${(averageUtil ?: utilization) / 100}% · peak ${(peakUtil ?: utilization) / 100}%",
+                            if (hideAmounts) "Utilization · average ••• · peak •••" else "Utilization · average ${(averageUtil ?: utilization) / 100}% · peak ${(peakUtil ?: utilization) / 100}%",
                             style = MzTypography.bodySmall,
                         )
                         Text(
@@ -205,7 +205,7 @@ fun V2AccountDetailScreen(
                         }
                     }
                     Text(
-                        "30-day change · $changePct%",
+                        if (hideAmounts) "30-day change · •••" else "30-day change · $changePct%",
                         style = MzTypography.bodySmall,
                         color = LocalMzTokens.current.textDim,
                     )
@@ -219,17 +219,22 @@ fun V2AccountDetailScreen(
                 iconName = "currency_exchange",
                 iconDescription = bucket.currency,
                 title = bucket.currency,
-                subtitle = "${formatAccountMinor(
-                    minor,
-                    enabledCurrencyDecimals(currencies, bucket.currency),
-                )} ${bucket.currency} · ${rate?.egpPerUnit?.let {
-                    "≈ ${BigDecimal.valueOf(
-                        minor,
-                        enabledCurrencyDecimals(currencies, bucket.currency),
-                    ).multiply(
-                        BigDecimal(it),
-                    ).setScale(2, java.math.RoundingMode.HALF_UP)} EGP"
-                } ?: "EGP value unavailable"}",
+                subtitle =
+                    if (hideAmounts) {
+                        "••••••"
+                    } else {
+                        "${formatAccountMinor(
+                            minor,
+                            enabledCurrencyDecimals(currencies, bucket.currency),
+                        )} ${bucket.currency} · ${rate?.egpPerUnit?.let {
+                            "≈ ${BigDecimal.valueOf(
+                                minor,
+                                enabledCurrencyDecimals(currencies, bucket.currency),
+                            ).multiply(
+                                BigDecimal(it),
+                            ).setScale(2, java.math.RoundingMode.HALF_UP)} EGP"
+                        } ?: "EGP value unavailable"}"
+                    },
                 trailing = {
                     Text(
                         rate?.date?.let { "Updated $it" } ?: if (bucket.currency == "EGP") "Base rate" else "Unavailable",
@@ -278,7 +283,7 @@ fun V2AccountDetailScreen(
         }
     }
     if (fixOpen) {
-        FixBalanceSheet(balances, currencies, { currency, delta ->
+        FixBalanceSheet(balances, currencies, hideAmounts, { currency, delta ->
             scope.launch {
                 repository.postBalanceAdjustment(accountId, currency, delta)
                 fixOpen =
@@ -336,6 +341,7 @@ fun V2WealthAccountsScreen(
 private fun FixBalanceSheet(
     balances: List<Pair<app.mizan.data.db.AccountBucketEntity, Long>>,
     currencies: List<CurrencyEntity>,
+    hideAmounts: Boolean,
     onSave: (String, Long) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -354,7 +360,14 @@ private fun FixBalanceSheet(
             Text("Fix balance", style = MzTypography.title)
             balances.forEach { (bucket, balance) ->
                 MzChip(
-                    "${bucket.currency} · ${formatAccountMinor(balance, enabledCurrencyDecimals(currencies, bucket.currency))}",
+                    "${bucket.currency} · ${if (hideAmounts) {
+                        "••••••"
+                    } else {
+                        formatAccountMinor(
+                            balance,
+                            enabledCurrencyDecimals(currencies, bucket.currency),
+                        )
+                    }}",
                     currency == bucket.currency,
                     { currency = bucket.currency },
                 )

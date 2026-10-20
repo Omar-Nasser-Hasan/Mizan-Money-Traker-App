@@ -161,6 +161,7 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                                     MzDonutSlice("Other", 2_500, MzAccountColors.all[2]),
                                 ),
                                 centerText = "EGP 100.00",
+                                hideAmounts = false,
                                 changeText = "+12.5%",
                                 selectedIndex = selectedSlice,
                                 onSliceSelected = { selectedSlice = it },
@@ -183,6 +184,7 @@ fun designGalleryEntry(modifier: Modifier = Modifier) {
                             MzCompositionBar(
                                 listOf(MzDonutSlice("Cash", 4_000, tokens.income), MzDonutSlice("Bank", 6_000, tokens.transfer)),
                                 chartModifier,
+                                hideAmounts = false,
                             )
                         }
                     }

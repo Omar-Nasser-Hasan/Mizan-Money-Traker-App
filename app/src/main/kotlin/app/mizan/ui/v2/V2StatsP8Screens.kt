@@ -486,7 +486,7 @@ private fun ReportCategoryRows(
         ) {
             Column(Modifier.weight(1f).clickable { goDeeper(category.id) }.padding(vertical = 4.dp)) {
                 Text(category.name, style = MzTypography.body)
-                Text(changeText(category.change), color = tokens.textDim, style = MzTypography.labelCaps)
+                Text(changeText(category.change, hideAmounts), color = tokens.textDim, style = MzTypography.labelCaps)
             }
             Text(displaySigned(sign * category.amountMinor, hideAmounts), color = color, style = MzTypography.amountSmall)
             if (category.children.isNotEmpty()) {

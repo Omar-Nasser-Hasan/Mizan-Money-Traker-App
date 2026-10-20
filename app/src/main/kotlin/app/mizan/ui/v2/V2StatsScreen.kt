@@ -505,7 +505,7 @@ internal fun CashFlowPage(
                     color = tokens.income,
                     style = MzTypography.amountLarge,
                 )
-                Text(changeText(snapshot.cashFlowChange), color = tokens.income, style = MzTypography.bodySmall)
+                Text(changeText(snapshot.cashFlowChange, hide), color = tokens.income, style = MzTypography.bodySmall)
                 Spacer(Modifier.height(14.dp))
                 MetricBar("Income", snapshot.current.incomeMinor, snapshot.current.expenseMinor, tokens.income, hide)
                 MetricBar("Expenses", snapshot.current.expenseMinor, snapshot.current.incomeMinor, tokens.expense, hide)
@@ -599,7 +599,7 @@ internal fun SpendingPage(
             ShareableCard("Spending", share) {
                 Text("Where does my money go?", color = tokens.textDim, style = MzTypography.bodySmall)
                 Text(if (hide) "••••••" else amount(snapshot.current.expenseMinor), color = tokens.text, style = MzTypography.amountLarge)
-                Text(changeText(snapshot.expenseChange), color = tokens.expense, style = MzTypography.bodySmall)
+                Text(changeText(snapshot.expenseChange, hide), color = tokens.expense, style = MzTypography.bodySmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     MzChip("Categories", !labelsMode, {
                         labelsMode = false
@@ -624,6 +624,7 @@ internal fun SpendingPage(
                 MzDonut(
                     slices,
                     centerText = if (hide) "••••" else amount(total),
+                    hideAmounts = hide,
                     changeText = "EGP TOTAL",
                     selectedIndex =
                         selectedSlice?.let { key ->
@@ -671,13 +672,13 @@ internal fun SpendingPage(
                     )
                     Text(if (hide) "••••" else amount(value), style = MzTypography.amountSmall)
                     Text(
-                        "  ${changeText(if (labelsMode) snapshot.labelChanges[name] else snapshot.categoryChanges[name])}",
+                        "  ${changeText(if (labelsMode) snapshot.labelChanges[name] else snapshot.categoryChanges[name], hide)}",
                         color = tokens.textDim,
                         style = MzTypography.bodySmall,
                     )
                 }
                 Text(
-                    "${sharePercent(value, snapshot.current.expenseMinor)}% of spending",
+                    if (hide) "••• of spending" else "${sharePercent(value, snapshot.current.expenseMinor)}% of spending",
                     color = tokens.textDim,
                     style = MzTypography.bodySmall,
                 )
@@ -803,7 +804,7 @@ internal fun BalancePage(
                 val shownTrend = if (netWorth) snapshot.netWorthTrend else snapshot.balanceTrend
                 val shownChange = if (netWorth) snapshot.netWorthChange else snapshot.balanceChange
                 Text(if (hide) "••••••" else amount(shownTrend.lastOrNull() ?: 0L), style = MzTypography.amountLarge)
-                Text("${changeText(shownChange)} vs same day last month", color = tokens.income, style = MzTypography.bodySmall)
+                Text("${changeText(shownChange, hide)} vs same day last month", color = tokens.income, style = MzTypography.bodySmall)
                 MzAreaChart(
                     shownTrend,
                     Modifier.fillMaxWidth(),
@@ -842,6 +843,7 @@ internal fun BalancePage(
                             ],
                         )
                     },
+                    hideAmounts = hide,
                 )
                 snapshot.accountBalances.forEach { (account, value, buckets) ->
                     Column(
@@ -861,7 +863,11 @@ internal fun BalancePage(
                         Row {
                             Text(account, Modifier.weight(1f), style = MzTypography.body)
                             Text(if (hide) "••••" else amount(value), style = MzTypography.amountSmall)
-                            Text("  ${sharePercent(value, total)}%", color = tokens.textDim, style = MzTypography.bodySmall)
+                            Text(
+                                if (hide) "  •••" else "  ${sharePercent(value, total)}%",
+                                color = tokens.textDim,
+                                style = MzTypography.bodySmall,
+                            )
                         }
                         if (expanded ==
                             account
@@ -1000,8 +1006,15 @@ private fun sharePercent(
     total: Long,
 ): Long = if (total == 0L) 0L else (value * 100 / total).coerceAtLeast(0L)
 
-internal fun changeText(change: app.mizan.domain.stats.Change?): String =
+internal fun changeText(
+    change: app.mizan.domain.stats.Change?,
+    hideAmounts: Boolean,
+): String =
     when {
+        hideAmounts -> {
+            "••••••"
+        }
+
         change == null -> {
             "— vs previous period"
         }

@@ -187,7 +187,15 @@ fun V2DebtsScreen(
                 accountOptions.forEach { account ->
                     val bucket = balances.first { it.accountId == account.id && it.currency == debt.currency }
                     MzChip(
-                        "${account.name} · ${accountBalance(bucket.openingMinor, bucket.entryMinor, decimals)} ${debt.currency}",
+                        "${account.name} · ${if (hideAmounts) {
+                            "••••••"
+                        } else {
+                            accountBalance(
+                                bucket.openingMinor,
+                                bucket.entryMinor,
+                                decimals,
+                            )
+                        }} ${debt.currency}",
                         accountId == account.id,
                         { accountId = account.id },
                     )
@@ -408,11 +416,15 @@ private fun V2DebtCard(
             }
             MzBudgetBar(if (row.debt.principalMinor > 0L) row.balance.repaymentsMinor.toFloat() / row.debt.principalMinor else 1f)
             Text(
-                "${row.balance.repaymentsMinor.toBigDecimal().movePointLeft(
-                    decimals,
-                ).toPlainString()} ${row.debt.currency} repaid · ${row.balance.outstandingMinor.toBigDecimal().movePointLeft(
-                    decimals,
-                ).toPlainString()} remaining",
+                if (hideAmounts) {
+                    "•••••• ${row.debt.currency} repaid · •••••• remaining"
+                } else {
+                    "${row.balance.repaymentsMinor.toBigDecimal().movePointLeft(
+                        decimals,
+                    ).toPlainString()} ${row.debt.currency} repaid · ${row.balance.outstandingMinor.toBigDecimal().movePointLeft(
+                        decimals,
+                    ).toPlainString()} remaining"
+                },
                 style = MzTypography.bodySmall,
             )
             if (row.debt.status == "ACTIVE") {
