@@ -213,7 +213,7 @@ fun V2HomeScreen(
             }
 
             else -> {
-                HomeContent(data!!, inboxDrafts.size, hideAmounts, onNavigate)
+                HomeContent(data!!, inboxDrafts.size, hideAmounts, today, onNavigate)
             }
         }
     }
@@ -234,6 +234,7 @@ private fun HomeContent(
     data: HomeUiData,
     inboxDraftCount: Int,
     hideAmounts: Boolean,
+    today: LocalDate,
     onNavigate: (V2Route) -> Unit,
 ) {
     LazyColumn(
@@ -243,7 +244,7 @@ private fun HomeContent(
                 .PaddingValues(horizontal = MzSpacing.sideMargin, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(MzSpacing.gutter),
     ) {
-        item { NetWorthHero(data.summary, hideAmounts) }
+        item { NetWorthHero(data.summary, hideAmounts, today) }
         item { MzButton("Mic · Voice entry", { onNavigate(V2Route.VoiceReview) }, Modifier.fillMaxWidth(), MzButtonStyle.SECONDARY) }
         if (inboxDraftCount > 0) {
             item {
@@ -321,6 +322,7 @@ private fun HomeContent(
 private fun NetWorthHero(
     summary: HomeSummary,
     hideAmounts: Boolean,
+    today: LocalDate,
 ) {
     val tokens = LocalMzTokens.current
     MzCard(
@@ -349,10 +351,16 @@ private fun NetWorthHero(
                 color = tokens.textDim,
                 style = MzTypography.bodySmall,
             )
-            Row(Modifier.fillMaxWidth().height(42.dp), verticalAlignment = Alignment.CenterVertically) {
-                ChartYAxisLabels(summary.sparkline, hideAmounts, Modifier.width(70.dp))
-                MzSparkline(summary.sparkline, Modifier.weight(1f).fillMaxWidth().height(42.dp))
-            }
+            MzAreaChart(
+                summary.sparkline,
+                Modifier.fillMaxWidth(),
+                hideAmounts = hideAmounts,
+                chartHeight = 100.dp,
+                xAxisLabels =
+                    chartDateLabels(
+                        (0 until summary.sparkline.size).map { today.minusDays((summary.sparkline.lastIndex - it).toLong()) },
+                    ),
+            )
             androidx.compose.material3.Text(
                 stringResource(R.string.home_cash_flow_change, changeText(summary.cashFlowChange)),
                 color = tokens.textDim,

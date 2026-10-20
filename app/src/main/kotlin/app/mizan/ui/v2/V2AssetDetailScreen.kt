@@ -247,7 +247,12 @@ fun V2AssetDetailScreen(
                             if (position.stale) Text("Stale · $age", style = MzTypography.bodySmall, color = tokens.warning)
                         }
                         if (history.points.isNotEmpty()) {
-                            MzAreaChart(history.points.map { it.valueMinor }, Modifier.fillMaxWidth(), hideAmounts = hideAmounts)
+                            MzAreaChart(
+                                history.points.map { it.valueMinor },
+                                Modifier.fillMaxWidth(),
+                                hideAmounts = hideAmounts,
+                                xAxisLabels = chartDateLabels(history.points.map { it.date }),
+                            )
                         } else {
                             Text(
                                 "No price history yet. Saved prices and trades remain visible offline.",

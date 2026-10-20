@@ -1,5 +1,11 @@
 # Changelog
 
+## Shared chart presentation
+
+- Applied a common chart layout across Home, Stats, Balance Trend, period comparisons, and Asset Details: readable EGP axis ticks, dashed value guides, date labels, smooth plots, and a visible comparison legend.
+- Preserved chart-specific meaning and the Mizan palette; filled area remains for balance/value trends, while period comparisons remain multi-line and wealth allocation remains a donut.
+- Upgraded Home's 30-day net-worth sparkline to the same labeled chart style and kept amount privacy masking on chart axes and values.
+
 ## Chart clarity and savings targets
 
 - Home now leads with included cash, shows net worth as a secondary figure, labels its 30-day net-worth chart, and corrects coin-price key and included-account handling so its total follows Wealth valuation.

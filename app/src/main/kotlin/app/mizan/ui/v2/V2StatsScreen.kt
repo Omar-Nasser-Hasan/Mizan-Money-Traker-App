@@ -314,6 +314,7 @@ fun V2StatsScreen(
                 BalancePage(
                     snapshot = snapshot,
                     hide = hideAmounts,
+                    period = selectedPeriod,
                     repository = repository,
                     sourceBalances = sourceBalances ?: PaymentSourceBalanceEntity(),
                     totalIncludedNonCardBalanceMinor = totalIncludedNonCardBalance(balances, accounts),
@@ -523,15 +524,38 @@ internal fun CashFlowPage(
                     style = MzTypography.bodySmall,
                 )
                 if (cumulative) {
-                    MzAreaChart(snapshot.cumulative, Modifier.fillMaxWidth().height(180.dp), hideAmounts = hide)
+                    MzAreaChart(
+                        snapshot.cumulative,
+                        Modifier.fillMaxWidth(),
+                        hideAmounts = hide,
+                        chartHeight = 160.dp,
+                        xAxisLabels = chartDateLabels(snapshot.daily.map { it.first }),
+                    )
                 } else {
-                    MzLineChart(snapshot.daily.map { it.second.netMinor }, Modifier.fillMaxWidth().height(180.dp), hideAmounts = hide)
+                    MzLineChart(
+                        snapshot.daily.map { it.second.netMinor },
+                        Modifier.fillMaxWidth(),
+                        hideAmounts = hide,
+                        chartHeight = 160.dp,
+                        xAxisLabels = chartDateLabels(snapshot.daily.map { it.first }),
+                    )
                 }
-                Text("Day index · 1 to ${snapshot.daily.size}", color = tokens.textDim, style = MzTypography.bodySmall)
             }
         }
         item {
             ShareableCard("Period comparison", share) {
+                val comparisonAmount =
+                    when (metric) {
+                        "Income" -> snapshot.current.incomeMinor
+                        "Expenses" -> snapshot.current.expenseMinor
+                        else -> snapshot.current.netMinor
+                    }
+                Text("THIS PERIOD", color = tokens.textDim, style = MzTypography.labelCaps)
+                Text(
+                    if (hide) "••••••" else amount(comparisonAmount),
+                    color = tokens.text,
+                    style = MzTypography.amountLarge,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("Cash flow", "Expenses", "Income").forEach { MzChip(it, metric == it, { metric = it }) }
                 }
@@ -539,10 +563,11 @@ internal fun CashFlowPage(
                     current = snapshot.series(metric)[0],
                     previous = snapshot.series(metric)[1],
                     lastYear = if (compareLastYear) snapshot.series(metric)[2] else null,
-                    modifier = Modifier.fillMaxWidth().height(190.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     hideAmounts = hide,
+                    chartHeight = 160.dp,
+                    xAxisLabels = chartDateLabels(snapshot.daily.map { it.first }),
                 )
-                Text("Current · Previous · Last year (day index)", color = tokens.textDim, style = MzTypography.bodySmall)
                 MzToggle(compareLastYear, { compareLastYear = it }, "Compare with last year")
             }
         }
@@ -747,6 +772,7 @@ internal fun SpendingPage(
 internal fun BalancePage(
     snapshot: StatsSnapshot,
     hide: Boolean,
+    period: Period,
     repository: MizanRepository? = null,
     sourceBalances: PaymentSourceBalanceEntity? = null,
     totalIncludedNonCardBalanceMinor: Long = 0,
@@ -778,7 +804,13 @@ internal fun BalancePage(
                 val shownChange = if (netWorth) snapshot.netWorthChange else snapshot.balanceChange
                 Text(if (hide) "••••••" else amount(shownTrend.lastOrNull() ?: 0L), style = MzTypography.amountLarge)
                 Text("${changeText(shownChange)} vs same day last month", color = tokens.income, style = MzTypography.bodySmall)
-                MzAreaChart(shownTrend, Modifier.fillMaxWidth().height(180.dp), hideAmounts = hide)
+                MzAreaChart(
+                    shownTrend,
+                    Modifier.fillMaxWidth(),
+                    hideAmounts = hide,
+                    chartHeight = 160.dp,
+                    xAxisLabels = chartDateLabels((0 until shownTrend.size).map { period.start.plusDays(it.toLong()) }),
+                )
                 Text(
                     "Unrealized exchange gain or loss is shown in wealth, not income.",
                     color = tokens.textDim,

@@ -49,6 +49,18 @@ data class MzDonutSlice(
     val color: Color,
 )
 
+fun chartDateLabels(dates: List<java.time.LocalDate>): List<String> {
+    if (dates.isEmpty()) return emptyList()
+    val selected = if (dates.size <= 3) dates else listOf(dates.first(), dates[dates.lastIndex / 2], dates.last())
+    val longRange =
+        java.time.temporal.ChronoUnit.DAYS
+            .between(dates.first(), dates.last()) >= 90L
+    val format =
+        java.time.format.DateTimeFormatter
+            .ofPattern(if (longRange) "MMM yyyy" else "MMM d", java.util.Locale.ENGLISH)
+    return selected.map { it.format(format) }
+}
+
 @Composable
 @Suppress("ktlint:standard:function-naming")
 fun MzChartCard(
@@ -118,7 +130,20 @@ fun MzSparkline(
     modifier: Modifier = Modifier,
     color: Color = LocalMzTokens.current.champagne,
 ) {
-    Canvas(modifier = modifier.height(36.dp)) { drawLineSeries(values, color, 2.dp.toPx()) }
+    Canvas(modifier = modifier.height(36.dp)) {
+        val chartPoints = points(values)
+        if (chartPoints.size < 2) return@Canvas
+        val path = pathFor(chartPoints)
+        val fill =
+            Path().apply {
+                addPath(path)
+                lineTo(chartPoints.last().x, size.height)
+                lineTo(chartPoints.first().x, size.height)
+                close()
+            }
+        drawPath(fill, color.copy(alpha = 0.12f))
+        drawPath(path, color, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+    }
 }
 
 @Composable
@@ -128,35 +153,41 @@ fun MzAreaChart(
     modifier: Modifier = Modifier,
     onPointSelected: (Int) -> Unit = {},
     hideAmounts: Boolean = false,
+    chartHeight: androidx.compose.ui.unit.Dp = 160.dp,
+    xAxisLabels: List<String> = emptyList(),
 ) {
     val tokens = LocalMzTokens.current
-    Row(modifier.fillMaxWidth().height(180.dp), verticalAlignment = Alignment.CenterVertically) {
-        ChartYAxisLabels(values, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
-        Canvas(
-            modifier =
-                Modifier.weight(1f).fillMaxHeight().pointerInput(values) {
-                    detectTapGestures { offset ->
-                        if (values.isNotEmpty()) {
-                            onPointSelected(
-                                ((offset.x / size.width) * values.lastIndex).toInt().coerceIn(0, values.lastIndex),
-                            )
+    Column(modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().height(chartHeight), verticalAlignment = Alignment.CenterVertically) {
+            ChartYAxisLabels(values, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
+            Canvas(
+                modifier =
+                    Modifier.weight(1f).fillMaxHeight().pointerInput(values) {
+                        detectTapGestures { offset ->
+                            if (values.isNotEmpty()) {
+                                onPointSelected(
+                                    ((offset.x / size.width) * values.lastIndex).toInt().coerceIn(0, values.lastIndex),
+                                )
+                            }
                         }
+                    },
+            ) {
+                drawHorizontalGrid(tokens)
+                val points = points(values)
+                if (points.isEmpty()) return@Canvas
+                val path = pathFor(points)
+                val fill =
+                    Path().apply {
+                        addPath(path)
+                        lineTo(points.last().x, size.height)
+                        lineTo(points.first().x, size.height)
+                        close()
                     }
-                },
-        ) {
-            val points = points(values)
-            if (points.isEmpty()) return@Canvas
-            val path = pathFor(points)
-            val fill =
-                Path().apply {
-                    addPath(path)
-                    lineTo(points.last().x, size.height)
-                    lineTo(points.first().x, size.height)
-                    close()
-                }
-            drawPath(fill, tokens.champagne.copy(alpha = 0.24f))
-            drawPath(path, tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+                drawPath(fill, tokens.champagne.copy(alpha = 0.20f))
+                drawPath(path, tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+            }
         }
+        ChartXAxisLabels(xAxisLabels)
     }
 }
 
@@ -166,15 +197,21 @@ fun MzLineChart(
     values: List<Long>,
     modifier: Modifier = Modifier,
     hideAmounts: Boolean = false,
+    chartHeight: androidx.compose.ui.unit.Dp = 160.dp,
+    xAxisLabels: List<String> = emptyList(),
 ) {
     val tokens = LocalMzTokens.current
-    Row(modifier.fillMaxWidth().height(180.dp), verticalAlignment = Alignment.CenterVertically) {
-        ChartYAxisLabels(values, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
-        Canvas(Modifier.weight(1f).fillMaxHeight()) {
-            val chartPoints = points(values)
-            if (chartPoints.size < 2) return@Canvas
-            drawPath(pathFor(chartPoints), tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+    Column(modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().height(chartHeight), verticalAlignment = Alignment.CenterVertically) {
+            ChartYAxisLabels(values, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
+            Canvas(Modifier.weight(1f).fillMaxHeight()) {
+                drawHorizontalGrid(tokens)
+                val chartPoints = points(values)
+                if (chartPoints.size < 2) return@Canvas
+                drawPath(pathFor(chartPoints), tokens.champagne, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+            }
         }
+        ChartXAxisLabels(xAxisLabels)
     }
 }
 
@@ -212,16 +249,31 @@ fun MzMultiLine(
     lastYear: List<Long>?,
     modifier: Modifier = Modifier,
     hideAmounts: Boolean = false,
+    chartHeight: androidx.compose.ui.unit.Dp = 160.dp,
+    xAxisLabels: List<String> = emptyList(),
 ) {
     val tokens = LocalMzTokens.current
     val all = current + previous + (lastYear ?: emptyList())
-    Row(modifier.fillMaxWidth().height(180.dp), verticalAlignment = Alignment.CenterVertically) {
-        ChartYAxisLabels(all, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
-        Canvas(Modifier.weight(1f).fillMaxHeight()) {
-            val scale = scaleFor(all)
-            drawLineSeries(current, tokens.champagne, 2.dp.toPx(), scale)
-            drawLineSeries(previous, tokens.textDim, 1.dp.toPx(), scale)
-            lastYear?.let { drawLineSeries(it, tokens.transfer, 1.dp.toPx(), scale, dashed = true) }
+    Column(modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().height(chartHeight), verticalAlignment = Alignment.CenterVertically) {
+            ChartYAxisLabels(all, hideAmounts, Modifier.width(70.dp).fillMaxHeight())
+            Canvas(Modifier.weight(1f).fillMaxHeight()) {
+                val scale = scaleFor(all)
+                drawHorizontalGrid(tokens)
+                drawLineSeries(current, tokens.champagne, 2.dp.toPx(), scale)
+                drawLineSeries(previous, tokens.expense, 2.dp.toPx(), scale)
+                lastYear?.let { drawLineSeries(it, tokens.income, 2.dp.toPx(), scale, dashed = true) }
+            }
+        }
+        ChartXAxisLabels(xAxisLabels)
+        Column(Modifier.fillMaxWidth().padding(start = 70.dp, top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                ChartLegendItem("Current period", tokens.champagne)
+                ChartLegendItem("Previous period", tokens.expense)
+            }
+            if (lastYear != null) {
+                ChartLegendItem("Same period last year", tokens.income)
+            }
         }
     }
 }
@@ -236,9 +288,9 @@ fun ChartYAxisLabels(
 ) {
     val tokens = LocalMzTokens.current
     val scale = scaleFor(values)
-    val midpoint = scale.min + (scale.max - scale.min) / 2L
+    val ticks = chartTicks(scale)
     Column(modifier, verticalArrangement = Arrangement.SpaceBetween) {
-        listOf(scale.max, midpoint, scale.min).forEach { value ->
+        ticks.forEach { value ->
             Text(
                 if (hideAmounts) "•••" else formatValue?.invoke(value) ?: stringResource(R.string.chart_axis_egp, compactMoney(value)),
                 color = tokens.textDim,
@@ -247,6 +299,65 @@ fun ChartYAxisLabels(
                 softWrap = false,
             )
         }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+private fun ChartXAxisLabels(labels: List<String>) {
+    if (labels.isEmpty()) return
+    val tokens = LocalMzTokens.current
+    val visible = if (labels.size <= 3) labels else listOf(labels.first(), labels[labels.lastIndex / 2], labels.last())
+    Row(Modifier.fillMaxWidth().padding(start = 70.dp, top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        visible.forEach { label ->
+            Text(label, color = tokens.textDim, style = MzTypography.bodySmall, maxLines = 1, softWrap = false)
+        }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+private fun ChartLegendItem(
+    label: String,
+    color: Color,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        androidx.compose.foundation.layout
+            .Box(Modifier.size(9.dp).clip(androidx.compose.foundation.shape.CircleShape).background(color))
+        Text(label, color = LocalMzTokens.current.textDim, style = MzTypography.bodySmall, maxLines = 1, softWrap = false)
+    }
+}
+
+private fun chartTicks(scale: SeriesScale): List<Long> {
+    val start = java.math.BigDecimal.valueOf(scale.min)
+    val span =
+        java.math.BigDecimal
+            .valueOf(scale.max)
+            .subtract(start)
+    return (4 downTo 0).map { step ->
+        start
+            .add(
+                span
+                    .multiply(
+                        java.math.BigDecimal.valueOf(step.toLong()),
+                    ).divide(java.math.BigDecimal.valueOf(4L), 0, java.math.RoundingMode.HALF_UP),
+            ).longValueExact()
+    }
+}
+
+private fun DrawScope.drawHorizontalGrid(tokens: MzTokens) {
+    val effect =
+        androidx.compose.ui.graphics.PathEffect
+            .dashPathEffect(floatArrayOf(3.dp.toPx(), 4.dp.toPx()))
+    repeat(5) { index ->
+        val y = size.height * index / 4f
+        drawLine(
+            tokens.outline.copy(alpha = 0.34f),
+            Offset(0f, y),
+            Offset(size.width, y),
+            strokeWidth = 1.dp.toPx(),
+            pathEffect = effect,
+        )
     }
 }
 

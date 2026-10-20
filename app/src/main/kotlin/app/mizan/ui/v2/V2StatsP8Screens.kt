@@ -345,7 +345,7 @@ internal fun V2StatsReportsPage(
                     color = tokens.textDim,
                     style = MzTypography.bodySmall,
                 )
-                Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     RateTile(
                         "Savings rate",
                         data.savingsRate,
@@ -357,7 +357,7 @@ internal fun V2StatsReportsPage(
                             displayAmount(data.incomeMinor, hideAmounts),
                         ),
                         hideAmounts,
-                        Modifier.weight(1f),
+                        Modifier.fillMaxWidth(),
                     )
                     RateTile(
                         "Invest rate",
@@ -370,7 +370,7 @@ internal fun V2StatsReportsPage(
                             displayAmount(data.incomeMinor, hideAmounts),
                         ),
                         hideAmounts,
-                        Modifier.weight(1f),
+                        Modifier.fillMaxWidth(),
                     )
                 }
                 Text(
@@ -521,10 +521,13 @@ private fun RateTile(
         Text(if (hideAmounts) "•••" else rate?.let(::percent) ?: "—", style = MzTypography.amountLarge)
         if (target != null) Text("Target · ${percent(target)}", color = tokens.accentText, style = MzTypography.bodySmall)
         Text(detail, color = tokens.textDim, style = MzTypography.bodySmall)
-        Row(Modifier.fillMaxWidth().height(42.dp).padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            ChartYAxisLabels(history, hideAmounts, Modifier.width(58.dp).fillMaxHeight(), ::percent)
-            MzSparkline(history, Modifier.weight(1f).fillMaxWidth().height(36.dp), tokens.income)
-        }
+        MzLineChart(
+            history,
+            Modifier.fillMaxWidth(),
+            hideAmounts = hideAmounts,
+            chartHeight = 82.dp,
+            xAxisLabels = listOf("6 mo ago", "Today"),
+        )
     }
 }
 
